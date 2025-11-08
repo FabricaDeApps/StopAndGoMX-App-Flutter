@@ -1,0 +1,402 @@
+import 'package:dio/dio.dart';
+import 'package:stopandgo/core/config/flavor_config.dart';
+import 'package:stopandgo/core/constants/api_endpoints.dart';
+import 'package:stopandgo/core/models/category.dart';
+import 'package:stopandgo/core/models/dto/payment_dto.dart';
+import 'package:stopandgo/core/models/games.dart';
+import 'package:stopandgo/core/models/responses/login_response.dart';
+import 'package:stopandgo/core/models/responses/organization_response.dart';
+import 'package:stopandgo/core/storage/app_storage.dart';
+import 'api_client.dart';
+import 'token_storage.dart';
+import 'package:get/get.dart' hide FormData, MultipartFile;
+
+class ApiRepository {
+  final Dio _dio = ApiClient.dio;
+  final TokenStorage _tokenStorage = Get.find<TokenStorage>();
+
+  /// ---- ORGANIZATION ----
+  Future<OrganizationResponse> getOrganization() async {
+    final orgId = FlavorConfig.I.organizationId;
+
+    final res = await _dio.get('${ApiEndpoints.organization}/$orgId');
+
+    if (res.statusCode == 200) {
+      final orgData = OrganizationResponse.fromJson(res.data['data']);
+      await AppStorage.setOrganization(orgData);
+      return orgData;
+    } else {
+      throw Exception('Error ${res.statusCode}: ${res.statusMessage}');
+    }
+  }
+
+  // ApiRepository.dart (fragmentos relevantes)
+  Future<LoginResponse> login({
+    required String email,
+    required String password,
+  }) async {
+    try {
+      final res = await _dio.post(
+        ApiEndpoints.authLogin,
+        data: {
+          'email': email,
+          'password': password,
+          'so': 'android',
+          'device_token': 'fcm_device_token_demo',
+          'device_name': 'Pixel 8',
+        },
+        options: Options(headers: {'Accept': 'application/json'}),
+      );
+
+      final loginData = LoginResponse.fromJson(res.data);
+
+      // Guarda sesión completa (access + refresh + expiraciones)
+      await _tokenStorage.setSession(
+        accessToken: loginData.accessToken,
+        tokenType: (loginData.tokenType.isNotEmpty
+            ? loginData.tokenType
+            : 'Bearer'),
+        refreshToken: loginData.refreshToken,
+      );
+
+      // Persistir usuario y organización
+      await AppStorage.setUser(loginData.user);
+
+      return loginData;
+    } on DioException catch (e) {
+      // Mensaje más claro para UI
+      final msg =
+          e.response?.data is Map && (e.response?.data['message'] != null)
+          ? e.response?.data['message'].toString()
+          : e.message ?? 'Error de red';
+      throw Exception('Login fallido: $msg');
+    } catch (e) {
+      throw Exception('Login fallido: $e');
+    }
+  }
+
+  /// Refresh con refresh_token persistido
+  Future<void> refreshAccessToken() async {
+    final rt = _tokenStorage.refreshToken;
+    if (rt == null || rt.isEmpty) throw Exception('No hay refresh_token');
+
+    final res = await _dio.post(
+      ApiEndpoints.authRefresh,
+      data: {'refresh_token': rt},
+      options: Options(headers: {'Accept': 'application/json'}),
+    );
+
+    // Respuesta tipo login (solo access token + ttl; algunos backends regresan todo)
+    final data = res.data as Map<String, dynamic>;
+
+    final newAccess = data['access_token'] as String;
+    final ttl = (data['access_expires_in_minutes'] as num).toInt();
+
+    // Si el backend también devuelve un nuevo refresh_token, puedes actualizarlo aquí.
+    // final newRefresh   = data['refresh_token'] as String? ?? _tokenStorage.refreshToken;
+    // final refreshExpAt = data['refresh_expires_at'] as String? ?? _tokenStorage.refreshExpAt?.toIso8601String();
+
+    await _tokenStorage.updateAccess(
+      accessToken: newAccess,
+      accessTtlMinutes: ttl,
+    );
+  }
+
+  Future<void> logout() async {
+    final rt = _tokenStorage.refreshToken;
+    try {
+      await _dio.post(
+        ApiEndpoints.authLogout,
+        data: {if (rt != null && rt.isNotEmpty) 'refresh_token': rt},
+        options: Options(headers: {'Accept': 'application/json'}),
+      );
+    } catch (_) {
+    } finally {
+      _tokenStorage.clear();
+      await AppStorage.clearAll();
+    }
+  }
+
+  // /player/my-games?player_id=...
+  Future<List<Game>> playerMyGames({required int playerId}) async {
+    final res = await _dio.get(
+      '/player/my-games',
+      queryParameters: {'player_id': playerId},
+      options: Options(headers: _headers()),
+    );
+
+    final data = res.data['data']; // <- AQUÍ VIENE LA LISTA
+    return gameDtoListFromData(data);
+  }
+
+  // /manager/{categoryId}/games?from=YYYY-MM-DD&to=YYYY-MM-DD
+  Future<List<Game>> managerCategoryGames({
+    required int categoryId,
+    required String from,
+    required String to,
+  }) async {
+    final res = await _dio.get(
+      '/manager/$categoryId/games',
+      queryParameters: {'from': from, 'to': to},
+      options: Options(headers: _headers()),
+    );
+
+    final data = res.data['data'];
+    return gameDtoListFromData(data);
+  }
+
+  Future<List<Map<String, dynamic>>> managerCategoryPlayers(
+    int categoryId,
+  ) async {
+    final res = await _dio.get(
+      '/manager/$categoryId/players',
+      options: Options(headers: _headers()),
+    );
+    final list = (res.data as List).cast<Map<String, dynamic>>();
+    return list;
+  }
+
+  /// GET /api/manager/categories
+  Future<List<Category>> getManagedCategories({
+    int page = 1,
+    int perPage = 10,
+  }) async {
+    final res = await _dio.get(
+      '/manager/categories',
+      queryParameters: {'page': page, 'per_page': perPage},
+      options: Options(headers: _headers()),
+    );
+
+    final data = (res.data['data'] as List).cast<Map<String, dynamic>>();
+    return data.map((e) => Category.fromJson(e)).toList();
+  }
+
+  // player: /player/my-payments?player_id=X  (usa res.data['data'])
+  Future<List<PaymentDto>> playerMyPayments({required int playerId}) async {
+    final res = await _dio.get(
+      '/player/my-payments',
+      queryParameters: {'player_id': playerId},
+      options: Options(headers: _headers()),
+    );
+    final data = (res.data['data'] as List?) ?? const [];
+    return data
+        .map((e) => PaymentDto.fromJson(Map<String, dynamic>.from(e as Map)))
+        .toList();
+  }
+
+  // manager: /manager/{categoryId}/payments (usa res.data['data'])
+  Future<List<PaymentDto>> managerCategoryPayments({
+    required int categoryId,
+  }) async {
+    final res = await _dio.get(
+      '/manager/$categoryId/payments',
+      options: Options(headers: _headers()),
+    );
+    final data = (res.data['data'] as List?) ?? const [];
+    return data
+        .map((e) => PaymentDto.fromJson(Map<String, dynamic>.from(e as Map)))
+        .toList();
+  }
+
+  // PLAYER/PARENT: /player/home  -> tomar last_notice (si existe)
+  Future<Map<String, dynamic>?> playerLastNotice() async {
+    final res = await _dio.get(
+      '/player/home',
+      options: Options(headers: _headers()),
+    );
+    final map = Map<String, dynamic>.from(res.data as Map);
+    if (map['last_notice'] == null) return null;
+    return Map<String, dynamic>.from(map['last_notice'] as Map);
+  }
+
+  // MANAGER: /manager/notices -> usar res.data['data'] (lista)
+  Future<List<Map<String, dynamic>>> managerNotices() async {
+    final res = await _dio.get(
+      '/manager/notices',
+      options: Options(headers: _headers()),
+    );
+    final data = (res.data['data'] as List?) ?? const [];
+    return data.map((e) => Map<String, dynamic>.from(e as Map)).toList();
+  }
+
+  Future<void> createPlayerReceipt({
+    required int paymentId,
+    required double amount,
+    required String method,
+    String? reference,
+    required String paidAtYmd,
+    required String filePath,
+  }) async {
+    final form = FormData.fromMap({
+      'amount': amount,
+      'method': method,
+      if (reference != null && reference.isNotEmpty) 'reference': reference,
+      'paid_at': paidAtYmd,
+      'file': await MultipartFile.fromFile(filePath),
+    });
+
+    final res = await _dio.post(
+      '/player/my-payments/$paymentId/createReceipt',
+      data: form,
+      options: Options(headers: _headers()),
+    );
+
+    if (res.statusCode != 201) {
+      throw Exception('Error ${res.statusCode}: ${res.statusMessage}');
+    }
+  }
+
+  ////////
+
+  String? get _accessToken => _tokenStorage.accessToken;
+  String get _tokenType => _tokenStorage.tokenType!;
+
+  Map<String, dynamic> get _authHeader => _accessToken == null
+      ? {}
+      : {'Authorization': '$_tokenType $_accessToken'};
+
+  Map<String, dynamic> get _orgHeader {
+    final org = AppStorage.getOrganization();
+    return org == null ? {} : {'X-Organization-Id': org.id.toString()};
+  }
+
+  Map<String, dynamic> _headers([Map<String, dynamic>? extra]) => {
+    ..._authHeader,
+    ..._orgHeader,
+    'Accept': 'application/json',
+    if (extra != null) ...extra,
+  };
+
+  /// GET /api/home/dashboard (ejemplo)
+  /// Puedes ajustar a tu ruta real: /api/player/home, etc.
+  /// Acepta filter_category_id opcional
+  Future<Map<String, dynamic>> getHomeDashboard({int? filterCategoryId}) async {
+    final res = await _dio.get(
+      '/home/dashboard',
+      queryParameters: {
+        if (filterCategoryId != null) 'filter_category_id': filterCategoryId,
+      },
+      options: Options(headers: _headers()),
+    );
+    // Devuelve el json crudo; puedes crear un modelo si quieres tiparlo
+    return (res.data as Map<String, dynamic>);
+  }
+
+  Future<List<Map<String, dynamic>>> parentMyPlayers() async {
+    final res = await _dio.get('/player/my-players');
+    final data = (res.data['data'] as List).cast<Map<String, dynamic>>();
+    return data;
+  }
+
+  /// Parent/Player: dashboard general (no por player específico)
+  Future<Map<String, dynamic>> playerHomeDashboard() async {
+    final res = await _dio.get('/player/home');
+    return (res.data as Map<String, dynamic>);
+  }
+
+  Future<Map<String, dynamic>> managerCategoryDashboard(int categoryId) async {
+    final res = await _dio.get(
+      '/manager/$categoryId/dashboard',
+      options: Options(headers: _headers()),
+    );
+    return (res.data as Map<String, dynamic>);
+  }
+
+  /// Perfil del usuario autenticado
+  Future<Map<String, dynamic>> me() async {
+    final res = await _dio.get('/me');
+    return Map<String, dynamic>.from(res.data as Map);
+  }
+
+  /// ---- PLAYERS ----
+
+  /// Players visibles para MANAGER (por categorías asignadas)
+  Future<List<dynamic>> managerPlayers() async {
+    final res = await _dio.get('/manager/players');
+    return (res.data as List).toList();
+  }
+
+  /// Players visibles para PARENT (por father_email / mother_email)
+  Future<List<dynamic>> parentPlayers() async {
+    final res = await _dio.get('/parent/players');
+    return (res.data as List).toList();
+  }
+
+  /// ---- PAYMENTS ----
+
+  Future<List<dynamic>> managerPayments() async {
+    final res = await _dio.get('/manager/payments');
+    return (res.data as List).toList();
+  }
+
+  /// Registrar abono; payload puede ser FormData si subes archivo
+  Future<void> markPaymentPaid({
+    required int paymentId,
+    required Map<String, dynamic> data,
+  }) async {
+    await _dio.put('/manager/payments/$paymentId/mark-paid', data: data);
+  }
+
+  /// Helper para subir comprobante (multipart)
+  Future<void> uploadReceipt({
+    required int paymentId,
+    required String filePath,
+    required double amount,
+    required String paidAtIso, // 2025-11-06T13:15:00Z
+    String method = 'transfer',
+    String? reference,
+  }) async {
+    final form = FormData.fromMap({
+      'amount': amount,
+      'paid_at': paidAtIso,
+      'method': method,
+      if (reference != null) 'reference': reference,
+      'file': await MultipartFile.fromFile(filePath),
+    });
+
+    await _dio.put('/manager/payments/$paymentId/mark-paid', data: form);
+  }
+
+  /// ---- NOTICES ----
+
+  Future<List<dynamic>> notices() async {
+    final res = await _dio.get('/notices');
+    return (res.data as List).toList();
+  }
+
+  /// Ejemplo de creación con adjunto
+  Future<Map<String, dynamic>> createNotice({
+    required String title,
+    String? message,
+    bool isPublished = true,
+    String? publishedAtIso,
+    String? attachmentPath,
+    int? categoryId,
+  }) async {
+    final map = <String, dynamic>{
+      'title': title,
+      if (message != null) 'message': message,
+      'is_published': isPublished ? 1 : 0,
+      if (publishedAtIso != null) 'published_at': publishedAtIso,
+      if (categoryId != null) 'category_id': categoryId,
+    };
+
+    FormData data;
+    if (attachmentPath != null) {
+      data = FormData.fromMap({
+        ...map,
+        'attachment': await MultipartFile.fromFile(attachmentPath),
+      });
+    } else {
+      data = FormData.fromMap(map);
+    }
+
+    final res = await _dio.post('/manager/notices', data: data);
+    return Map<String, dynamic>.from(res.data as Map);
+  }
+
+  String _fmtDate(DateTime d) =>
+      '${d.year.toString().padLeft(4, '0')}-'
+      '${d.month.toString().padLeft(2, '0')}-'
+      '${d.day.toString().padLeft(2, '0')}';
+}

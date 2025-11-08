@@ -1,0 +1,149 @@
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import '../../../core/config/flavor_config.dart';
+import 'login_controller.dart';
+
+class LoginView extends GetView<LoginController> {
+  const LoginView({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Scaffold(
+      // Asegura que el body se “achique” con el teclado
+      resizeToAvoidBottomInset: true,
+      appBar: AppBar(title: Text('Iniciar sesión'), centerTitle: true),
+      body: LayoutBuilder(
+        builder: (context, viewportConstraints) {
+          final keyboard = MediaQuery.of(context).viewInsets.bottom > 0;
+          final bottomInset = MediaQuery.of(context).viewInsets.bottom;
+
+          return Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 420),
+              child: Obx(() {
+                return SingleChildScrollView(
+                  padding: EdgeInsets.fromLTRB(
+                    20,
+                    20,
+                    20,
+                    (bottomInset > 0 ? bottomInset : 20) + 20,
+                  ),
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(
+                      minHeight:
+                          viewportConstraints.maxHeight -
+                          (MediaQuery.of(context).padding.top + kToolbarHeight),
+                    ),
+                    child: Form(
+                      key: controller.formKey,
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          CachedNetworkImage(
+                            imageUrl: controller.url.value ?? "",
+                            width: keyboard ? 140 : 200,
+                            height: keyboard ? 140 : 200,
+                            fit: BoxFit.contain,
+                            fadeInDuration: const Duration(milliseconds: 250),
+                            placeholder: (context, _) => const SizedBox(
+                              width: 48,
+                              height: 48,
+                              child: CircularProgressIndicator(strokeWidth: 3),
+                            ),
+                            errorWidget: (context, _, __) => Icon(
+                              Icons.image_not_supported_outlined,
+                              color: theme.colorScheme.primary,
+                              size: keyboard ? 40 : 64,
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+
+                          Text(
+                            'Bienvenido',
+                            textAlign: TextAlign.center,
+                            style: theme.textTheme.headlineSmall?.copyWith(
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+
+                          TextFormField(
+                            controller: controller.emailCtrl,
+                            focusNode: controller.emailFocus,
+                            keyboardType: TextInputType.emailAddress,
+                            textInputAction: TextInputAction.next,
+                            decoration: const InputDecoration(
+                              labelText: 'Email',
+                              hintText: 'tu@email.com',
+                              prefixIcon: Icon(Icons.alternate_email),
+                            ),
+                            validator: controller.validateEmailPublic,
+                            onFieldSubmitted: (_) {
+                              controller.passFocus.requestFocus();
+                            },
+                          ),
+                          const SizedBox(height: 12),
+
+                          Obx(
+                            () => TextFormField(
+                              controller: controller.passCtrl,
+                              focusNode: controller.passFocus,
+                              obscureText: controller.obscure.value,
+                              textInputAction: TextInputAction.done,
+                              decoration: InputDecoration(
+                                labelText: 'Contraseña',
+                                hintText: '••••••••',
+                                prefixIcon: const Icon(Icons.lock_outline),
+                                suffixIcon: IconButton(
+                                  onPressed: () => controller.obscure.toggle(),
+                                  icon: Icon(
+                                    controller.obscure.value
+                                        ? Icons.visibility_off_outlined
+                                        : Icons.visibility_outlined,
+                                  ),
+                                  tooltip: controller.obscure.value
+                                      ? 'Mostrar contraseña'
+                                      : 'Ocultar contraseña',
+                                ),
+                              ),
+                              validator: controller.validatePasswordPublic,
+                              onFieldSubmitted: (_) => controller.submit(),
+                            ),
+                          ),
+                          const SizedBox(height: 20),
+
+                          SizedBox(
+                            width: double.infinity,
+                            child: Obx(
+                              () => FilledButton(
+                                onPressed: controller.isLoading.value
+                                    ? null
+                                    : controller.submit,
+                                child: controller.isLoading.value
+                                    ? const SizedBox(
+                                        height: 20,
+                                        width: 20,
+                                        child: CircularProgressIndicator(
+                                          strokeWidth: 2,
+                                        ),
+                                      )
+                                    : const Text('Ingresar'),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                );
+              }),
+            ),
+          );
+        },
+      ),
+    );
+  }
+}

@@ -1,0 +1,4 @@
+#include "Debug.xcconfig"
+PRODUCT_BUNDLE_IDENTIFIER=app.stopandgomx.main
+APP_DISPLAY_NAME=StopAndGoMX
+APP_SUFFIX=

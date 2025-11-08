@@ -1,0 +1,35 @@
+enum AppFlavor { main, zorros }
+
+class FlavorConfig {
+  final AppFlavor flavor;
+  final String appName;
+  final String bundleId;
+  final int? organizationId;
+
+  static FlavorConfig? _instance;
+  static FlavorConfig get I => _instance!;
+
+  FlavorConfig._({
+    required this.flavor,
+    required this.appName,
+    required this.bundleId,
+    this.organizationId,
+  });
+
+  static void init({
+    required AppFlavor flavor,
+    required String appName,
+    required String bundleId,
+    int? organizationId,
+  }) {
+    _instance = FlavorConfig._(
+      flavor: flavor,
+      appName: appName,
+      bundleId: bundleId,
+      organizationId: organizationId,
+    );
+  }
+
+  bool get isZorros => flavor == AppFlavor.zorros;
+  bool get isMain => flavor == AppFlavor.main;
+}
