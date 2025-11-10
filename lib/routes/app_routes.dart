@@ -1,15 +1,20 @@
 import 'package:get/get.dart';
+import 'package:stopandgo/modules/attendece_game/attendece_game_view.dart';
+import 'package:stopandgo/modules/attendece_game/index.dart';
 import 'package:stopandgo/modules/auth/login_binding.dart';
 import 'package:stopandgo/modules/auth/login_view.dart';
+import 'package:stopandgo/modules/complete_game/complete_game_binding.dart';
+import 'package:stopandgo/modules/complete_game/complete_game_view.dart';
 import 'package:stopandgo/modules/home/index.dart';
 import 'package:stopandgo/modules/image_view/image_binding.dart';
 import 'package:stopandgo/modules/image_view/image_view.dart';
 import 'package:stopandgo/modules/make_payment/index.dart';
-import 'package:stopandgo/modules/make_payment/make_payment_view.dart';
+import 'package:stopandgo/modules/new_game/index.dart';
+import 'package:stopandgo/modules/new_game/new_game_view.dart';
+import 'package:stopandgo/modules/sign_in/sign_in_binding.dart';
+import 'package:stopandgo/modules/sign_in/sign_in_view.dart';
 import 'package:stopandgo/modules/splash/splash_binding.dart';
 import 'package:stopandgo/modules/splash/splash_view.dart';
-import '../modules/home/home_view.dart';
-import '../modules/home/home_controller.dart';
 
 part 'app_routes_names.dart';
 
@@ -46,6 +51,26 @@ class AppPages {
       name: Routes.imageView,
       page: () => const ImageView(),
       binding: ImageBinding(),
+    ),
+    GetPage(
+      name: Routes.newGame,
+      page: () => const NewGameView(),
+      binding: NewGameBinding(),
+    ),
+    GetPage(
+      name: Routes.completeGame,
+      page: () => const CompleteGameView(),
+      binding: CompleteGameBinding(),
+    ),
+    GetPage(
+      name: Routes.attendanceGame,
+      page: () => const AttendanceGameView(),
+      binding: AttendeceGameBinding(),
+    ),
+    GetPage(
+      name: Routes.signIn,
+      page: () => const SignInView(),
+      binding: SignInBinding(),
     ),
 
     // Ejemplo de futuras pantallas:

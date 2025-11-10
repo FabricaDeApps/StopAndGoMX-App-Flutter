@@ -9,4 +9,8 @@ abstract class Routes {
   static const notices = '/notices';
   static const makePayment = '/makePayment';
   static const imageView = '/imageView';
+  static const newGame = '/newGame';
+  static const completeGame = '/completeGame';
+  static const attendanceGame = '/attendanceGame';
+  static const signIn = '/sign-in';
 }

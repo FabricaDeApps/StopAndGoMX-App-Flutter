@@ -17,3 +17,5 @@ samples, guidance on mobile development, and a full API reference.
 
 
 ./scripts/make_module.sh home     
+
+flutter build apk --flavor zorros -t lib/main_zorros.dart

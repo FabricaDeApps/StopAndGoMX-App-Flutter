@@ -1,9 +1,13 @@
+import 'dart:io';
+
 import 'package:dio/dio.dart';
 import 'package:stopandgo/core/config/flavor_config.dart';
 import 'package:stopandgo/core/constants/api_endpoints.dart';
 import 'package:stopandgo/core/models/category.dart';
 import 'package:stopandgo/core/models/dto/payment_dto.dart';
 import 'package:stopandgo/core/models/games.dart';
+import 'package:stopandgo/core/models/players.dart';
+import 'package:stopandgo/core/models/responses/generic_response.dart';
 import 'package:stopandgo/core/models/responses/login_response.dart';
 import 'package:stopandgo/core/models/responses/organization_response.dart';
 import 'package:stopandgo/core/storage/app_storage.dart';
@@ -246,6 +250,69 @@ class ApiRepository {
     }
   }
 
+  Future<GenericResponse> createGame(
+    int categoryId,
+    Map<String, dynamic> data,
+  ) async {
+    try {
+      final response = await _dio.post(
+        '/manager/$categoryId/games/create',
+        data: data,
+      );
+      return GenericResponse.fromJson(response.data);
+    } on DioException catch (e) {
+      final msg =
+          e.response?.data?['message'] ?? e.message ?? 'Error desconocido';
+      throw Exception('Error al crear el juego: $msg');
+    } catch (e) {
+      throw Exception('Error inesperado al crear el juego: $e');
+    }
+  }
+
+  Future<GenericResponse> completeGame({
+    required int categoryId,
+    required int gameId,
+    required int homeScore,
+    required int opponentScore,
+    required File evidenceFile,
+  }) async {
+    final form = FormData.fromMap({
+      'game_id': gameId,
+      'home_score': homeScore,
+      'opponent_score': opponentScore,
+      'evidece': await MultipartFile.fromFile(
+        evidenceFile.path,
+        filename: evidenceFile.uri.pathSegments.last,
+      ),
+    });
+
+    try {
+      final res = await _dio.post(
+        '/manager/$categoryId/games/complete',
+        data: form,
+        options: Options(contentType: 'multipart/form-data'),
+      );
+
+      if (res.data is Map<String, dynamic>) {
+        return GenericResponse.fromJson(res.data as Map<String, dynamic>);
+      }
+      return GenericResponse(
+        success: false,
+        message: 'Respuesta inesperada del servidor',
+      );
+    } on DioException catch (e) {
+      final payload = e.response?.data;
+      if (payload is Map<String, dynamic>) {
+        // La API suele devolver {success:false, message:"..."} en errores controlados
+        return GenericResponse.fromJson(payload);
+      }
+      final msg = e.message ?? 'Error al completar juego';
+      return GenericResponse(success: false, message: msg);
+    } catch (e) {
+      return GenericResponse(success: false, message: 'Error inesperado: $e');
+    }
+  }
+
   ////////
 
   String? get _accessToken => _tokenStorage.accessToken;
@@ -335,6 +402,75 @@ class ApiRepository {
     required Map<String, dynamic> data,
   }) async {
     await _dio.put('/manager/payments/$paymentId/mark-paid', data: data);
+  }
+
+  //GAMES
+
+  Future<List<Player>> getGamePlayers({required int categoryId}) async {
+    final res = await _dio.get('/manager/$categoryId/players');
+    final data = res.data;
+
+    if (data is Map && data['data'] is List) {
+      final list = data['data'] as List;
+      return list
+          .map((e) => Player.fromJson(Map<String, dynamic>.from(e as Map)))
+          .toList();
+    }
+    return [];
+  }
+
+  Future<GenericResponse> saveAttendancesBulk({
+    required int gameId,
+    required List<Map<String, dynamic>> items,
+  }) async {
+    try {
+      final res = await _dio.post(
+        '/manager/$gameId/attendances/bulk',
+        data: {"items": items},
+      );
+      return GenericResponse.fromJson(Map<String, dynamic>.from(res.data));
+    } on DioException catch (e) {
+      final payload = e.response?.data;
+      if (payload is Map<String, dynamic>) {
+        return GenericResponse.fromJson(payload);
+      }
+      return GenericResponse(
+        success: false,
+        message: e.message ?? 'Error al guardar asistencias',
+      );
+    } catch (e) {
+      return GenericResponse(success: false, message: 'Error inesperado: $e');
+    }
+  }
+
+  Future<Map<String, dynamic>> registerPublicUser({
+    required int organizationId,
+    required String name,
+    required String email,
+    required String password,
+    required String role,
+  }) async {
+    try {
+      final res = await _dio.post(
+        '/public/organization/$organizationId/register',
+        data: {
+          'name': name.trim(),
+          'email': email.trim(),
+          'password': password,
+          'role': role,
+        },
+      );
+
+      final data = res.data;
+      return data is Map<String, dynamic> ? data : {'success': true};
+    } on DioException catch (e) {
+      final data = e.response?.data;
+      if (data is Map<String, dynamic>)
+        return data; // p.ej. {success:false,message:'...'}
+      return {'success': false, 'message': e.message ?? 'Error en registro'};
+    } catch (e) {
+      return {'success': false, 'message': 'Error inesperado: $e'};
+    }
   }
 
   /// Helper para subir comprobante (multipart)

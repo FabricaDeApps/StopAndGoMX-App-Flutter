@@ -3,25 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:stopandgo/core/models/category.dart';
 import 'package:stopandgo/core/models/dto/payment_dto.dart';
+import 'package:stopandgo/core/models/games.dart';
 import 'package:stopandgo/core/network/api_repository.dart';
 import 'package:stopandgo/core/storage/app_storage.dart';
 import 'package:stopandgo/routes/app_routes.dart';
-
-class Game {
-  final int id;
-  final String rival;
-  final DateTime date;
-  final String place;
-  final String? evidenceUrl;
-
-  Game({
-    required this.id,
-    required this.rival,
-    required this.date,
-    required this.place,
-    this.evidenceUrl,
-  });
-}
 
 class NoticeItem {
   final int id;
@@ -96,7 +81,7 @@ class HomeController extends GetxController
     tabController.addListener(() async {
       currentTab.value = tabController.index;
       if (tabController.index == 1) {
-        await _loadTabGameContent();
+        await loadTabGameContent();
       } else if (tabController.index == 2) {
         await loadPaymentsTab();
       } else if (currentTab.value == 3) {
@@ -196,14 +181,7 @@ class HomeController extends GetxController
     pagosRealizados.value = (totals['pagos_realizados'] ?? 0).toDouble();
 
     final games = gamesJson.map((g) {
-      final m = g as Map<String, dynamic>;
-      return Game(
-        id: (m['id'] ?? 0) as int,
-        rival: (m['rival'] ?? '') as String,
-        date: DateTime.tryParse(m['date']?.toString() ?? '') ?? DateTime.now(),
-        place: (m['place'] ?? '') as String,
-        evidenceUrl: m['evidence_url']?.toString(),
-      );
+      return Game.fromJson(g);
     }).toList();
     upcomingGames.assignAll(games);
 
@@ -298,17 +276,9 @@ class HomeController extends GetxController
         ((json['games'] ?? {}) as Map<String, dynamic>)['items'] as List? ??
         const [];
     final games = gamesJson.map((g) {
-      final m = g as Map<String, dynamic>;
-      return Game(
-        id: (m['id'] ?? 0) as int,
-        rival: (m['opponent'] ?? '') as String,
-        date:
-            DateTime.tryParse(m['starts_at']?.toString() ?? '') ??
-            DateTime.now(),
-        place: (m['venue'] ?? '') as String,
-        evidenceUrl: m['evidece_url']?.toString(),
-      );
+      return Game.fromJson(g);
     }).toList();
+    upcomingGames.assignAll(games);
     upcomingGames.assignAll(games);
 
     notices.clear();
@@ -331,9 +301,8 @@ class HomeController extends GetxController
     }
   }
 
-  /// Carga los juegos del Tab 1 según el rol actual (manager o parent/player)
-  Future<void> _loadTabGameContent() async {
-    if (isLoadingTab1.value) return; // evita llamadas simultáneas
+  Future<void> loadTabGameContent() async {
+    if (isLoadingTab1.value) return;
     isLoadingTab1.value = true;
 
     try {
@@ -357,21 +326,14 @@ class HomeController extends GetxController
           to: _ymd(to),
         );
 
-        final games = dtos
-            .map(
-              (d) => Game(
-                id: d.id,
-                rival: d.opponent,
-                date: d.startsAt ?? DateTime.now(),
-                place: d.venue ?? '',
-                evidenceUrl: d.evidenceUrl,
-              ),
-            )
-            .toList();
+        dtos.sort((a, b) {
+          final aDate = a.startsAt ?? DateTime(2100);
+          final bDate = b.startsAt ?? DateTime(2100);
+          return aDate.compareTo(bDate);
+        });
 
-        upcomingGames.assignAll(games);
+        upcomingGames.assignAll(dtos);
       } else {
-        // parent / player
         final playerId =
             selectedPlayerId.value ?? AppStorage.getSelectedPlayerId();
         if (playerId == null) {
@@ -380,19 +342,13 @@ class HomeController extends GetxController
         }
 
         final dtos = await api.playerMyGames(playerId: playerId);
-        final games = dtos
-            .map(
-              (d) => Game(
-                id: d.id,
-                rival: d.opponent,
-                date: d.startsAt ?? DateTime.now(),
-                place: d.venue ?? '',
-                evidenceUrl: d.evidenceUrl,
-              ),
-            )
-            .toList();
+        dtos.sort((a, b) {
+          final aDate = a.startsAt ?? DateTime(2100);
+          final bDate = b.startsAt ?? DateTime(2100);
+          return aDate.compareTo(bDate);
+        });
 
-        upcomingGames.assignAll(games);
+        upcomingGames.assignAll(dtos);
       }
     } catch (e, st) {
       debugPrint('[HomeController] ❌ Error cargando Tab1: $e\n$st');
@@ -516,7 +472,7 @@ class HomeController extends GetxController
     await _loadDashboardForManager(categoryId: id);
 
     if (tabController.index == 1) {
-      await _loadTabGameContent();
+      await loadTabGameContent();
     } else if (tabController.index == 2) {
       await loadPaymentsTab();
     } else if (tabController.index == 3) {
@@ -534,7 +490,7 @@ class HomeController extends GetxController
     await _loadDashboardForPlayerOrParent();
 
     if (tabController.index == 1) {
-      await _loadTabGameContent();
+      await loadTabGameContent();
     } else if (tabController.index == 2) {
       await loadPaymentsTab();
     } else if (tabController.index == 3) {

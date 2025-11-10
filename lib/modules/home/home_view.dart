@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:stopandgo/core/models/category.dart';
 import 'package:stopandgo/core/widgets/cards.dart';
+import 'package:stopandgo/modules/home/widgets/games_tab.dart';
 import 'package:stopandgo/modules/home/widgets/notices_tab.dart';
 import 'package:stopandgo/modules/home/widgets/payments_tab.dart';
 import 'home_controller.dart';
@@ -93,8 +94,9 @@ class HomeView extends GetView<HomeController> {
                 child: TabBarView(
                   controller: controller.tabController,
                   children: [
-                    _DashboardTab(controller: controller),
-                    _GamesTab(controller: controller),
+                    //_DashboardTab(controller: controller),
+                    Container(),
+                    GamesTab(controller: controller),
                     PaymentsTab(controller: controller),
                     NoticesTab(controller: controller),
                   ],
@@ -404,63 +406,10 @@ class _DashboardTab extends StatelessWidget {
               child: const Icon(Icons.sports_soccer),
             ),
             title: Text(
-              g.rival,
+              g.opponent,
               style: const TextStyle(fontWeight: FontWeight.w600),
             ),
-            subtitle: Text('${_fmtDate(g.date)} · ${g.place}'),
-            trailing: const Icon(Icons.chevron_right),
-            onTap: () => controller.onTapGame(g),
-          );
-        },
-      );
-    });
-  }
-}
-
-class _GamesTab extends StatelessWidget {
-  const _GamesTab({required this.controller});
-  final HomeController controller;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Obx(() {
-      // 🔹 Mostrar loading si está cargando
-      if (controller.isLoadingTab1.value) {
-        return const Center(child: CircularProgressIndicator());
-      }
-
-      // 🔹 Mostrar lista normal cuando termina de cargar
-      final list = controller.upcomingGames;
-      if (list.isEmpty) {
-        return Center(
-          child: Text('Sin juegos', style: theme.textTheme.bodyMedium),
-        );
-      }
-
-      return ListView.separated(
-        padding: const EdgeInsets.fromLTRB(16, 8, 16, 80),
-        itemCount: list.length,
-        separatorBuilder: (_, __) => const SizedBox(height: 8),
-        itemBuilder: (_, i) {
-          final g = list[i];
-          return ListTile(
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(14),
-            ),
-            tileColor: theme.colorScheme.surface,
-            leading: CircleAvatar(
-              backgroundColor: theme.colorScheme.primary.withOpacity(.12),
-              child: const Icon(Icons.sports_soccer),
-            ),
-            title: Text(
-              g.rival,
-              style: const TextStyle(fontWeight: FontWeight.w600),
-            ),
-            subtitle: Text(
-              '${g.date.day.toString().padLeft(2, '0')}/${g.date.month.toString().padLeft(2, '0')} '
-              '${g.date.hour.toString().padLeft(2, '0')}:${g.date.minute.toString().padLeft(2, '0')} · ${g.place}',
-            ),
+            subtitle: Text('${_fmtDate(g.startsAt!)} · ${g.venue}'),
             trailing: const Icon(Icons.chevron_right),
             onTap: () => controller.onTapGame(g),
           );
