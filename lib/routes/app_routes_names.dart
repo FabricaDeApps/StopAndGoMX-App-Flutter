@@ -13,4 +13,8 @@ abstract class Routes {
   static const completeGame = '/completeGame';
   static const attendanceGame = '/attendanceGame';
   static const signIn = '/sign-in';
+  static const assignPlayer = '/assignPlayer';
+  static const createTrainnig = '/createTrainnig';
+  static const trainnings = '/trainnings';
+  static const trainingAttendance = '/trainingAttendance';
 }

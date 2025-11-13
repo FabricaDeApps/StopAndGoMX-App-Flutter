@@ -16,6 +16,10 @@ For help getting started with Flutter development, view the
 samples, guidance on mobile development, and a full API reference.
 
 
+Imoportante correr esto para los logos:
+./scripts/use_logo.sh
+
+
 ./scripts/make_module.sh home     
 
 flutter build apk --flavor zorros -t lib/main_zorros.dart

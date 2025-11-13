@@ -10,6 +10,7 @@ import 'package:stopandgo/core/models/players.dart';
 import 'package:stopandgo/core/models/responses/generic_response.dart';
 import 'package:stopandgo/core/models/responses/login_response.dart';
 import 'package:stopandgo/core/models/responses/organization_response.dart';
+import 'package:stopandgo/core/models/training.dart';
 import 'package:stopandgo/core/storage/app_storage.dart';
 import 'api_client.dart';
 import 'token_storage.dart';
@@ -156,8 +157,16 @@ class ApiRepository {
       '/manager/$categoryId/players',
       options: Options(headers: _headers()),
     );
-    final list = (res.data as List).cast<Map<String, dynamic>>();
-    return list;
+
+    final data = res.data;
+
+    if (data is Map && data['data'] is List) {
+      return (data['data'] as List)
+          .map((e) => Map<String, dynamic>.from(e as Map))
+          .toList();
+    }
+
+    return [];
   }
 
   /// GET /api/manager/categories
@@ -396,6 +405,116 @@ class ApiRepository {
     return (res.data as List).toList();
   }
 
+  /// Jugadores disponibles para enrolar en una categoría
+  /// GET /manager/{categoryId}/playersForEnroll
+  Future<List<Player>> managerPlayersForEnroll({
+    required int categoryId,
+  }) async {
+    final res = await _dio.get(
+      '/manager/$categoryId/playersForEnroll',
+      options: Options(headers: _headers()),
+    );
+
+    final data = (res.data['data'] as List?) ?? const [];
+    return data
+        .map((e) => Player.fromJson(Map<String, dynamic>.from(e as Map)))
+        .toList();
+  }
+
+  /// Enrolar jugador en una categoría
+  /// POST /manager/{categoryId}/enrollPlayer
+  ///
+  /// body esperado:
+  /// {
+  ///   "player_id": 1,
+  ///   "jersey_number": "12",
+  ///   "is_captain": false
+  /// }
+  Future<GenericResponse> enrollPlayer({
+    required int categoryId,
+    required Map<String, dynamic> body,
+  }) async {
+    try {
+      final res = await _dio.post(
+        '/manager/$categoryId/enrollPlayer',
+        data: body,
+        options: Options(headers: _headers()),
+      );
+
+      if (res.statusCode == 201) {
+        return GenericResponse(
+          success: true,
+          message: 'Jugador enrolado correctamente',
+        );
+      } else {
+        return GenericResponse(
+          success: false,
+          message: res.statusMessage ?? "",
+        );
+      }
+    } on DioException catch (e) {
+      final payload = e.response?.data;
+      if (payload is Map<String, dynamic>) {
+        return GenericResponse.fromJson(payload);
+      }
+      final msg = e.message ?? 'Error al enrolar jugador';
+      return GenericResponse(success: false, message: msg);
+    } catch (e) {
+      return GenericResponse(
+        success: false,
+        message: 'Error inesperado al enrolar jugador: $e',
+      );
+    }
+  }
+
+  Future<List<Training>> managerCategoryTrainings({
+    required int categoryId,
+  }) async {
+    final res = await _dio.get(
+      '/manager/$categoryId/trainings',
+      options: Options(headers: _headers()),
+    );
+
+    final data = (res.data['data'] as List?) ?? [];
+
+    return data
+        .map((e) => Training.fromJson(Map<String, dynamic>.from(e)))
+        .toList();
+  }
+
+  Future<Map<String, dynamic>> createTraining({
+    required int categoryId,
+    required Map<String, dynamic> data,
+  }) async {
+    try {
+      final res = await _dio.post(
+        '/manager/$categoryId/trainings',
+        data: data,
+        options: Options(headers: _headers()),
+      );
+
+      if (res.statusCode == 201) {
+        return {
+          'success': true,
+          'message': 'Entrenamiento creado correctamente.',
+        };
+      } else {
+        return {'success': false, 'message': 'Error al crear entrenamiento'};
+      }
+    } on DioException catch (e) {
+      final payload = e.response?.data;
+      if (payload is Map<String, dynamic>) {
+        return Map<String, dynamic>.from(payload);
+      }
+      return {
+        'success': false,
+        'message': e.message ?? 'Error al crear entrenamiento',
+      };
+    } catch (e) {
+      return {'success': false, 'message': 'Error inesperado: $e'};
+    }
+  }
+
   /// Registrar abono; payload puede ser FormData si subes archivo
   Future<void> markPaymentPaid({
     required int paymentId,
@@ -417,6 +536,19 @@ class ApiRepository {
           .toList();
     }
     return [];
+  }
+
+  // Guardar asistencia BULK (juego o entrenamiento)
+  Future<bool> managerAttendanceBulk({
+    required int categoryId,
+    required List<Map<String, dynamic>> items,
+  }) async {
+    final res = await _dio.post(
+      '/manager/$categoryId/attendances/bulk',
+      data: {'items': items},
+    );
+
+    return res.statusCode == 201;
   }
 
   Future<GenericResponse> saveAttendancesBulk({

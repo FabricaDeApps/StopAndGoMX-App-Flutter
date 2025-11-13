@@ -2,7 +2,7 @@
 class Player {
   final int id;
   final int organizationId;
-  final int categoryId;
+  final int? categoryId;
   final int? number;
   final bool isCaptain;
   final String status;
@@ -18,7 +18,7 @@ class Player {
   Player({
     required this.id,
     required this.organizationId,
-    required this.categoryId,
+    this.categoryId,
     this.number,
     required this.isCaptain,
     required this.status,
@@ -41,7 +41,7 @@ class Player {
     return Player(
       id: json['id'] as int,
       organizationId: json['organization_id'] as int,
-      categoryId: json['category_id'] as int,
+      categoryId: json['category_id'] ?? 0,
       number: json['number'] is int
           ? json['number']
           : int.tryParse('${json['number']}'),

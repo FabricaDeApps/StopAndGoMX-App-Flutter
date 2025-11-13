@@ -2,7 +2,6 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:stopandgo/core/network/api_repository.dart';
-import 'package:stopandgo/core/network/token_storage.dart';
 import 'package:stopandgo/routes/app_routes.dart';
 import '../../../core/storage/app_storage.dart';
 import 'package:stopandgo/core/models/responses/organization_response.dart';
@@ -19,7 +18,6 @@ class SplashController extends GetxController {
 
   // Control de flujo
   bool _navigated = false;
-  bool _imageShown = false;
 
   /// 🔹 Espera a que la vista esté montada (widgets listos)
   @override
@@ -46,8 +44,7 @@ class SplashController extends GetxController {
         debugPrint('⚠️ No se pudo actualizar branding remoto: $e');
       }
 
-      // 3️⃣ Esperar a que la imagen esté en pantalla
-      await _waitUntilImageShown();
+      await markImageShown();
     } catch (e) {
       error.value = 'Error cargando splash: $e';
     } finally {
@@ -61,25 +58,8 @@ class SplashController extends GetxController {
     secondaryColor.value = _hexToColor(org.secondaryColor);
   }
 
-  Future<void> _waitUntilImageShown() async {
-    final completer = Completer<void>();
-    int waited = 0;
-
-    Timer.periodic(const Duration(milliseconds: 200), (timer) {
-      waited += 200;
-      if (_imageShown || waited > 8000) {
-        timer.cancel();
-        if (!completer.isCompleted) completer.complete();
-      }
-    });
-
-    return completer.future;
-  }
-
   Future<void> markImageShown() async {
-    _imageShown = true;
-    // 4️⃣ Esperar 4 segundos más tras mostrarse el logo
-    await Future.delayed(const Duration(seconds: 4));
+    await Future.delayed(const Duration(seconds: 3));
 
     // 5️⃣ Navegar al login
     _goNext();

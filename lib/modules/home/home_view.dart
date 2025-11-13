@@ -7,6 +7,7 @@ import 'package:stopandgo/core/widgets/cards.dart';
 import 'package:stopandgo/modules/home/widgets/games_tab.dart';
 import 'package:stopandgo/modules/home/widgets/notices_tab.dart';
 import 'package:stopandgo/modules/home/widgets/payments_tab.dart';
+import 'package:stopandgo/routes/app_routes.dart';
 import 'home_controller.dart';
 
 class HomeView extends GetView<HomeController> {
@@ -137,10 +138,14 @@ class HomeView extends GetView<HomeController> {
   Widget _buildDrawer(ThemeData theme) {
     return Drawer(
       child: SafeArea(
-        child: Column(
-          children: [
-            Obx(() {
-              return UserAccountsDrawerHeader(
+        child: Obx(() {
+          // Lee el rol desde el controlador
+          final role = controller.userRole.value;
+          final isManager = role == 'manager';
+
+          return Column(
+            children: [
+              UserAccountsDrawerHeader(
                 currentAccountPicture: CircleAvatar(
                   radius: 28,
                   backgroundColor: theme.colorScheme.secondary.withOpacity(.1),
@@ -151,63 +156,86 @@ class HomeView extends GetView<HomeController> {
                             width: 56,
                             height: 56,
                             fit: BoxFit.cover,
-                            errorWidget: (_, __, ___) =>
-                                const Icon(Icons.person, size: 36),
                           ),
                         )
                       : const Icon(Icons.person, size: 36),
                 ),
                 accountName: Text(controller.userName.value),
                 accountEmail: Text(controller.userEmail.value),
-              );
-            }),
-            ListTile(
-              leading: const Icon(Icons.home_outlined),
-              title: const Text('Inicio'),
-              onTap: () => Get.back(),
-            ),
-            ListTile(
-              leading: const Icon(Icons.person_outline),
-              title: const Text('Perfil'),
-              onTap: () {},
-            ),
-            ListTile(
-              leading: const Icon(Icons.settings_outlined),
-              title: const Text('Configuración'),
-              onTap: () {},
-            ),
-            const Spacer(),
-            ListTile(
-              leading: const Icon(Icons.logout),
-              title: const Text('Cerrar sesión'),
-              onTap: () async {
-                // Opcional: confirmación
-                final ok = await showDialog<bool>(
-                  context: Get.context!,
-                  builder: (ctx) => AlertDialog(
-                    title: const Text('Cerrar sesión'),
-                    content: const Text(
-                      '¿Seguro que deseas salir de tu cuenta?',
+              ),
+
+              // Opción siempre visible
+              ListTile(
+                leading: const Icon(Icons.home_outlined),
+                title: const Text('Inicio'),
+                onTap: () => Get.back(),
+              ),
+
+              // 👇 SOLO PARA MANAGER
+              if (isManager) ...[
+                ListTile(
+                  leading: const Icon(Icons.person_outline),
+                  title: const Text('Asignar Jugador'),
+                  onTap: () {
+                    Get.back();
+                    Get.toNamed(Routes.assignPlayer);
+                  },
+                ),
+                ListTile(
+                  leading: const Icon(Icons.list_alt_outlined),
+                  title: const Text('Entrenamientos'),
+                  onTap: () {
+                    Get.back();
+                    Get.toNamed(Routes.trainnings);
+                  },
+                ),
+              ],
+
+              /*
+              ListTile(
+                leading: const Icon(Icons.person_outline),
+                title: const Text('Perfil'),
+                onTap: () {},
+              ),
+              ListTile(
+                leading: const Icon(Icons.settings_outlined),
+                title: const Text('Configuración'),
+                onTap: () {},
+              ),
+              */
+              const Spacer(),
+
+              ListTile(
+                leading: const Icon(Icons.logout),
+                title: const Text('Cerrar sesión'),
+                onTap: () async {
+                  final ok = await showDialog<bool>(
+                    context: Get.context!,
+                    builder: (ctx) => AlertDialog(
+                      title: const Text('Cerrar sesión'),
+                      content: const Text(
+                        '¿Seguro que deseas salir de tu cuenta?',
+                      ),
+                      actions: [
+                        TextButton(
+                          onPressed: () => Navigator.pop(ctx, false),
+                          child: const Text('Cancelar'),
+                        ),
+                        FilledButton(
+                          onPressed: () => Navigator.pop(ctx, true),
+                          child: const Text('Salir'),
+                        ),
+                      ],
                     ),
-                    actions: [
-                      TextButton(
-                        onPressed: () => Navigator.pop(ctx, false),
-                        child: const Text('Cancelar'),
-                      ),
-                      FilledButton(
-                        onPressed: () => Navigator.pop(ctx, true),
-                        child: const Text('Salir'),
-                      ),
-                    ],
-                  ),
-                );
-                if (ok == true) {
-                  await controller.logout();
-                }
-              },
-            ),
-          ],
-        ),
+                  );
+                  if (ok == true) {
+                    await controller.logout();
+                  }
+                },
+              ),
+            ],
+          );
+        }),
       ),
     );
   }
