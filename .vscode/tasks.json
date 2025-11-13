@@ -2,9 +2,16 @@
   "version": "2.0.0",
   "tasks": [
     {
+      "label": "prepare-stopandgo-assets",
+      "type": "shell",
+      "command": "./scripts/use_logo.sh stopandgo",
+      "problemMatcher": []
+    },
+    {
       "label": "prepare-zorros-assets",
       "type": "shell",
-      "command": "./scripts/use_logo.sh zorros"
+      "command": "./scripts/use_logo.sh zorros",
+      "problemMatcher": []
     }
   ]
 }

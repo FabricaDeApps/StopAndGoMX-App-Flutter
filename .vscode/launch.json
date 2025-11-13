@@ -1,13 +1,14 @@
 {
+  "version": "0.2.0",
   "configurations": [
     {
-      "name": "Run MainApp",
+      "name": "Run StopAndGo",
       "request": "launch",
       "type": "dart",
       "flutterMode": "debug",
-      "program": "lib/main_main.dart",
+      "program": "lib/main_stopandgo.dart",
       "args": ["--flavor", "mainapp"],
-      "preLaunchTask": "prepare-zorros-assets"
+      "preLaunchTask": "prepare-stopandgo-assets"
     },
     {
       "name": "Run Zorros",
