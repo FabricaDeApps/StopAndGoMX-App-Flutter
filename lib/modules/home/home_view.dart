@@ -191,12 +191,15 @@ class HomeView extends GetView<HomeController> {
                 ),
               ],
 
-              /*
               ListTile(
                 leading: const Icon(Icons.person_outline),
                 title: const Text('Perfil'),
-                onTap: () {},
+                onTap: () {
+                  Get.back();
+                  Get.toNamed(Routes.myProfile);
+                },
               ),
+              /*
               ListTile(
                 leading: const Icon(Icons.settings_outlined),
                 title: const Text('Configuración'),

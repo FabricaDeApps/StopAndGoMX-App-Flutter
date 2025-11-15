@@ -378,10 +378,117 @@ class ApiRepository {
     return (res.data as Map<String, dynamic>);
   }
 
-  /// Perfil del usuario autenticado
-  Future<Map<String, dynamic>> me() async {
-    final res = await _dio.get('/me');
-    return Map<String, dynamic>.from(res.data as Map);
+  /// ---- ACCOUNT / PERFIL ----
+
+  /// GET /account
+  Future<Map<String, dynamic>> getAccount() async {
+    final res = await _dio.get(
+      '/account',
+      options: Options(headers: _headers()),
+    );
+
+    if (res.data is Map<String, dynamic>) {
+      return Map<String, dynamic>.from(res.data as Map);
+    }
+
+    throw Exception('Respuesta inesperada al obtener cuenta');
+  }
+
+  /// PUT /account
+  Future<Map<String, dynamic>> updateAccount({
+    required String name,
+    required String email,
+    String? role, // parent | player | manager
+  }) async {
+    try {
+      final body = <String, dynamic>{
+        'name': name.trim(),
+        'email': email.trim(),
+        if (role != null && role.isNotEmpty) 'role': role,
+      };
+
+      final res = await _dio.put(
+        '/account',
+        data: body,
+        options: Options(headers: _headers()),
+      );
+
+      if (res.data is Map<String, dynamic>) {
+        return Map<String, dynamic>.from(res.data as Map);
+      }
+
+      throw Exception('Respuesta inesperada al actualizar perfil');
+    } on DioException catch (e) {
+      final payload = e.response?.data;
+      String msg = 'Error al actualizar perfil';
+
+      if (payload is Map && payload['message'] != null) {
+        msg = payload['message'].toString();
+      } else if (e.message != null) {
+        msg = e.message!;
+      }
+
+      throw Exception(msg);
+    } catch (e) {
+      throw Exception('Error inesperado al actualizar perfil: $e');
+    }
+  }
+
+  /// PUT /account/password
+  Future<void> updateAccountPassword({
+    required String currentPassword,
+    required String newPassword,
+    required String confirmPassword,
+  }) async {
+    try {
+      final body = {
+        'current_password': currentPassword,
+        'password': newPassword,
+        'password_confirmation': confirmPassword,
+      };
+
+      await _dio.put(
+        '/account/password',
+        data: body,
+        options: Options(headers: _headers()),
+      );
+    } on DioException catch (e) {
+      final payload = e.response?.data;
+      String msg = 'Error al cambiar contraseña';
+
+      if (payload is Map && payload['message'] != null) {
+        msg = payload['message'].toString();
+      } else if (e.message != null) {
+        msg = e.message!;
+      }
+
+      throw Exception(msg);
+    } catch (e) {
+      throw Exception('Error inesperado al cambiar contraseña: $e');
+    }
+  }
+
+  /// DELETE /account/delete
+  Future<void> deleteAccount() async {
+    try {
+      await _dio.delete(
+        '/account/delete',
+        options: Options(headers: _headers()),
+      );
+    } on DioException catch (e) {
+      final payload = e.response?.data;
+      String msg = 'Error al eliminar cuenta';
+
+      if (payload is Map && payload['message'] != null) {
+        msg = payload['message'].toString();
+      } else if (e.message != null) {
+        msg = e.message!;
+      }
+
+      throw Exception(msg);
+    } catch (e) {
+      throw Exception('Error inesperado al eliminar cuenta: $e');
+    }
   }
 
   /// ---- PLAYERS ----
