@@ -10,6 +10,10 @@
 		1498D2341E8E89220040F4C2 /* GeneratedPluginRegistrant.m in Sources */ = {isa = PBXBuildFile; fileRef = 1498D2331E8E89220040F4C2 /* GeneratedPluginRegistrant.m */; };
 		331C808B294A63AB00263BE5 /* RunnerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 331C807B294A618700263BE5 /* RunnerTests.swift */; };
 		3B3967161E833CAA004F5970 /* AppFrameworkInfo.plist in Resources */ = {isa = PBXBuildFile; fileRef = 3B3967151E833CAA004F5970 /* AppFrameworkInfo.plist */; };
+		61530C332EC90E4B007B96DF /* Info-zorros.plist in Resources */ = {isa = PBXBuildFile; fileRef = 61530C322EC90E4B007B96DF /* Info-zorros.plist */; };
+		61530C342EC90E4B007B96DF /* Info-mainapp.plist in Resources */ = {isa = PBXBuildFile; fileRef = 61530C312EC90E4B007B96DF /* Info-mainapp.plist */; };
+		61530C372EC90F6C007B96DF /* Debug-mainapp.xcconfig in Resources */ = {isa = PBXBuildFile; fileRef = 61530C352EC90F6C007B96DF /* Debug-mainapp.xcconfig */; };
+		61530C382EC90F6C007B96DF /* Release-mainapp.xcconfig in Resources */ = {isa = PBXBuildFile; fileRef = 61530C362EC90F6C007B96DF /* Release-mainapp.xcconfig */; };
 		661430BA027910CA2DBEE21D /* Pods_RunnerTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5F0A02FBE044F9322FA6F2D7 /* Pods_RunnerTests.framework */; };
 		74858FAF1ED2DC5600515810 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 74858FAE1ED2DC5600515810 /* AppDelegate.swift */; };
 		87FF26D7A3D5285DCDD3E44A /* Pods_Runner.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D8F5EB4D90D24D9DAFEFB286 /* Pods_Runner.framework */; };
@@ -55,10 +59,13 @@
 		4AD555CE1C7E689981FF8BB9 /* Pods-Runner.profile.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Runner.profile.xcconfig"; path = "Target Support Files/Pods-Runner/Pods-Runner.profile.xcconfig"; sourceTree = "<group>"; };
 		5F0A02FBE044F9322FA6F2D7 /* Pods_RunnerTests.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_RunnerTests.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		5F2084B9DAB6E6D00ABA567D /* Pods-Runner.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Runner.release.xcconfig"; path = "Target Support Files/Pods-Runner/Pods-Runner.release.xcconfig"; sourceTree = "<group>"; };
+		61530C312EC90E4B007B96DF /* Info-mainapp.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "Info-mainapp.plist"; sourceTree = "<group>"; };
+		61530C322EC90E4B007B96DF /* Info-zorros.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "Info-zorros.plist"; sourceTree = "<group>"; };
+		61530C352EC90F6C007B96DF /* Debug-mainapp.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = "Debug-mainapp.xcconfig"; sourceTree = "<group>"; };
+		61530C362EC90F6C007B96DF /* Release-mainapp.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = "Release-mainapp.xcconfig"; sourceTree = "<group>"; };
 		61BC29362EC2384B00669F10 /* Release-zorros.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = "Release-zorros.xcconfig"; sourceTree = "<group>"; };
 		61BC29382EC239F300669F10 /* Release-zorros.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = "Release-zorros.xcconfig"; sourceTree = "<group>"; };
 		61BC29392EC23A2A00669F10 /* Debug-zorros.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = "Debug-zorros.xcconfig"; sourceTree = "<group>"; };
-		61BC293A2EC23CBF00669F10 /* Info 2.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "Info 2.plist"; sourceTree = "<group>"; };
 		74858FAD1ED2DC5600515810 /* Runner-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "Runner-Bridging-Header.h"; sourceTree = "<group>"; };
 		74858FAE1ED2DC5600515810 /* AppDelegate.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		7AFA3C8E1D35360C0083082E /* Release.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; name = Release.xcconfig; path = Flutter/Release.xcconfig; sourceTree = "<group>"; };
@@ -159,6 +166,8 @@
 				61BC29362EC2384B00669F10 /* Release-zorros.xcconfig */,
 				61BC29382EC239F300669F10 /* Release-zorros.xcconfig */,
 				61BC29392EC23A2A00669F10 /* Debug-zorros.xcconfig */,
+				61530C352EC90F6C007B96DF /* Debug-mainapp.xcconfig */,
+				61530C362EC90F6C007B96DF /* Release-mainapp.xcconfig */,
 				918ABE85F4BF5AED9E2D6750 /* Frameworks */,
 			);
 			sourceTree = "<group>";
@@ -179,7 +188,8 @@
 				97C146FD1CF9000F007C117D /* Assets.xcassets */,
 				97C146FF1CF9000F007C117D /* LaunchScreen.storyboard */,
 				97C147021CF9000F007C117D /* Info.plist */,
-				61BC293A2EC23CBF00669F10 /* Info 2.plist */,
+				61530C312EC90E4B007B96DF /* Info-mainapp.plist */,
+				61530C322EC90E4B007B96DF /* Info-zorros.plist */,
 				1498D2321E8E86230040F4C2 /* GeneratedPluginRegistrant.h */,
 				1498D2331E8E89220040F4C2 /* GeneratedPluginRegistrant.m */,
 				74858FAE1ED2DC5600515810 /* AppDelegate.swift */,
@@ -287,6 +297,10 @@
 				3B3967161E833CAA004F5970 /* AppFrameworkInfo.plist in Resources */,
 				97C146FE1CF9000F007C117D /* Assets.xcassets in Resources */,
 				97C146FC1CF9000F007C117D /* Main.storyboard in Resources */,
+				61530C332EC90E4B007B96DF /* Info-zorros.plist in Resources */,
+				61530C372EC90F6C007B96DF /* Debug-mainapp.xcconfig in Resources */,
+				61530C382EC90F6C007B96DF /* Release-mainapp.xcconfig in Resources */,
+				61530C342EC90E4B007B96DF /* Info-mainapp.plist in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -497,6 +511,7 @@
 				DEVELOPMENT_TEAM = M25Y63Z23D;
 				ENABLE_BITCODE = NO;
 				INFOPLIST_FILE = Runner/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = "";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -618,14 +633,15 @@
 		};
 		610864942EBD3134009C245E /* Debug-mainapp */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 9740EEB21CF90195004384FC /* Debug.xcconfig */;
+			baseConfigurationReference = 61530C352EC90F6C007B96DF /* Debug-mainapp.xcconfig */;
 			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIconMain;
 				CLANG_ENABLE_MODULES = YES;
 				CURRENT_PROJECT_VERSION = "$(FLUTTER_BUILD_NUMBER)";
 				DEVELOPMENT_TEAM = M25Y63Z23D;
 				ENABLE_BITCODE = NO;
 				INFOPLIST_FILE = "Runner/Info-mainapp.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = "Stop And Go";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -724,6 +740,7 @@
 				DEVELOPMENT_TEAM = M25Y63Z23D;
 				ENABLE_BITCODE = NO;
 				INFOPLIST_FILE = "Runner/Info-zorros.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = "";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -811,14 +828,15 @@
 		};
 		6108649A2EBD315D009C245E /* Release-mainapp */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 7AFA3C8E1D35360C0083082E /* Release.xcconfig */;
+			baseConfigurationReference = 61530C362EC90F6C007B96DF /* Release-mainapp.xcconfig */;
 			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIconMain;
 				CLANG_ENABLE_MODULES = YES;
 				CURRENT_PROJECT_VERSION = "$(FLUTTER_BUILD_NUMBER)";
 				DEVELOPMENT_TEAM = M25Y63Z23D;
 				ENABLE_BITCODE = NO;
 				INFOPLIST_FILE = "Runner/Info-mainapp.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = "Stop And Go";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -911,6 +929,7 @@
 				DEVELOPMENT_TEAM = M25Y63Z23D;
 				ENABLE_BITCODE = NO;
 				INFOPLIST_FILE = "Runner/Info-zorros.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = "";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -1060,6 +1079,7 @@
 				DEVELOPMENT_TEAM = M25Y63Z23D;
 				ENABLE_BITCODE = NO;
 				INFOPLIST_FILE = Runner/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = "";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -1083,6 +1103,7 @@
 				DEVELOPMENT_TEAM = M25Y63Z23D;
 				ENABLE_BITCODE = NO;
 				INFOPLIST_FILE = Runner/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = "";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",

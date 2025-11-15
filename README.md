@@ -24,6 +24,14 @@ Imoportante correr esto para los logos:
 
 flutter build apk --flavor zorros -t lib/main_zorros.dart
 
-Flavors Android
+
+
+
+Flavors Android:
 flutter build aab --flavor zorros -t lib/main_zorros.dart
 flutter build aab --flavor mainapp -t lib/main_stopandgo.dart
+
+
+Flavors iOS
+flutter build ios --flavor zorros -t lib/main_zorros.dart
+flutter build ios --flavor mainapp -t lib/main_stopandgo.dart

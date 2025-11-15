@@ -8,6 +8,8 @@ project 'Runner', {
   'Debug' => :debug,
   'Profile' => :release,
   'Release' => :release,
+  'Debug-mainapp'   => :debug,
+  'Release-mainapp' => :release,
   'Debug-zorros' => :debug,
   'Release-zorros' => :release,
 }
