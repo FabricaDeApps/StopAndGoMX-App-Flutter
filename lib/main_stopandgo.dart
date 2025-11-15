@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:stopandgo/app_binding.dart';
 import 'package:stopandgo/core/storage/app_storage.dart';
+import 'package:stopandgo/core/theme/theme_controller.dart';
 import 'package:stopandgo/routes/app_routes.dart';
 import 'core/config/flavor_config.dart';
 import 'core/network/api_client.dart';
@@ -20,16 +21,19 @@ Future<void> main() async {
 
   await ApiClient.init();
 
-  runApp(const StopAndGoApp());
+  runApp(StopAndGoApp());
 }
 
 class StopAndGoApp extends StatelessWidget {
-  const StopAndGoApp({super.key});
+  StopAndGoApp({super.key});
+
+  final themeController = Get.put(ThemeController());
 
   @override
   Widget build(BuildContext context) {
     return GetMaterialApp(
       title: FlavorConfig.I.appName,
+      theme: themeController.theme.value,
       debugShowCheckedModeBanner: false,
       initialBinding: AppBinding(),
       initialRoute: Routes.splash,
