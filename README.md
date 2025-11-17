@@ -17,7 +17,7 @@ samples, guidance on mobile development, and a full API reference.
 
 
 Imoportante correr esto para los logos:
-./scripts/use_logo.sh
+./scripts/use_logo.sh 
 
 
 ./scripts/make_module.sh home     
@@ -35,3 +35,30 @@ flutter build aab --flavor mainapp -t lib/main_stopandgo.dart
 Flavors iOS
 flutter build ios --flavor zorros -t lib/main_zorros.dart
 flutter build ios --flavor mainapp -t lib/main_stopandgo.dart
+
+
+FASTLANE:
+
+ZORROS
+./scripts/use_logo.sh zorros
+fastlane android deploy \
+  flavor:zorros \
+  target:lib/main_zorros.dart \
+  track:internal \
+  package_name:app.stopandgomx.zorros
+
+fastlane android deploy \
+  flavor:zorros \
+  target:lib/main_zorros.dart \
+  track:production \
+  package_name:app.stopandgomx.zorros
+
+
+STOPANDGO
+./scripts/use_logo.sh stopandgo
+fastlane android deploy \
+  flavor:mainapp \
+  target:lib/main_stopandgo.dart \
+  track:internal || internal \
+  package_name:app.stopandgomx.mainapp
+

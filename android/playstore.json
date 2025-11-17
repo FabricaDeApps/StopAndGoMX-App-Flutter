@@ -1,0 +1,13 @@
+{
+  "type": "service_account",
+  "project_id": "abogia",
+  "private_key_id": "6e08ea4cba76ac954f5e1359fd9a55c4c0fa8bc8",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQCLDkw9ybI8gngu\nsoiZAhtq6DGasluKOj7DalKKb8snt4TEo0YtnYwi/SMCHUU4Pqk5f5jNLUqxcGQT\nPaDYDa1s8X+UdnHp3kgU5hTq3QgEhGiar4CBzeCAULtj/CDSnA+tmVGuCGw1vCef\nnK6bAFKOJODDnH+yveDT/gT780hY6EDiOCHnc1L2IIuPan7c3rQvm1ObNF25HXC4\nPhkw01BbIcBk88z1RbKFqHF1qsERCZK6mZZexNPKa+Qr0k32hm3VJSSBCfQ2sio8\nKvC40Rvyb85U1NI1uQF/DtwvWCKNzPw81DlXYim4LYqQKFdH4LYQZpNamdf2BXLT\nuoads/dJAgMBAAECggEABByEaSoSALnNnaykq+JE9w7t2VUsFLTh9ZT3fMvCYqaJ\nhxpziqMgwuLfvc72V98U0Zp+sfseI4uFqFxgz/jtJ3TA4QRbHBJfTwYTsnM3kSts\nplb8qM0MArwGvMJcvBPMkniFuQYOh2Yy3urBVNux4fo5wdhz0OnOGgzlwjp9HJ4y\nLNdtXW3e0MBnd5IlAPd+RyTIowVuN5gS7rjR3MHlk9XxZTZ8/Ora1QHtTvfjQwXw\nFAMbxRw7xj6cniREITFDfmSYlR4AvYxG+/Ht+26jk5u2NoQ6inSCXqjTZOOnsWXR\ntlz4RpuNY63pfkmEKxQCodqfQ1A31a0YaADozFu2WwKBgQDEVIS8/b6xgfIGnzXx\nrH5AbFixhG6K4gCG7vqmJs1Dqz1aW8n1641x7Xr71W04pW1+m/1GgJVn0U9dNyQS\n9IlZ7QORHbye+i0D/JP2g1GHmJCSQjw2DvSI3/GSPm5JWL3s/twYzeqc6cfEflBG\nGYD5Wl2Q0DHurQBQa6v7pAJduwKBgQC1UYxdz5TqxmUAT5qxesV2M7VxqwKygiaU\noAlcPTKD1nDVSGViYRvBTmWDkJJtH7WdxveNoR79F28JyFhETQtSVkbw80UpHcmp\nA2Vq1EWXx6KQgPx7S+YDEcPGCPp4jtEA7E+im4li0NdsSL/5o5ArVgUOtCuKmVDa\nIFRMr+6sywKBgGB5V7C2z5nSTOfMHGnhZTirBPpWJSvB2phznl8++eaiosdgC2H4\nmcy98Y0GV2FaiO+KH28hiEk3pVQc4HEgEM5LlVEd164XKT+oQd0Esm97HK+CNKwr\ntSX9RWujmfYY0Vs/8U+PABaTGkMH/tIzfhkJuqiKZb7u7BSYlC5XbYI5AoGBAKVl\nfAte/dKjoyKDevMGsPU/+fV0L4OyYYsV6TPwxxGoHUkRPxpcxrqwzr0Std9BG6SP\nCOZy4RextqJP1OSI+xjihtfosV/uQjQgWvT2KX1oqAv0/VtjQq/uFo2hRwmODW0w\nIvyLsOko5Dlsq2IHJ83AK+DbzRQjArPW5c8GdUu9AoGBAI2OYVMqui0L1wKkVUHH\nQczk0+8qH/tbU69yKRnNcbiIvt1SQ9RLEOhsUp3EYUnOxkSoJ2AabMRDjEHdOMIs\nCfMMJPpMXv5cKEAuaqp1EpvNzB6Zr+h3fvB8dGy1vjpGRDrMwW16hTisv1E+fmdg\n/yT4jGD4bp1Cy1sWxkYtGYir\n-----END PRIVATE KEY-----\n",
+  "client_email": "playstore@abogia.iam.gserviceaccount.com",
+  "client_id": "100339242180590182027",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/playstore%40abogia.iam.gserviceaccount.com",
+  "universe_domain": "googleapis.com"
+}

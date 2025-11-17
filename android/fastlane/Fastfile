@@ -1,0 +1,106 @@
+default_platform(:android)
+
+platform :android do
+  ############################################
+  # Paths base
+  ############################################
+
+  # __dir__  -> /.../flutter_stopandgo/android/fastlane
+  PROJECT_ROOT = File.expand_path('../..', __dir__)   # /.../flutter_stopandgo
+  ANDROID_DIR  = File.expand_path('..', __dir__)      # /.../flutter_stopandgo/android
+
+  ############################################
+  # Helpers
+  ############################################
+
+  # 0) Script de logo según flavor
+  def run_logo_script(flavor:)
+    # Mapear nombre de flavor a parámetro del script
+    logo_arg = case flavor
+               when 'mainapp'
+                 'stopandgo'   # 👈 lo que tú corrías a mano
+               else
+                 flavor        # zorros -> zorros
+               end
+
+    UI.message("🎨 Ejecutando script de logo: ./scripts/use_logo.sh #{logo_arg}")
+    sh "cd #{PROJECT_ROOT} && ./scripts/use_logo.sh #{logo_arg}"
+  end
+
+  # 1) Build del AAB usando Flutter
+  def build_flutter_aab(flavor:, target:)
+    UI.message("🛠  Construyendo AAB con Flutter (flavor=#{flavor}, target=#{target})...")
+    sh "cd #{PROJECT_ROOT} && flutter pub get"
+    sh "cd #{PROJECT_ROOT} && flutter build aab --flavor #{flavor} -t #{target}"
+  end
+
+  # 2) Upload del AAB a Google Play
+  def upload_aab_to_play(aab_path:, package_name:, track:)
+    UI.message("🚀 Subiendo AAB a Google Play (package=#{package_name}, track=#{track})...")
+    upload_to_play_store(
+      aab: aab_path,
+      package_name: package_name,
+      track: track,
+      json_key: "playstore.json",        # archivo dentro de android/fastlane o ruta que uses
+      release_status: "completed",
+      changes_not_sent_for_review: false,
+      skip_upload_metadata: true,
+      skip_upload_images: true,
+      skip_upload_screenshots: true
+    )
+  end
+
+  ############################################
+  # Lane genérica: deploy
+  ############################################
+
+  desc "Build & upload a Google Play usando Flutter + flavors (lane genérica)"
+  lane :deploy do |options|
+    # Parámetros requeridos
+    flavor       = options[:flavor]
+    target       = options[:target]
+    package_name = options[:package_name]
+    track        = options[:track] || "internal"
+
+    UI.user_error!("Debes pasar el parámetro flavor")       if flavor.nil? || flavor.empty?
+    UI.user_error!("Debes pasar el parámetro target")       if target.nil? || target.empty?
+    UI.user_error!("Debes pasar el parámetro package_name") if package_name.nil? || package_name.empty?
+
+    UI.message("➡️  Deploy Android")
+    UI.message("   PROJECT_ROOT:  #{PROJECT_ROOT}")
+    UI.message("   flavor:        #{flavor}")
+    UI.message("   target:        #{target}")
+    UI.message("   package_name:  #{package_name}")
+    UI.message("   track:         #{track}")
+
+    # 0) Script de logo ANTES del build
+    run_logo_script(flavor: flavor)
+
+    # 1) Build AAB con Flutter
+    build_flutter_aab(
+      flavor: flavor,
+      target: target
+    )
+
+    # 2) Ruta ABSOLUTA del AAB generado
+    aab_path = File.join(
+      PROJECT_ROOT,
+      "build/app/outputs/bundle/#{flavor}Release/app-#{flavor}-release.aab"
+    )
+
+    UI.message("🔍 Buscando AAB en: #{aab_path}")
+
+    unless File.exist?(aab_path)
+      UI.user_error!("No se encontró el archivo AAB en: #{aab_path}")
+    end
+
+    # 3) Upload a Google Play
+    upload_aab_to_play(
+      aab_path: aab_path,
+      package_name: package_name,
+      track: track
+    )
+
+    UI.success("✅ Deploy Android completado (#{flavor} → #{track})")
+  end
+end

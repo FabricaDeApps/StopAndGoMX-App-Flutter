@@ -21,6 +21,7 @@ class HomeView extends GetView<HomeController> {
       final role = controller.userRole.value;
       final isManager = role == 'manager';
       final isParent = role == 'parent';
+      final isPlayer = role == 'player';
 
       return DefaultTabController(
         length: 3,

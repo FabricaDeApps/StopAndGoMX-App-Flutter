@@ -1,6 +1,7 @@
 // lib/modules/signin/sign_in_controller.dart
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:stopandgo/core/config/flavor_config.dart';
 import 'package:stopandgo/core/network/api_repository.dart';
 
 class SignInController extends GetxController {
@@ -25,7 +26,7 @@ class SignInController extends GetxController {
     super.onInit();
     final args = Get.arguments as Map<String, dynamic>?;
 
-    orgId = (args?['orgId'] as int?) ?? 2;
+    orgId = FlavorConfig.I.organizationId!;
   }
 
   String? _validateEmail(String? v) {
