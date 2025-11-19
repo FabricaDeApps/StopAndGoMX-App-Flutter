@@ -1,0 +1,121 @@
+# fastlane/Fastfile (iOS)
+
+default_platform(:ios)
+
+platform :ios do
+  ############################################
+  # Paths base
+  ############################################
+
+  # __dir__  -> /.../StopAndGoMX-App-Flutter/ios/fastlane
+  PROJECT_ROOT = File.expand_path('../..', __dir__)  # /.../StopAndGoMX-App-Flutter
+  IOS_DIR      = File.expand_path('..', __dir__)     # /.../StopAndGoMX-App-Flutter/ios
+
+  ############################################
+  # Helper: API Key App Store Connect (misma key)
+  ############################################
+  def app_store_api_key_config
+    app_store_connect_api_key(
+      key_id: "93W99LJKVU",
+      issuer_id: "69a6de76-2be5-47e3-e053-5b8c7c11a4d1",
+      key_filepath: "key/auth.p8", # misma ruta que ya tienes
+      duration: 1200,
+      in_house: false
+    )
+  end
+
+  ############################################
+  # (Opcional) Script de logo como en Android
+  ############################################
+  def run_logo_script(flavor:)
+    # Mapear nombre de flavor a parámetro del script
+    logo_arg = case flavor
+               when 'mainapp'
+                 'stopandgo'   # igual que en Android
+               else
+                 flavor        # 'zorros' -> 'zorros'
+               end
+
+    UI.message("🎨 Ejecutando script de logo: ./scripts/use_logo.sh #{logo_arg}")
+    sh "cd #{PROJECT_ROOT} && ./scripts/use_logo.sh #{logo_arg}"
+  end
+
+  ############################################
+  # Build iOS con Xcode (gym/build_app)
+  ############################################
+  def build_ios_app(flavor:, scheme:, export_method:)
+    UI.message("🛠  Construyendo iOS (flavor=#{flavor}, scheme=#{scheme})...")
+
+    build_app(
+      workspace: File.join(IOS_DIR, "Runner.xcworkspace"),
+      scheme: scheme,
+      configuration: "Release",
+      export_method: export_method,         # "app-store" para TestFlight / App Store
+      export_options: {
+        signingStyle: "automatic",
+        teamID: "M25Y63Z23D"               # tu Team ID
+      },
+      output_directory: File.join(PROJECT_ROOT, "build/ios/ipa/#{flavor}"),
+      output_name: "stopandgomx-#{flavor}.ipa"
+    )
+  end
+
+  ############################################
+  # Upload a TestFlight
+  ############################################
+  def upload_to_testflight_generic(bundle_id:)
+    UI.message("🚀 Subiendo a TestFlight (bundle_id=#{bundle_id})...")
+
+    upload_to_testflight(
+      api_key: app_store_api_key_config,
+      app_identifier: bundle_id,
+      skip_waiting_for_build_processing: true
+      # Puedes agregar:
+      # beta_app_description: "Build #{bundle_id}",
+      # groups: ["internal testers"],
+    )
+  end
+
+  ############################################
+  # Lane genérica: deploy iOS
+  ############################################
+  desc "Build & upload iOS (TestFlight) usando Flutter + flavors (lane genérica)"
+  lane :deploy do |options|
+    flavor        = options[:flavor]
+    scheme        = options[:scheme]        || flavor      # por si el scheme se llama igual
+    bundle_id     = options[:bundle_id]                    # app.stopandgomx.stopandgo, etc.
+    export_method = options[:export_method] || "app-store"
+
+    UI.user_error!("Debes pasar el parámetro flavor")    if flavor.nil? || flavor.empty?
+    UI.user_error!("Debes pasar el parámetro scheme")    if scheme.nil? || scheme.empty?
+    UI.user_error!("Debes pasar el parámetro bundle_id") if bundle_id.nil? || bundle_id.empty?
+
+    UI.message("➡️  Deploy iOS")
+    UI.message("   PROJECT_ROOT:  #{PROJECT_ROOT}")
+    UI.message("   flavor:        #{flavor}")
+    UI.message("   scheme:        #{scheme}")
+    UI.message("   bundle_id:     #{bundle_id}")
+    UI.message("   export_method: #{export_method}")
+
+    # 0) Asegurar config de Release para este flavor (soluciona el error)
+    UI.message("🔧 Ejecutando flutter build ios --config-only --release --flavor #{flavor}...")
+    sh "cd #{PROJECT_ROOT} && flutter build ios --config-only --release --flavor #{flavor}"
+
+    # 1) Opcional: script de logo (igual que Android)
+    run_logo_script(flavor: flavor)
+
+    # 2) Build iOS
+    build_ios_app(
+      flavor: flavor,
+      scheme: scheme,
+      export_method: export_method
+    )
+
+    # 3) Upload TestFlight
+    upload_to_testflight_generic(
+      bundle_id: bundle_id
+    )
+
+    UI.success("✅ Deploy iOS completado (#{flavor} → TestFlight)")
+  end
+end

@@ -62,3 +62,14 @@ fastlane android deploy \
   track:internal || internal \
   package_name:app.stopandgomx.mainapp
 
+# mainapp
+fastlane ios deploy \
+  flavor:mainapp \
+  scheme:mainapp \
+  bundle_id:app.stopandgomx.stopandgo
+
+# zorros
+fastlane ios deploy \
+  flavor:zorros \
+  scheme:zorros \
+  bundle_id:app.stopandgomx.zorros
