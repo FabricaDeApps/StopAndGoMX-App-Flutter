@@ -43,4 +43,24 @@ class TrainingsController extends GetxController {
       await loadTrainings();
     }
   }
+
+  Future<void> completeTraining(Training t) async {
+    try {
+      await _api.completeTraining(t.id, categoryId);
+
+      // refrescar lista
+      await loadTrainings();
+      Get.snackbar(
+        'Entrenamiento completado',
+        'El entrenamiento ha sido marcado como completado.',
+        snackPosition: SnackPosition.BOTTOM,
+      );
+    } catch (e) {
+      Get.snackbar(
+        'Error',
+        'No se pudo completar el entrenamiento.',
+        snackPosition: SnackPosition.BOTTOM,
+      );
+    }
+  }
 }

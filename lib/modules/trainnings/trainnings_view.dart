@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'package:stopandgo/modules/trainnings/trainnings_controller.dart';
@@ -106,130 +107,154 @@ class TrainingsView extends GetView<TrainingsController> {
             itemCount: trainings.length,
             itemBuilder: (context, index) {
               final t = trainings[index];
+              final isScheduled = t.status == 'scheduled';
 
-              return Card(
-                margin: const EdgeInsets.only(bottom: 12),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                elevation: 2,
-                child: Padding(
-                  padding: const EdgeInsets.all(14),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // FECHA + STATUS
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+              return Slidable(
+                key: ValueKey(t.id),
+                enabled: isScheduled,
+                endActionPane: isScheduled
+                    ? ActionPane(
+                        motion: const DrawerMotion(),
                         children: [
-                          Expanded(
-                            child: Text(
-                              _formatDateTime(t.startsAt),
-                              style: theme.textTheme.titleMedium?.copyWith(
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 8,
-                              vertical: 4,
-                            ),
-                            decoration: BoxDecoration(
-                              color: _statusColor(t.status).withOpacity(0.1),
-                              borderRadius: BorderRadius.circular(999),
-                            ),
-                            child: Text(
-                              _statusLabel(t.status),
-                              style: theme.textTheme.labelSmall?.copyWith(
-                                color: _statusColor(t.status),
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
+                          SlidableAction(
+                            onPressed: (_) {
+                              controller.completeTraining(t);
+                            },
+                            backgroundColor: Colors.green,
+                            foregroundColor: Colors.white,
+                            icon: Icons.check_circle,
+                            label: 'Completar',
                           ),
                         ],
-                      ),
-                      const SizedBox(height: 8),
-
-                      // LUGAR
-                      if (t.venue != null && t.venue!.isNotEmpty)
+                      )
+                    : null,
+                child: Card(
+                  margin: const EdgeInsets.only(bottom: 12),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  elevation: 2,
+                  child: Padding(
+                    padding: const EdgeInsets.all(14),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // FECHA + STATUS
                         Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Icon(Icons.sports_football, size: 18),
-                            const SizedBox(width: 6),
                             Expanded(
                               child: Text(
-                                t.venue!,
-                                style: theme.textTheme.bodyMedium,
+                                _formatDateTime(t.startsAt),
+                                style: theme.textTheme.titleMedium?.copyWith(
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 4,
+                              ),
+                              decoration: BoxDecoration(
+                                color: _statusColor(t.status).withOpacity(0.1),
+                                borderRadius: BorderRadius.circular(999),
+                              ),
+                              child: Text(
+                                _statusLabel(t.status),
+                                style: theme.textTheme.labelSmall?.copyWith(
+                                  color: _statusColor(t.status),
+                                  fontWeight: FontWeight.w600,
+                                ),
                               ),
                             ),
                           ],
                         ),
+                        const SizedBox(height: 8),
 
-                      if ((t.address != null && t.address!.isNotEmpty) ||
-                          (t.city != null && t.city!.isNotEmpty))
-                        Padding(
-                          padding: const EdgeInsets.only(top: 4),
-                          child: Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
+                        // LUGAR
+                        if (t.venue != null && t.venue!.isNotEmpty)
+                          Row(
                             children: [
-                              const Icon(Icons.location_on_outlined, size: 18),
+                              const Icon(Icons.sports_football, size: 18),
                               const SizedBox(width: 6),
                               Expanded(
                                 child: Text(
-                                  [
-                                    if (t.address != null &&
-                                        t.address!.isNotEmpty)
-                                      t.address!,
-                                    if (t.city != null && t.city!.isNotEmpty)
-                                      t.city!,
-                                  ].join(', '),
-                                  style: theme.textTheme.bodySmall?.copyWith(
-                                    color: Colors.grey[700],
-                                  ),
+                                  t.venue!,
+                                  style: theme.textTheme.bodyMedium,
                                 ),
                               ),
                             ],
                           ),
-                        ),
 
-                      if (t.durationMinutes != null) ...[
-                        const SizedBox(height: 4),
-                        Row(
-                          children: [
-                            const Icon(Icons.timer_outlined, size: 18),
-                            const SizedBox(width: 6),
-                            Text(
-                              '${t.durationMinutes} min',
-                              style: theme.textTheme.bodySmall,
+                        if ((t.address != null && t.address!.isNotEmpty) ||
+                            (t.city != null && t.city!.isNotEmpty))
+                          Padding(
+                            padding: const EdgeInsets.only(top: 4),
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Icon(
+                                  Icons.location_on_outlined,
+                                  size: 18,
+                                ),
+                                const SizedBox(width: 6),
+                                Expanded(
+                                  child: Text(
+                                    [
+                                      if (t.address != null &&
+                                          t.address!.isNotEmpty)
+                                        t.address!,
+                                      if (t.city != null && t.city!.isNotEmpty)
+                                        t.city!,
+                                    ].join(', '),
+                                    style: theme.textTheme.bodySmall?.copyWith(
+                                      color: Colors.grey[700],
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
-                          ],
-                        ),
+                          ),
+
+                        if (t.durationMinutes != null) ...[
+                          const SizedBox(height: 4),
+                          Row(
+                            children: [
+                              const Icon(Icons.timer_outlined, size: 18),
+                              const SizedBox(width: 6),
+                              Text(
+                                '${t.durationMinutes} min',
+                                style: theme.textTheme.bodySmall,
+                              ),
+                            ],
+                          ),
+                        ],
+
+                        if (t.notes != null && t.notes!.isNotEmpty) ...[
+                          const SizedBox(height: 8),
+                          Text(t.notes!, style: theme.textTheme.bodySmall),
+                        ],
+
+                        const SizedBox(height: 12),
+
+                        // 👉 Botón “Pasar lista”
+                        if (isScheduled)
+                          Align(
+                            alignment: Alignment.centerRight,
+                            child: TextButton.icon(
+                              onPressed: () {
+                                Get.toNamed(
+                                  Routes.trainingAttendance,
+                                  arguments: {'trainingId': t.id},
+                                );
+                              },
+                              icon: const Icon(Icons.checklist_rtl),
+                              label: const Text('Pasar lista'),
+                            ),
+                          ),
                       ],
-
-                      if (t.notes != null && t.notes!.isNotEmpty) ...[
-                        const SizedBox(height: 8),
-                        Text(t.notes!, style: theme.textTheme.bodySmall),
-                      ],
-
-                      const SizedBox(height: 12),
-
-                      // 👉 Botón “Pasar lista”
-                      Align(
-                        alignment: Alignment.centerRight,
-                        child: TextButton.icon(
-                          onPressed: () {
-                            // navegación placeholder para pasar lista
-                            Get.toNamed(
-                              Routes.trainingAttendance,
-                              arguments: {'trainingId': t.id},
-                            );
-                          },
-                          icon: const Icon(Icons.checklist_rtl),
-                          label: const Text('Pasar lista'),
-                        ),
-                      ),
-                    ],
+                    ),
                   ),
                 ),
               );

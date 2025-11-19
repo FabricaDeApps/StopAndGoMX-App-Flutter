@@ -1,4 +1,6 @@
+# ================================
 # fastlane/Fastfile (iOS)
+# ================================
 
 default_platform(:ios)
 
@@ -7,33 +9,31 @@ platform :ios do
   # Paths base
   ############################################
 
-  # __dir__  -> /.../StopAndGoMX-App-Flutter/ios/fastlane
   PROJECT_ROOT = File.expand_path('../..', __dir__)  # /.../StopAndGoMX-App-Flutter
   IOS_DIR      = File.expand_path('..', __dir__)     # /.../StopAndGoMX-App-Flutter/ios
 
   ############################################
-  # Helper: API Key App Store Connect (misma key)
+  # API key de App Store Connect
   ############################################
   def app_store_api_key_config
     app_store_connect_api_key(
       key_id: "93W99LJKVU",
       issuer_id: "69a6de76-2be5-47e3-e053-5b8c7c11a4d1",
-      key_filepath: "key/auth.p8", # misma ruta que ya tienes
+      key_filepath: File.join(__dir__, "key/auth.p8"),
       duration: 1200,
       in_house: false
     )
   end
 
   ############################################
-  # (Opcional) Script de logo como en Android
+  # Script de logos
   ############################################
   def run_logo_script(flavor:)
-    # Mapear nombre de flavor a parámetro del script
     logo_arg = case flavor
                when 'mainapp'
-                 'stopandgo'   # igual que en Android
+                 'stopandgo'
                else
-                 flavor        # 'zorros' -> 'zorros'
+                 flavor # zorros → zorros
                end
 
     UI.message("🎨 Ejecutando script de logo: ./scripts/use_logo.sh #{logo_arg}")
@@ -41,54 +41,68 @@ platform :ios do
   end
 
   ############################################
-  # Build iOS con Xcode (gym/build_app)
+  # Build iOS
   ############################################
-  def build_ios_app(flavor:, scheme:, export_method:)
-    UI.message("🛠  Construyendo iOS (flavor=#{flavor}, scheme=#{scheme})...")
+  def build_ios_app(flavor:, scheme:, export_method:, export_team_id:, output_name:, output_path:)
+    # Usar la configuración específica por flavor:
+    # - mainapp  -> Release-mainapp
+    # - zorros   -> Release-zorros
+    config_name = "Release-#{flavor}"
+
+    UI.message("🛠  Construyendo iOS (flavor=#{flavor}, scheme=#{scheme}, configuration=#{config_name})...")
 
     build_app(
       workspace: File.join(IOS_DIR, "Runner.xcworkspace"),
       scheme: scheme,
-      configuration: "Release",
-      export_method: export_method,         # "app-store" para TestFlight / App Store
+      configuration: config_name,          # 🔥 aquí usamos Release-mainapp / Release-zorros
+      export_method: export_method,        # "app-store" para TestFlight/App Store
       export_options: {
         signingStyle: "automatic",
-        teamID: "M25Y63Z23D"               # tu Team ID
+        teamID: export_team_id
       },
-      output_directory: File.join(PROJECT_ROOT, "build/ios/ipa/#{flavor}"),
-      output_name: "stopandgomx-#{flavor}.ipa"
+      output_directory: output_path,
+      output_name: output_name
     )
   end
 
   ############################################
-  # Upload a TestFlight
+  # Upload TestFlight
   ############################################
-  def upload_to_testflight_generic(bundle_id:)
+  def upload_to_testflight_generic(bundle_id:, groups:, changelog:)
     UI.message("🚀 Subiendo a TestFlight (bundle_id=#{bundle_id})...")
 
     upload_to_testflight(
       api_key: app_store_api_key_config,
       app_identifier: bundle_id,
-      skip_waiting_for_build_processing: true
-      # Puedes agregar:
-      # beta_app_description: "Build #{bundle_id}",
-      # groups: ["internal testers"],
+      skip_waiting_for_build_processing: true,
+      distribute_external: false,
+      groups: groups,
+      changelog: changelog
     )
   end
 
   ############################################
-  # Lane genérica: deploy iOS
+  # Lane genérica
   ############################################
-  desc "Build & upload iOS (TestFlight) usando Flutter + flavors (lane genérica)"
+  desc "Build & upload iOS (TestFlight) usando Flutter + flavors"
   lane :deploy do |options|
-    flavor        = options[:flavor]
-    scheme        = options[:scheme]        || flavor      # por si el scheme se llama igual
-    bundle_id     = options[:bundle_id]                    # app.stopandgomx.stopandgo, etc.
-    export_method = options[:export_method] || "app-store"
+    # Parámetros requeridos
+    flavor         = options[:flavor]              # "mainapp" / "zorros"
+    scheme         = options[:scheme] || flavor    # normalmente igual al flavor
+    bundle_id      = options[:bundle_id]
+    export_method  = options[:export_method]  || "app-store"
+    export_team_id = options[:export_team_id] || "M25Y63Z23D"
 
-    UI.user_error!("Debes pasar el parámetro flavor")    if flavor.nil? || flavor.empty?
-    UI.user_error!("Debes pasar el parámetro scheme")    if scheme.nil? || scheme.empty?
-    UI.user_error!("Debes pasar el parámetro bundle_id") if bundle_id.nil? || bundle_id.empty?
+    # Opcionales
+    ipa_name      = options[:ipa_name]      || "stopandgomx-#{flavor}.ipa"
+    changelog     = options[:changelog]     || "Nueva compilación para #{flavor}"
+    tester_groups = options[:groups]        || []
+    logo_script   = options[:logo_script].nil? ? true : options[:logo_script]
+
+    # Validaciones
+    UI.user_error!("Falta flavor")    if flavor.nil? || flavor.empty?
+    UI.user_error!("Falta scheme")    if scheme.nil? || scheme.empty?
+    UI.user_error!("Falta bundle_id") if bundle_id.nil? || bundle_id.empty?
 
     UI.message("➡️  Deploy iOS")
     UI.message("   PROJECT_ROOT:  #{PROJECT_ROOT}")
@@ -96,26 +110,82 @@ platform :ios do
     UI.message("   scheme:        #{scheme}")
     UI.message("   bundle_id:     #{bundle_id}")
     UI.message("   export_method: #{export_method}")
+    UI.message("   ipa:           #{ipa_name}")
 
-    # 0) Asegurar config de Release para este flavor (soluciona el error)
-    UI.message("🔧 Ejecutando flutter build ios --config-only --release --flavor #{flavor}...")
+    ########################################
+    # 1) flutter config-only
+    ########################################
+    UI.message("🔧 flutter build ios --config-only --release --flavor #{flavor}")
     sh "cd #{PROJECT_ROOT} && flutter build ios --config-only --release --flavor #{flavor}"
 
-    # 1) Opcional: script de logo (igual que Android)
-    run_logo_script(flavor: flavor)
+    ########################################
+    # 2) Logo script (opcional)
+    ########################################
+    run_logo_script(flavor: flavor) if logo_script
 
-    # 2) Build iOS
+    ########################################
+    # 3) Build IPA
+    ########################################
+    output_path = File.join(PROJECT_ROOT, "build/ios/ipa/#{flavor}")
+
     build_ios_app(
       flavor: flavor,
       scheme: scheme,
-      export_method: export_method
+      export_method: export_method,
+      export_team_id: export_team_id,
+      output_name: ipa_name,
+      output_path: output_path
     )
 
-    # 3) Upload TestFlight
+    ########################################
+    # 3.5) DEBUG: Mostrar CFBundleIdentifier REAL
+    ########################################
+    ipa_path = File.join(output_path, ipa_name)
+    UI.message("🔍 IPA generado en: #{ipa_path}")
+
+    sh "rm -rf /tmp/ipa_#{flavor}"
+    sh "mkdir -p /tmp/ipa_#{flavor}"
+
+    sh "unzip -o '#{ipa_path}' -d /tmp/ipa_#{flavor} >/dev/null"
+    UI.message("📦 Leyendo CFBundleIdentifier real del IPA:")
+    sh "plutil -p /tmp/ipa_#{flavor}/Payload/*.app/Info.plist | grep CFBundleIdentifier || echo 'CFBundleIdentifier no encontrado'"
+
+    ########################################
+    # 4) Upload a TestFlight
+    ########################################
     upload_to_testflight_generic(
-      bundle_id: bundle_id
+      bundle_id: bundle_id,
+      groups: tester_groups,
+      changelog: changelog
     )
 
     UI.success("✅ Deploy iOS completado (#{flavor} → TestFlight)")
   end
+
+  ############################################
+  # Lanes de conveniencia por flavor
+  ############################################
+
+  desc "Deploy iOS mainapp (StopAndGo)"
+  lane :deploy_mainapp do
+    deploy(
+      flavor: "mainapp",
+      scheme: "mainapp",
+      bundle_id: "app.stopandgomx.stopandgo",
+      ipa_name: "stopandgo-mainapp.ipa",
+      groups: ["internal"]
+    )
+  end
+
+  desc "Deploy iOS Zorros"
+  lane :deploy_zorros do
+    deploy(
+      flavor: "zorros",
+      scheme: "zorros",
+      bundle_id: "app.stopandgomx.zorros",
+      ipa_name: "stopandgo-zorros.ipa",
+      groups: ["internal"]
+    )
+  end
+
 end

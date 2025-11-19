@@ -1,0 +1,49 @@
+import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'no_category_controller.dart';
+
+class NoCategoryView extends GetView<NoCategoryController> {
+  const NoCategoryView({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Center(
+          child: Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: Colors.orange.withOpacity(0.15),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: Colors.orange),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(Icons.info_outline, color: Colors.orange, size: 48),
+                const SizedBox(height: 16),
+                const Text(
+                  'No tienes categorías asignadas',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.orange,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 12),
+                const Text(
+                  'Por favor comunícate con el administrador de tu organización '
+                  'para que te asigne una categoría. Y vuelve a ingresar.',
+                  style: TextStyle(fontSize: 16),
+                  textAlign: TextAlign.center,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}

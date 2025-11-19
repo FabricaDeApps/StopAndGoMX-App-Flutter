@@ -13,6 +13,8 @@ import 'package:stopandgo/modules/make_payment/index.dart';
 import 'package:stopandgo/modules/my_profile/index.dart';
 import 'package:stopandgo/modules/my_profile/my_profile_view.dart';
 import 'package:stopandgo/modules/new_game/index.dart';
+import 'package:stopandgo/modules/no_category/index.dart';
+import 'package:stopandgo/modules/no_category/no_category_view.dart';
 import 'package:stopandgo/modules/sign_in/sign_in_binding.dart';
 import 'package:stopandgo/modules/sign_in/sign_in_view.dart';
 import 'package:stopandgo/modules/splash/splash_binding.dart';
@@ -101,6 +103,11 @@ class AppPages {
       name: Routes.myProfile,
       page: () => const MyProfileView(),
       binding: MyProfileBinding(),
+    ),
+    GetPage(
+      name: Routes.noCategory,
+      page: () => const NoCategoryView(),
+      binding: NoCategoryBinding(),
     ),
   ];
 }

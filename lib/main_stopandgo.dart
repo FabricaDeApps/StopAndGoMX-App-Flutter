@@ -31,13 +31,15 @@ class StopAndGoApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GetMaterialApp(
-      title: FlavorConfig.I.appName,
-      theme: themeController.theme.value,
-      debugShowCheckedModeBanner: false,
-      initialBinding: AppBinding(),
-      initialRoute: Routes.splash,
-      getPages: AppPages.routes,
-    );
+    return Obx(() {
+      return GetMaterialApp(
+        title: FlavorConfig.I.appName,
+        theme: themeController.theme.value,
+        debugShowCheckedModeBanner: false,
+        initialBinding: AppBinding(),
+        initialRoute: Routes.splash,
+        getPages: AppPages.routes,
+      );
+    });
   }
 }

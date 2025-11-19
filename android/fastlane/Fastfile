@@ -41,7 +41,7 @@ platform :android do
       aab: aab_path,
       package_name: package_name,
       track: track,
-      json_key: "playstore.json",        # archivo dentro de android/fastlane o ruta que uses
+      json_key: File.join(__dir__, "playstore.json"),
       release_status: "completed",
       changes_not_sent_for_review: false,
       skip_upload_metadata: true,

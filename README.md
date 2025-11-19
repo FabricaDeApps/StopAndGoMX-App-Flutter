@@ -47,11 +47,7 @@ fastlane android deploy \
   track:internal \
   package_name:app.stopandgomx.zorros
 
-fastlane android deploy \
-  flavor:zorros \
-  target:lib/main_zorros.dart \
-  track:production \
-  package_name:app.stopandgomx.zorros
+fastlane android deploy flavor:zorros target:lib/main_zorros.dart track:production package_name:app.stopandgomx.zorros
 
 
 STOPANDGO
@@ -63,13 +59,7 @@ fastlane android deploy \
   package_name:app.stopandgomx.mainapp
 
 # mainapp
-fastlane ios deploy \
-  flavor:mainapp \
-  scheme:mainapp \
-  bundle_id:app.stopandgomx.stopandgo
+fastlane deploy_mainapp
 
 # zorros
-fastlane ios deploy \
-  flavor:zorros \
-  scheme:zorros \
-  bundle_id:app.stopandgomx.zorros
+fastlane deploy_zorros

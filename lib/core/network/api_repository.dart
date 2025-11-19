@@ -655,7 +655,7 @@ class ApiRepository {
       data: {'items': items},
     );
 
-    return res.statusCode == 201;
+    return res.statusCode == 200;
   }
 
   Future<GenericResponse> saveAttendancesBulk({
@@ -768,6 +768,27 @@ class ApiRepository {
 
     final res = await _dio.post('/manager/notices', data: data);
     return Map<String, dynamic>.from(res.data as Map);
+  }
+
+  Future<void> completeTraining(int trainingId, int categoryId) async {
+    try {
+      await _dio.post('/manager/$categoryId/trainings/$trainingId/complete');
+    } on DioException catch (e) {
+      // Error devuelto por el servidor
+      if (e.response != null) {
+        final msg = e.response?.data['message'] ?? 'Ocurrió un error.';
+        throw Exception(msg);
+      }
+
+      // Error de red / conexión
+      if (e.type == DioExceptionType.connectionTimeout ||
+          e.type == DioExceptionType.receiveTimeout ||
+          e.type == DioExceptionType.sendTimeout) {
+        throw Exception('La solicitud tardó demasiado. Inténtalo de nuevo.');
+      }
+
+      throw Exception('No se pudo conectar con el servidor.');
+    }
   }
 
   String _fmtDate(DateTime d) =>

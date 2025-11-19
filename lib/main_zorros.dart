@@ -27,17 +27,19 @@ Future<void> main() async {
 class ZorrosApp extends StatelessWidget {
   ZorrosApp({super.key});
 
-  final themeController = Get.put(ThemeController());
+  final themeController = Get.put(ThemeController(), permanent: true);
 
   @override
   Widget build(BuildContext context) {
-    return GetMaterialApp(
-      title: FlavorConfig.I.appName,
-      theme: themeController.theme.value,
-      debugShowCheckedModeBanner: false,
-      initialBinding: AppBinding(),
-      initialRoute: Routes.splash,
-      getPages: AppPages.routes,
-    );
+    return Obx(() {
+      return GetMaterialApp(
+        title: FlavorConfig.I.appName,
+        theme: themeController.theme.value,
+        debugShowCheckedModeBanner: false,
+        initialBinding: AppBinding(),
+        initialRoute: Routes.splash,
+        getPages: AppPages.routes,
+      );
+    });
   }
 }

@@ -131,8 +131,14 @@ class HomeController extends GetxController
   // ========= Manager =========
   Future<void> _bootstrapManager() async {
     await _loadCategories();
+
+    if (categories.isEmpty) {
+      Get.offAllNamed(Routes.noCategory);
+      return;
+    }
     if (categories.isNotEmpty && selectedCategoryId.value == null) {
       selectedCategoryId.value = categories.first.id;
+      await AppStorage.setSelectedCategoryId(categories.first.id);
     }
     if (selectedCategoryId.value != null) {
       await _loadDashboardForManager(categoryId: selectedCategoryId.value!);

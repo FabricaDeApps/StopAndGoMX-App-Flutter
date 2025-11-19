@@ -5,7 +5,22 @@
     
     
       
-      <testcase classname="fastlane.lanes" name="0: default_platform" time="0.000151">
+      <testcase classname="fastlane.lanes" name="0: default_platform" time="0.000205">
+        
+      </testcase>
+    
+      
+      <testcase classname="fastlane.lanes" name="1: cd /Users/snakepitt/Developer/flutter_stopandgo &amp;&amp; ./scripts/use_logo.sh zorros" time="0.012353">
+        
+      </testcase>
+    
+      
+      <testcase classname="fastlane.lanes" name="2: cd /Users/snakepitt/Developer/flutter_stopandgo &amp;&amp; flutter pub get" time="0.937942">
+        
+      </testcase>
+    
+      
+      <testcase classname="fastlane.lanes" name="3: cd /Users/snakepitt/Developer/flutter_stopandgo &amp;&amp; flutter build aab --flavor zorros -t lib/main_zorros.dart" time="10.938307">
         
       </testcase>
     

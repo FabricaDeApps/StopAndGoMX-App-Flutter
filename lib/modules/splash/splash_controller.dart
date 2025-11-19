@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:stopandgo/core/network/api_repository.dart';
+import 'package:stopandgo/core/theme/theme_controller.dart';
 import 'package:stopandgo/routes/app_routes.dart';
 import '../../../core/storage/app_storage.dart';
 import 'package:stopandgo/core/models/responses/organization_response.dart';
@@ -59,6 +60,7 @@ class SplashController extends GetxController {
   }
 
   Future<void> markImageShown() async {
+    Get.find<ThemeController>().refreshTheme();
     await Future.delayed(const Duration(seconds: 3));
 
     // 5️⃣ Navegar al login

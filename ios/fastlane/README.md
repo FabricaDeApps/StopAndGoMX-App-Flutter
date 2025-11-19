@@ -21,7 +21,23 @@ For _fastlane_ installation instructions, see [Installing _fastlane_](https://do
 [bundle exec] fastlane ios deploy
 ```
 
-Build & upload iOS (TestFlight) usando Flutter + flavors (lane genérica)
+Build & upload iOS (TestFlight) usando Flutter + flavors
+
+### ios deploy_mainapp
+
+```sh
+[bundle exec] fastlane ios deploy_mainapp
+```
+
+Deploy iOS mainapp (StopAndGo)
+
+### ios deploy_zorros
+
+```sh
+[bundle exec] fastlane ios deploy_zorros
+```
+
+Deploy iOS Zorros
 
 ----
 
