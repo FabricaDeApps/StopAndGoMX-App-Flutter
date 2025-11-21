@@ -23,6 +23,38 @@ For _fastlane_ installation instructions, see [Installing _fastlane_](https://do
 
 Build & upload a Google Play usando Flutter + flavors (lane genérica)
 
+### android deploy_mainapp_internal
+
+```sh
+[bundle exec] fastlane android deploy_mainapp_internal
+```
+
+Deploy Android mainapp (StopAndGo) a track INTERNAL
+
+### android deploy_mainapp_production
+
+```sh
+[bundle exec] fastlane android deploy_mainapp_production
+```
+
+Deploy Android mainapp (StopAndGo) a track PRODUCTION
+
+### android deploy_zorros_internal
+
+```sh
+[bundle exec] fastlane android deploy_zorros_internal
+```
+
+Deploy Android Zorros a track INTERNAL
+
+### android deploy_zorros_production
+
+```sh
+[bundle exec] fastlane android deploy_zorros_production
+```
+
+Deploy Android Zorros a track PRODUCTION
+
 ----
 
 This README.md is auto-generated and will be re-generated every time [_fastlane_](https://fastlane.tools) is run.

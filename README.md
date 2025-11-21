@@ -16,15 +16,12 @@ For help getting started with Flutter development, view the
 samples, guidance on mobile development, and a full API reference.
 
 
+./scripts/make_module.sh home    
+
 Imoportante correr esto para los logos:
-./scripts/use_logo.sh 
-
-
-./scripts/make_module.sh home     
+./scripts/use_logo.sh stopandgo
 
 flutter build apk --flavor zorros -t lib/main_zorros.dart
-
-
 
 
 Flavors Android:
@@ -52,14 +49,40 @@ fastlane android deploy flavor:zorros target:lib/main_zorros.dart track:producti
 
 STOPANDGO
 ./scripts/use_logo.sh stopandgo
-fastlane android deploy \
-  flavor:mainapp \
-  target:lib/main_stopandgo.dart \
-  track:internal || internal \
-  package_name:app.stopandgomx.mainapp
 
+ANDROID
+# Zorros a producción
+fastlane deploy_zorros_production
+
+# Zorros a internal
+fastlane deploy_zorros_internal
+
+# Mainapp a producción
+fastlane deploy_mainapp_production
+
+# Mainapp a internal
+fastlane deploy_mainapp_internal
+
+
+IOS - WORKS
 # mainapp
 fastlane deploy_mainapp
 
 # zorros
 fastlane deploy_zorros
+
+
+
+
+Nuevo Flavor
+
+- crear assets en https://makeappicon.com/ 
+- agregar logo a branding
+- .vscode launcher agregar tarea y el comando de assets
+- crear el main de dart y configurar el flavor en flutter
+- en android 
+  - carpeta de iconos
+  - agregar en build.gradle
+  
+
+

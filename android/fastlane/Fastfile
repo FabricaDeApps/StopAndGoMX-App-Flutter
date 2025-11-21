@@ -1,3 +1,7 @@
+# ================================
+# fastlane/Fastfile (Android)
+# ================================
+
 default_platform(:android)
 
 platform :android do
@@ -5,9 +9,9 @@ platform :android do
   # Paths base
   ############################################
 
-  # __dir__  -> /.../flutter_stopandgo/android/fastlane
-  PROJECT_ROOT = File.expand_path('../..', __dir__)   # /.../flutter_stopandgo
-  ANDROID_DIR  = File.expand_path('..', __dir__)      # /.../flutter_stopandgo/android
+  # __dir__  -> /.../StopAndGoMX-App-Flutter/android/fastlane
+  PROJECT_ROOT = File.expand_path('../..', __dir__)   # /.../StopAndGoMX-App-Flutter
+  ANDROID_DIR  = File.expand_path('..', __dir__)      # /.../StopAndGoMX-App-Flutter/android
 
   ############################################
   # Helpers
@@ -18,7 +22,7 @@ platform :android do
     # Mapear nombre de flavor a parámetro del script
     logo_arg = case flavor
                when 'mainapp'
-                 'stopandgo'   # 👈 lo que tú corrías a mano
+                 'stopandgo'   # lo que corrías a mano
                else
                  flavor        # zorros -> zorros
                end
@@ -28,6 +32,7 @@ platform :android do
   end
 
   # 1) Build del AAB usando Flutter
+  #    target = path al main.dart del flavor (ej: lib/main_zorros.dart)
   def build_flutter_aab(flavor:, target:)
     UI.message("🛠  Construyendo AAB con Flutter (flavor=#{flavor}, target=#{target})...")
     sh "cd #{PROJECT_ROOT} && flutter pub get"
@@ -102,5 +107,53 @@ platform :android do
     )
 
     UI.success("✅ Deploy Android completado (#{flavor} → #{track})")
+  end
+
+  ############################################
+  # Lanes por organización / flavor
+  ############################################
+
+  # MAINAPP (StopAndGo) - INTERNAL
+  desc "Deploy Android mainapp (StopAndGo) a track INTERNAL"
+  lane :deploy_mainapp_internal do
+    deploy(
+      flavor: "mainapp",
+      target: "lib/main_mainapp.dart",          # ajusta si tu entrypoint es otro
+      package_name: "app.stopandgomx.stopandgo",
+      track: "internal"
+    )
+  end
+
+  # MAINAPP (StopAndGo) - PRODUCTION
+  desc "Deploy Android mainapp (StopAndGo) a track PRODUCTION"
+  lane :deploy_mainapp_production do
+    deploy(
+      flavor: "mainapp",
+      target: "lib/main_mainapp.dart",          # ajusta si tu entrypoint es otro
+      package_name: "app.stopandgomx.stopandgo",
+      track: "production"
+    )
+  end
+
+  # ZORROS - INTERNAL
+  desc "Deploy Android Zorros a track INTERNAL"
+  lane :deploy_zorros_internal do
+    deploy(
+      flavor: "zorros",
+      target: "lib/main_zorros.dart",           # ajusta si tu entrypoint es otro
+      package_name: "app.stopandgomx.zorros",
+      track: "internal"
+    )
+  end
+
+  # ZORROS - PRODUCTION
+  desc "Deploy Android Zorros a track PRODUCTION"
+  lane :deploy_zorros_production do
+    deploy(
+      flavor: "zorros",
+      target: "lib/main_zorros.dart",           # ajusta si tu entrypoint es otro
+      package_name: "app.stopandgomx.zorros",
+      track: "production"
+    )
   end
 end

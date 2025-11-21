@@ -54,7 +54,7 @@ platform :ios do
     build_app(
       workspace: File.join(IOS_DIR, "Runner.xcworkspace"),
       scheme: scheme,
-      configuration: config_name,          # 🔥 aquí usamos Release-mainapp / Release-zorros
+      configuration: config_name,          # 🔥 Release-mainapp / Release-zorros
       export_method: export_method,        # "app-store" para TestFlight/App Store
       export_options: {
         signingStyle: "automatic",
@@ -116,7 +116,20 @@ platform :ios do
     # 1) flutter config-only
     ########################################
     UI.message("🔧 flutter build ios --config-only --release --flavor #{flavor}")
-    sh "cd #{PROJECT_ROOT} && flutter build ios --config-only --release --flavor #{flavor}"
+
+    # 👇 Ajusta aquí si tus entrypoints se llaman diferente
+    entrypoint = case flavor
+                 when "mainapp"
+                   "lib/main_mainapp.dart"           # entrypoint base
+                 when "zorros"
+                   "lib/main_zorros.dart"    # entrypoint del flavor zorros
+                 else
+                   UI.user_error!("No conozco el entrypoint para flavor=#{flavor}")
+                 end
+
+    UI.message("   Usando entrypoint: #{entrypoint}")
+
+    sh "cd #{PROJECT_ROOT} && flutter build ios --config-only --release --flavor #{flavor} --target=#{entrypoint}"
 
     ########################################
     # 2) Logo script (opcional)
@@ -151,15 +164,17 @@ platform :ios do
     sh "plutil -p /tmp/ipa_#{flavor}/Payload/*.app/Info.plist | grep CFBundleIdentifier || echo 'CFBundleIdentifier no encontrado'"
 
     ########################################
-    # 4) Upload a TestFlight
+    # 4) Upload a TestFlight (opcional)
     ########################################
+    # Si quieres subir automáticamente, descomenta:
+    #
     upload_to_testflight_generic(
-      bundle_id: bundle_id,
-      groups: tester_groups,
-      changelog: changelog
+       bundle_id: bundle_id,
+       groups: tester_groups,
+       changelog: changelog
     )
 
-    UI.success("✅ Deploy iOS completado (#{flavor} → TestFlight)")
+    UI.success("✅ Deploy iOS completado (#{flavor})")
   end
 
   ############################################

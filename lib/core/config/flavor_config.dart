@@ -1,4 +1,4 @@
-enum AppFlavor { main, zorros }
+enum AppFlavor { main, zorros, raidersqro }
 
 class FlavorConfig {
   final AppFlavor flavor;

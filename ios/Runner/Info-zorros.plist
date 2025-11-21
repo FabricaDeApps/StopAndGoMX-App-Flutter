@@ -42,5 +42,11 @@
   <true/>
   <key>UIApplicationSupportsIndirectInputEvents</key>
   <true/>
+  <key>NSCameraUsageDescription</key>
+  <string>Necesitamos usar la cámara para tomar fotos y adjuntarlas a tus reportes de pago.</string>
+  <key>NSPhotoLibraryUsageDescription</key>
+  <string>Necesitamos acceder a tus fotos para que puedas adjuntar imágenes desde tu galería.</string>
+  <key>NSPhotoLibraryAddUsageDescription</key>
+  <string>Necesitamos guardar imágenes en tu galería cuando generes o descargues fotos desde la app.</string>
 </dict>
 </plist>

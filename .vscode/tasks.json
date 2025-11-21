@@ -12,6 +12,12 @@
       "type": "shell",
       "command": "./scripts/use_logo.sh zorros",
       "problemMatcher": []
+    },
+    {
+      "label": "prepare-raidersqro-assets",
+      "type": "shell",
+      "command": "./scripts/use_logo.sh raidersqro",
+      "problemMatcher": []
     }
   ]
 }

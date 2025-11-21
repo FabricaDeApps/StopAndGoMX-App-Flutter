@@ -58,6 +58,13 @@ android {
             applicationId = "app.stopandgomx.zorros"
             resValue("string", "app_name", "Zorros")
         }
+
+        // Flavor Raiders Qro
+        create("raidersqro") {
+            dimension = "default"
+            applicationId = "app.stopandgomx.raidersqro"
+            resValue("string", "app_name", "Raiders Qro")
+        }
     }
 
     signingConfigs {

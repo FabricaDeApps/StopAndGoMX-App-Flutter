@@ -18,6 +18,15 @@
       "program": "lib/main_zorros.dart",
       "args": ["--flavor", "zorros"],
       "preLaunchTask": "prepare-zorros-assets"
+    },
+    {
+      "name": "Run RaidersQro",
+      "request": "launch",
+      "type": "dart",
+      "flutterMode": "debug",
+      "program": "lib/main_raidersqro.dart",
+      "args": ["--flavor", "raidersqro"],
+      "preLaunchTask": "prepare-raidersqro-assets"
     }
   ]
 }
