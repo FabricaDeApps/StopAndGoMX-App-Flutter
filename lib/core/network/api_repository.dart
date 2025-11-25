@@ -12,6 +12,7 @@ import 'package:stopandgo/core/models/responses/login_response.dart';
 import 'package:stopandgo/core/models/responses/organization_response.dart';
 import 'package:stopandgo/core/models/training.dart';
 import 'package:stopandgo/core/storage/app_storage.dart';
+import 'package:stopandgo/core/utils/device_info.dart';
 import 'api_client.dart';
 import 'token_storage.dart';
 import 'package:get/get.dart' hide FormData, MultipartFile;
@@ -58,14 +59,19 @@ class ApiRepository {
     required String password,
   }) async {
     try {
+      final tokenDevice = AppStorage.getTokenDevice();
+      final deviceInfo = await DeviceInfoHelper.getDeviceInfo();
+      final organizationId = FlavorConfig.I.organizationId!;
+
       final res = await _dio.post(
         ApiEndpoints.authLogin,
         data: {
           'email': email,
           'password': password,
-          'so': 'android',
-          'device_token': 'fcm_device_token_demo',
-          'device_name': 'Pixel 8',
+          'so': deviceInfo['os'],
+          'device_token': tokenDevice,
+          'device_name': deviceInfo['device_model'],
+          'organization_id': organizationId,
         },
         options: Options(headers: {'Accept': 'application/json'}),
       );

@@ -15,6 +15,7 @@ class AppStorage {
   static const keySelectedCategoryId = 'selected_category_id';
   static const keySelectedCategoryName = 'selected_category_name';
   static const keySelectedPlayerId = 'selected_player_id';
+  static const keyTokenDevice = 'key_token_device';
 
   /// Inicialización
   static Future<void> init() async {
@@ -86,6 +87,14 @@ class AppStorage {
     }
   }
 
+  static Future<void> setTokenDevice(String? value) async {
+    if (value == null) {
+      await _box.remove(keyTokenDevice);
+    } else {
+      await _box.write(keyTokenDevice, value);
+    }
+  }
+
   /// Obtiene el ID de la categoría seleccionada (si existe)
   static int? getSelectedCategoryId() {
     return _box.read<int?>(keySelectedCategoryId);
@@ -93,6 +102,10 @@ class AppStorage {
 
   static String? getSelectedCategoryName() {
     return _box.read<String?>(keySelectedCategoryName);
+  }
+
+  static String? getTokenDevice() {
+    return _box.read<String?>(keyTokenDevice);
   }
 
   /// Guarda el ID del jugador seleccionado (para parent/player)

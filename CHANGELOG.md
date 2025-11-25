@@ -19,6 +19,10 @@ y el versionado está basado en **Semantic Versioning (SemVer)**.
 
 ---
 
+## [1.0.6] - 2025-11-25
+- Managers can update photoplayer
+- Secure login for organization
+
 ## [1.0.4] - 2025-11-20
 ### Added
 - Fix MainApp route

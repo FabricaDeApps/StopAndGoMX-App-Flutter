@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "225171602574",
+    "project_id": "stopandgomx-4ab82",
+    "storage_bucket": "stopandgomx-4ab82.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:225171602574:android:d254b84b1d919b1acd9ddf",
+        "android_client_info": {
+          "package_name": "app.stopandgomx.main"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC_x2qNKjZl86Gu8Oii9_hgrf3G0fDpQoE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

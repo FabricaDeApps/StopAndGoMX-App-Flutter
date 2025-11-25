@@ -130,7 +130,7 @@ platform :android do
     deploy(
       flavor: "mainapp",
       target: "lib/main_mainapp.dart",          # ajusta si tu entrypoint es otro
-      package_name: "app.stopandgomx.stopandgo",
+      package_name: "app.stopandgomx.main",
       track: "production"
     )
   end

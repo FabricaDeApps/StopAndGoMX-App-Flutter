@@ -35,7 +35,7 @@ fastlane android deploy flavor:zorros target:lib/main_zorros.dart track:producti
 STOPANDGO
 ./scripts/use_logo.sh stopandgo
 
-ANDROID - NO WORKING
+ANDROID - WORKING
 # Zorros a producción
 fastlane deploy_zorros_production
 
@@ -76,4 +76,18 @@ Nuevo Flavor
 
 
 
-# STORES
+# FIREBASE CONFIGUR:
+flutterfire configure \
+  --project=stopandgomx-4ab82 \
+  --android-app-id=app.stopandgomx.raidersqro \
+  --platforms=android \
+  --out=lib/firebase_options_raidersqro.dart
+
+Copiar el json a su carpeta en src
+
+# KEY ID IOS:
+CLT625F29B
+
+# TEAM ID IOS:
+M25Y63Z23D
+
