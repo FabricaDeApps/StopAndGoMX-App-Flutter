@@ -19,4 +19,5 @@ abstract class Routes {
   static const trainingAttendance = '/trainingAttendance';
   static const myProfile = '/myProfile';
   static const noCategory = '/noCategory';
+  static const roster = '/roster';
 }

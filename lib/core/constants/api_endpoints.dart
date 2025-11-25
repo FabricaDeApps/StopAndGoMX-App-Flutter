@@ -6,6 +6,7 @@ class ApiEndpoints {
   static const parent = '/player';
 
   // ---- PUBLIC ----
+  static const publicOrganizations = '$public/organizations';
   static const organization = '$public/organization';
 
   // ---- AUTH ----

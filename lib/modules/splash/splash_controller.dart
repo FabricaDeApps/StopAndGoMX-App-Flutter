@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:stopandgo/core/network/api_repository.dart';
 import 'package:stopandgo/core/theme/theme_controller.dart';
 import 'package:stopandgo/routes/app_routes.dart';
@@ -20,11 +21,21 @@ class SplashController extends GetxController {
   // Control de flujo
   bool _navigated = false;
 
+  final appVersion = ''.obs;
+  final buildNumber = ''.obs;
+
   /// 🔹 Espera a que la vista esté montada (widgets listos)
   @override
   void onReady() {
     super.onReady();
+    _loadVersion();
     _loadBranding();
+  }
+
+  Future<void> _loadVersion() async {
+    final info = await PackageInfo.fromPlatform();
+    appVersion.value = info.version;
+    buildNumber.value = info.buildNumber;
   }
 
   Future<void> _loadBranding() async {

@@ -35,6 +35,23 @@ class ApiRepository {
     }
   }
 
+  /// Obtener catálogo público de organizaciones
+  Future<List<OrganizationResponse>> getPublicOrganizations() async {
+    final res = await _dio.get(ApiEndpoints.publicOrganizations);
+
+    if (res.statusCode == 200) {
+      final List data = res.data['data'] ?? [];
+
+      final orgs = data
+          .map((json) => OrganizationResponse.fromJson(json))
+          .toList();
+
+      return orgs;
+    } else {
+      throw Exception('Error ${res.statusCode}: ${res.statusMessage}');
+    }
+  }
+
   // ApiRepository.dart (fragmentos relevantes)
   Future<LoginResponse> login({
     required String email,
@@ -712,12 +729,11 @@ class ApiRepository {
     }
   }
 
-  /// Helper para subir comprobante (multipart)
   Future<void> uploadReceipt({
     required int paymentId,
     required String filePath,
     required double amount,
-    required String paidAtIso, // 2025-11-06T13:15:00Z
+    required String paidAtIso,
     String method = 'transfer',
     String? reference,
   }) async {
@@ -730,6 +746,24 @@ class ApiRepository {
     });
 
     await _dio.put('/manager/payments/$paymentId/mark-paid', data: form);
+  }
+
+  Future<void> updatePlayerPhoto({
+    required int categoryId,
+    required int playerId,
+    required String filePath,
+  }) async {
+    final formData = FormData.fromMap({
+      'photo': await MultipartFile.fromFile(
+        filePath,
+        filename: 'player_$playerId.jpg',
+      ),
+    });
+
+    await _dio.post(
+      '/manager/$categoryId/players/$playerId/photo',
+      data: formData,
+    );
   }
 
   /// ---- NOTICES ----

@@ -243,11 +243,12 @@ class TrainingsView extends GetView<TrainingsController> {
                           Align(
                             alignment: Alignment.centerRight,
                             child: TextButton.icon(
-                              onPressed: () {
-                                Get.toNamed(
+                              onPressed: () async {
+                                await Get.toNamed(
                                   Routes.trainingAttendance,
                                   arguments: {'trainingId': t.id},
                                 );
+                                controller.loadTrainings();
                               },
                               icon: const Icon(Icons.checklist_rtl),
                               label: const Text('Pasar lista'),

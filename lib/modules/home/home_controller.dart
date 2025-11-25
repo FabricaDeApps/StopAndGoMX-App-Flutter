@@ -139,6 +139,7 @@ class HomeController extends GetxController
     if (categories.isNotEmpty && selectedCategoryId.value == null) {
       selectedCategoryId.value = categories.first.id;
       await AppStorage.setSelectedCategoryId(categories.first.id);
+      await AppStorage.setSelectedCategoryName(categories.first.name);
     }
     if (selectedCategoryId.value != null) {
       await _loadDashboardForManager(categoryId: selectedCategoryId.value!);
@@ -474,6 +475,18 @@ class HomeController extends GetxController
 
     selectedCategoryId.value = id;
     await AppStorage.setSelectedCategoryId(id);
+
+    Category? cat;
+    for (final c in categories) {
+      if (c.id == id) {
+        cat = c;
+        break;
+      }
+    }
+
+    if (cat != null) {
+      await AppStorage.setSelectedCategoryName(cat.name);
+    }
 
     await _loadDashboardForManager(categoryId: id);
 

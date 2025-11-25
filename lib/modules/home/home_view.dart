@@ -190,6 +190,14 @@ class HomeView extends GetView<HomeController> {
                     Get.toNamed(Routes.trainnings);
                   },
                 ),
+                ListTile(
+                  leading: const Icon(Icons.supervised_user_circle),
+                  title: const Text('Roster'),
+                  onTap: () {
+                    Get.back();
+                    Get.toNamed(Routes.roster);
+                  },
+                ),
               ],
 
               ListTile(

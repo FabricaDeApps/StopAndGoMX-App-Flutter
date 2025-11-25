@@ -27,13 +27,48 @@ class SplashView extends GetView<SplashController> {
               end: Alignment.bottomRight,
             ),
           ),
-          child: Center(
-            child: Image.asset(
-              'assets/images/logo_generic.png',
-              width: 160,
-              height: 160,
-              fit: BoxFit.contain,
-            ),
+          child: Stack(
+            children: [
+              // Logo centrado
+              Center(
+                child: Image.asset(
+                  'assets/images/logo_generic.png',
+                  width: 160,
+                  height: 160,
+                  fit: BoxFit.contain,
+                ),
+              ),
+
+              // Versión abajo
+              Positioned(
+                bottom: 20,
+                left: 0,
+                right: 0,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      'v${controller.appVersion.value} (build ${controller.buildNumber.value})',
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                        color: Colors.white70,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w400,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      FlavorConfig.I.appName,
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                        color: Colors.white54,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
         ),
       );

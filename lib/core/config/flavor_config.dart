@@ -4,7 +4,7 @@ class FlavorConfig {
   final AppFlavor flavor;
   final String appName;
   final String bundleId;
-  final int? organizationId;
+  int? organizationId;
 
   static FlavorConfig? _instance;
   static FlavorConfig get I => _instance!;
@@ -32,4 +32,8 @@ class FlavorConfig {
 
   bool get isZorros => flavor == AppFlavor.zorros;
   bool get isMain => flavor == AppFlavor.main;
+
+  void updateOrganizationId(int newOrgId) {
+    organizationId = newOrgId;
+  }
 }

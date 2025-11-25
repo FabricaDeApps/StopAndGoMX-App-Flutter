@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:stopandgo/core/config/flavor_config.dart';
 import 'package:stopandgo/core/models/responses/login_response.dart';
 import 'package:stopandgo/core/models/responses/organization_response.dart';
 import 'package:stopandgo/core/network/api_repository.dart';
@@ -9,6 +10,12 @@ import 'package:stopandgo/routes/app_routes.dart';
 
 class LoginController extends GetxController {
   final _api = Get.find<ApiRepository>();
+
+  final bool isMultiOrg = FlavorConfig.I.organizationId == 1;
+
+  final organizations = <OrganizationResponse>[].obs;
+  final selectedOrganization = Rxn<OrganizationResponse>();
+  final isLoadingOrganizations = false.obs;
 
   // --- Branding (logo para la vista)
   final url = RxnString();
@@ -35,7 +42,52 @@ class LoginController extends GetxController {
   @override
   void onReady() {
     super.onReady();
-    _loadBrandingFromStorage();
+    if (isMultiOrg) {
+      _loadOrganizations();
+    } else {
+      _loadBrandingFromStorage();
+    }
+  }
+
+  /// Carga catálogo de organizaciones públicas
+  Future<void> _loadOrganizations() async {
+    isLoadingOrganizations.value = true;
+    try {
+      final list = await _api.getPublicOrganizations();
+      organizations.assignAll(list);
+
+      // Si ya tenías algo guardado en storage, recupéralo como selección
+      final cached = AppStorage.getOrganization();
+      if (cached != null) {
+        final match = list.firstWhereOrNull((o) => o.id == cached.id);
+        if (match != null) {
+          onSelectOrganization(match);
+        }
+      }
+    } catch (e) {
+      Get.snackbar(
+        'Error',
+        'No se pudo cargar el catálogo de organizaciones',
+        snackPosition: SnackPosition.BOTTOM,
+      );
+    } finally {
+      isLoadingOrganizations.value = false;
+    }
+  }
+
+  /// Cuando el usuario elige una organización en el combo
+  Future<void> onSelectOrganization(OrganizationResponse org) async {
+    selectedOrganization.value = org;
+
+    // 1) Actualiza FlavorConfig para que todos los endpoints usen esta org
+    FlavorConfig.I.updateOrganizationId(org.id!);
+
+    // 2) Guarda en storage para branding y futuros inicios
+    await AppStorage.setOrganization(org);
+
+    // 3) Actualiza logo y tema
+    url.value = org.logo;
+    Get.find<ThemeController>().refreshTheme();
   }
 
   void _loadBrandingFromStorage() {

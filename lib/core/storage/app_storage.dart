@@ -13,6 +13,7 @@ class AppStorage {
   static const keyOrganization = 'organization';
   static const keyUser = 'user';
   static const keySelectedCategoryId = 'selected_category_id';
+  static const keySelectedCategoryName = 'selected_category_name';
   static const keySelectedPlayerId = 'selected_player_id';
 
   /// Inicialización
@@ -77,9 +78,21 @@ class AppStorage {
     }
   }
 
+  static Future<void> setSelectedCategoryName(String? name) async {
+    if (name == null) {
+      await _box.remove(keySelectedCategoryName);
+    } else {
+      await _box.write(keySelectedCategoryName, name);
+    }
+  }
+
   /// Obtiene el ID de la categoría seleccionada (si existe)
   static int? getSelectedCategoryId() {
     return _box.read<int?>(keySelectedCategoryId);
+  }
+
+  static String? getSelectedCategoryName() {
+    return _box.read<String?>(keySelectedCategoryName);
   }
 
   /// Guarda el ID del jugador seleccionado (para parent/player)
