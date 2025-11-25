@@ -9,8 +9,8 @@ platform :ios do
   # Paths base
   ############################################
 
-  PROJECT_ROOT = File.expand_path('../..', __dir__)  # /.../StopAndGoMX-App-Flutter
-  IOS_DIR      = File.expand_path('..', __dir__)     # /.../StopAndGoMX-App-Flutter/ios
+  PROJECT_ROOT = File.expand_path('../..', __dir__)  # /.../flutter_stopandgo
+  IOS_DIR      = File.expand_path('..', __dir__)     # /.../flutter_stopandgo/ios
 
   ############################################
   # API key de App Store Connect
@@ -33,7 +33,7 @@ platform :ios do
                when 'mainapp'
                  'stopandgo'
                else
-                 flavor # zorros → zorros
+                 flavor # zorros -> zorros
                end
 
     UI.message("🎨 Ejecutando script de logo: ./scripts/use_logo.sh #{logo_arg}")
@@ -41,7 +41,7 @@ platform :ios do
   end
 
   ############################################
-  # Build iOS
+  # Build iOS (usa Signing automático de Xcode)
   ############################################
   def build_ios_app(flavor:, scheme:, export_method:, export_team_id:, output_name:, output_path:)
     # Usar la configuración específica por flavor:
@@ -53,15 +53,15 @@ platform :ios do
 
     build_app(
       workspace: File.join(IOS_DIR, "Runner.xcworkspace"),
-      scheme: scheme,
-      configuration: config_name,          # 🔥 Release-mainapp / Release-zorros
-      export_method: export_method,        # "app-store" para TestFlight/App Store
-      export_options: {
-        signingStyle: "automatic",
-        teamID: export_team_id
-      },
+      scheme: scheme,                         # ej: "mainapp" o "zorros"
+      configuration: config_name,            # "Release-mainapp" / "Release-zorros"
+      export_method: export_method,          # "app-store"
+      clean: true,
       output_directory: output_path,
-      output_name: output_name
+      output_name: output_name,
+      include_bitcode: false,
+      include_symbols: true,
+      xcargs: "-allowProvisioningUpdates"    # deja que Xcode gestione perfiles
     )
   end
 
@@ -117,12 +117,11 @@ platform :ios do
     ########################################
     UI.message("🔧 flutter build ios --config-only --release --flavor #{flavor}")
 
-    # 👇 Ajusta aquí si tus entrypoints se llaman diferente
     entrypoint = case flavor
                  when "mainapp"
-                   "lib/main_mainapp.dart"           # entrypoint base
+                   "lib/main_mainapp.dart"
                  when "zorros"
-                   "lib/main_zorros.dart"    # entrypoint del flavor zorros
+                   "lib/main_zorros.dart"
                  else
                    UI.user_error!("No conozco el entrypoint para flavor=#{flavor}")
                  end
@@ -164,14 +163,12 @@ platform :ios do
     sh "plutil -p /tmp/ipa_#{flavor}/Payload/*.app/Info.plist | grep CFBundleIdentifier || echo 'CFBundleIdentifier no encontrado'"
 
     ########################################
-    # 4) Upload a TestFlight (opcional)
+    # 4) Upload a TestFlight
     ########################################
-    # Si quieres subir automáticamente, descomenta:
-    #
     upload_to_testflight_generic(
-       bundle_id: bundle_id,
-       groups: tester_groups,
-       changelog: changelog
+      bundle_id: bundle_id,
+      groups: tester_groups,
+      changelog: changelog
     )
 
     UI.success("✅ Deploy iOS completado (#{flavor})")
@@ -185,8 +182,8 @@ platform :ios do
   lane :deploy_mainapp do
     deploy(
       flavor: "mainapp",
-      scheme: "mainapp",
-      bundle_id: "app.stopandgomx.stopandgo",
+      scheme: "mainapp",                       # debe existir scheme 'mainapp' en Xcode
+      bundle_id: "app.stopandgomx.stopandgo",  # bundle iOS real
       ipa_name: "stopandgo-mainapp.ipa",
       groups: ["internal"]
     )
@@ -196,7 +193,7 @@ platform :ios do
   lane :deploy_zorros do
     deploy(
       flavor: "zorros",
-      scheme: "zorros",
+      scheme: "zorros",                        # scheme 'zorros' en Xcode
       bundle_id: "app.stopandgomx.zorros",
       ipa_name: "stopandgo-zorros.ipa",
       groups: ["internal"]

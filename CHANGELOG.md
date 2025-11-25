@@ -19,6 +19,10 @@ y el versionado está basado en **Semantic Versioning (SemVer)**.
 
 ---
 
+## [1.0.7] - 2025-11-25
+- Login add device info
+- Firebase Notifications
+
 ## [1.0.6] - 2025-11-25
 - Managers can update photoplayer
 - Secure login for organization

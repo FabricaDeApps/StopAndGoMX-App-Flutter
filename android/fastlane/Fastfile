@@ -113,16 +113,6 @@ platform :android do
   # Lanes por organización / flavor
   ############################################
 
-  # MAINAPP (StopAndGo) - INTERNAL
-  desc "Deploy Android mainapp (StopAndGo) a track INTERNAL"
-  lane :deploy_mainapp_internal do
-    deploy(
-      flavor: "mainapp",
-      target: "lib/main_mainapp.dart",          # ajusta si tu entrypoint es otro
-      package_name: "app.stopandgomx.stopandgo",
-      track: "internal"
-    )
-  end
 
   # MAINAPP (StopAndGo) - PRODUCTION
   desc "Deploy Android mainapp (StopAndGo) a track PRODUCTION"
@@ -135,17 +125,6 @@ platform :android do
     )
   end
 
-  # ZORROS - INTERNAL
-  desc "Deploy Android Zorros a track INTERNAL"
-  lane :deploy_zorros_internal do
-    deploy(
-      flavor: "zorros",
-      target: "lib/main_zorros.dart",           # ajusta si tu entrypoint es otro
-      package_name: "app.stopandgomx.zorros",
-      track: "internal"
-    )
-  end
-
   # ZORROS - PRODUCTION
   desc "Deploy Android Zorros a track PRODUCTION"
   lane :deploy_zorros_production do
@@ -153,6 +132,17 @@ platform :android do
       flavor: "zorros",
       target: "lib/main_zorros.dart",           # ajusta si tu entrypoint es otro
       package_name: "app.stopandgomx.zorros",
+      track: "production"
+    )
+  end
+
+  # RAIDERS QRO - PRODUCTION
+  desc "Deploy Android RaidersQRO a track PRODUCTION"
+  lane :deploy_raidersqro_production do
+    deploy(
+      flavor: "raidersqro",
+      target: "lib/main_raidersqro.dart",
+      package_name: "app.stopandgomx.raidersqro",
       track: "production"
     )
   end

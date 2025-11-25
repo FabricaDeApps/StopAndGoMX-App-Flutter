@@ -23,14 +23,6 @@ For _fastlane_ installation instructions, see [Installing _fastlane_](https://do
 
 Build & upload a Google Play usando Flutter + flavors (lane genérica)
 
-### android deploy_mainapp_internal
-
-```sh
-[bundle exec] fastlane android deploy_mainapp_internal
-```
-
-Deploy Android mainapp (StopAndGo) a track INTERNAL
-
 ### android deploy_mainapp_production
 
 ```sh
@@ -39,14 +31,6 @@ Deploy Android mainapp (StopAndGo) a track INTERNAL
 
 Deploy Android mainapp (StopAndGo) a track PRODUCTION
 
-### android deploy_zorros_internal
-
-```sh
-[bundle exec] fastlane android deploy_zorros_internal
-```
-
-Deploy Android Zorros a track INTERNAL
-
 ### android deploy_zorros_production
 
 ```sh
@@ -54,6 +38,14 @@ Deploy Android Zorros a track INTERNAL
 ```
 
 Deploy Android Zorros a track PRODUCTION
+
+### android deploy_raidersqro_production
+
+```sh
+[bundle exec] fastlane android deploy_raidersqro_production
+```
+
+Deploy Android RaidersQRO a track PRODUCTION
 
 ----
 

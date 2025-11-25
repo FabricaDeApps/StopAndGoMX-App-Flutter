@@ -31,29 +31,35 @@ fastlane android deploy \
 
 fastlane android deploy flavor:zorros target:lib/main_zorros.dart track:production package_name:app.stopandgomx.zorros
 
-
+# Branding flavor
 STOPANDGO
 ./scripts/use_logo.sh stopandgo
 
-ANDROID - WORKING
+
+
+
+### ANDROID - WORKING
+
 # Zorros a producción
 fastlane deploy_zorros_production
-
-# Zorros a internal
-fastlane deploy_zorros_internal
 
 # Mainapp a producción
 fastlane deploy_mainapp_production
 
-# Mainapp a internal
-fastlane deploy_mainapp_internal
+# RaidersQro a producción
+fastlane deploy_raidersqro_production
+
 
 
 IOS - WORKS
+
 # mainapp
+flutter build ios --config-only --release --flavor mainapp --target=lib/main_mainapp.dart
 fastlane deploy_mainapp
 
 # zorros
+./scripts/use_logo.sh zorros
+flutter build ios --config-only --release --flavor zorros --target=lib/main_zorros.dart
 fastlane deploy_zorros
 
 
