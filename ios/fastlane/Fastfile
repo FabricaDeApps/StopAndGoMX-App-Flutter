@@ -1,7 +1,3 @@
-# ================================
-# fastlane/Fastfile (iOS)
-# ================================
-
 default_platform(:ios)
 
 platform :ios do
@@ -9,8 +5,8 @@ platform :ios do
   # Paths base
   ############################################
 
-  PROJECT_ROOT = File.expand_path('../..', __dir__)  # /.../flutter_stopandgo
-  IOS_DIR      = File.expand_path('..', __dir__)     # /.../flutter_stopandgo/ios
+  PROJECT_ROOT = File.expand_path('../..', __dir__)
+  IOS_DIR      = File.expand_path('..', __dir__)
 
   ############################################
   # API key de App Store Connect
@@ -44,24 +40,21 @@ platform :ios do
   # Build iOS (usa Signing automático de Xcode)
   ############################################
   def build_ios_app(flavor:, scheme:, export_method:, export_team_id:, output_name:, output_path:)
-    # Usar la configuración específica por flavor:
-    # - mainapp  -> Release-mainapp
-    # - zorros   -> Release-zorros
-    config_name = "Release-#{flavor}"
+    config_name = "Release-#{flavor}"  # Release-mainapp / Release-zorros
 
     UI.message("🛠  Construyendo iOS (flavor=#{flavor}, scheme=#{scheme}, configuration=#{config_name})...")
 
     build_app(
       workspace: File.join(IOS_DIR, "Runner.xcworkspace"),
-      scheme: scheme,                         # ej: "mainapp" o "zorros"
-      configuration: config_name,            # "Release-mainapp" / "Release-zorros"
-      export_method: export_method,          # "app-store"
+      scheme: scheme,                      # "mainapp" o "zorros"
+      configuration: config_name,
+      export_method: export_method,        # "app-store"
       clean: true,
       output_directory: output_path,
       output_name: output_name,
       include_bitcode: false,
       include_symbols: true,
-      xcargs: "-allowProvisioningUpdates"    # deja que Xcode gestione perfiles
+      xcargs: "-allowProvisioningUpdates"
     )
   end
 
@@ -86,20 +79,17 @@ platform :ios do
   ############################################
   desc "Build & upload iOS (TestFlight) usando Flutter + flavors"
   lane :deploy do |options|
-    # Parámetros requeridos
     flavor         = options[:flavor]              # "mainapp" / "zorros"
     scheme         = options[:scheme] || flavor    # normalmente igual al flavor
     bundle_id      = options[:bundle_id]
     export_method  = options[:export_method]  || "app-store"
     export_team_id = options[:export_team_id] || "M25Y63Z23D"
 
-    # Opcionales
     ipa_name      = options[:ipa_name]      || "stopandgomx-#{flavor}.ipa"
     changelog     = options[:changelog]     || "Nueva compilación para #{flavor}"
     tester_groups = options[:groups]        || []
     logo_script   = options[:logo_script].nil? ? true : options[:logo_script]
 
-    # Validaciones
     UI.user_error!("Falta flavor")    if flavor.nil? || flavor.empty?
     UI.user_error!("Falta scheme")    if scheme.nil? || scheme.empty?
     UI.user_error!("Falta bundle_id") if bundle_id.nil? || bundle_id.empty?
@@ -113,7 +103,12 @@ platform :ios do
     UI.message("   ipa:           #{ipa_name}")
 
     ########################################
-    # 1) flutter config-only
+    # 1) Logo script ANTES del build (como tú quieres)
+    ########################################
+    run_logo_script(flavor: flavor) if logo_script
+
+    ########################################
+    # 2) flutter build ios --config-only ...
     ########################################
     UI.message("🔧 flutter build ios --config-only --release --flavor #{flavor}")
 
@@ -131,12 +126,7 @@ platform :ios do
     sh "cd #{PROJECT_ROOT} && flutter build ios --config-only --release --flavor #{flavor} --target=#{entrypoint}"
 
     ########################################
-    # 2) Logo script (opcional)
-    ########################################
-    run_logo_script(flavor: flavor) if logo_script
-
-    ########################################
-    # 3) Build IPA
+    # 3) Build IPA (xcodebuild vía build_app)
     ########################################
     output_path = File.join(PROJECT_ROOT, "build/ios/ipa/#{flavor}")
 
@@ -150,14 +140,13 @@ platform :ios do
     )
 
     ########################################
-    # 3.5) DEBUG: Mostrar CFBundleIdentifier REAL
+    # 3.5) DEBUG: mostrar CFBundleIdentifier del IPA
     ########################################
     ipa_path = File.join(output_path, ipa_name)
     UI.message("🔍 IPA generado en: #{ipa_path}")
 
     sh "rm -rf /tmp/ipa_#{flavor}"
     sh "mkdir -p /tmp/ipa_#{flavor}"
-
     sh "unzip -o '#{ipa_path}' -d /tmp/ipa_#{flavor} >/dev/null"
     UI.message("📦 Leyendo CFBundleIdentifier real del IPA:")
     sh "plutil -p /tmp/ipa_#{flavor}/Payload/*.app/Info.plist | grep CFBundleIdentifier || echo 'CFBundleIdentifier no encontrado'"
@@ -182,8 +171,8 @@ platform :ios do
   lane :deploy_mainapp do
     deploy(
       flavor: "mainapp",
-      scheme: "mainapp",                       # debe existir scheme 'mainapp' en Xcode
-      bundle_id: "app.stopandgomx.stopandgo",  # bundle iOS real
+      scheme: "mainapp",                       # scheme mainapp en Xcode
+      bundle_id: "app.stopandgomx.stopandgo",  # bundle iOS de mainapp
       ipa_name: "stopandgo-mainapp.ipa",
       groups: ["internal"]
     )
@@ -193,7 +182,7 @@ platform :ios do
   lane :deploy_zorros do
     deploy(
       flavor: "zorros",
-      scheme: "zorros",                        # scheme 'zorros' en Xcode
+      scheme: "zorros",                        # scheme zorros en Xcode
       bundle_id: "app.stopandgomx.zorros",
       ipa_name: "stopandgo-zorros.ipa",
       groups: ["internal"]

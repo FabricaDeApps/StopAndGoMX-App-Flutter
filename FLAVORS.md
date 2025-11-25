@@ -54,12 +54,15 @@ fastlane deploy_raidersqro_production
 IOS - WORKS
 
 # mainapp
-flutter build ios --config-only --release --flavor mainapp --target=lib/main_mainapp.dart
+deprecated - ./scripts/use_logo.sh stopandgo
+deprecated - flutter build ios --config-only --release --flavor mainapp --target=lib/main_mainapp.dart
+
 fastlane deploy_mainapp
 
 # zorros
-./scripts/use_logo.sh zorros
-flutter build ios --config-only --release --flavor zorros --target=lib/main_zorros.dart
+deprecated - ./scripts/use_logo.sh zorros
+deprecated - flutter build ios --config-only --release --flavor zorros --target=lib/main_zorros.dart
+
 fastlane deploy_zorros
 
 
