@@ -23,88 +23,95 @@ class LoginView extends GetView<LoginController> {
           return Center(
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 420),
-              child: Obx(() {
-                return SingleChildScrollView(
-                  padding: EdgeInsets.fromLTRB(
-                    20,
-                    20,
-                    20,
-                    (bottomInset > 0 ? bottomInset : 20) + 20,
+              child: SingleChildScrollView(
+                padding: EdgeInsets.fromLTRB(
+                  20,
+                  20,
+                  20,
+                  (bottomInset > 0 ? bottomInset : 20) + 20,
+                ),
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(
+                    minHeight:
+                        viewportConstraints.maxHeight -
+                        (MediaQuery.of(context).padding.top + kToolbarHeight),
                   ),
-                  child: ConstrainedBox(
-                    constraints: BoxConstraints(
-                      minHeight:
-                          viewportConstraints.maxHeight -
-                          (MediaQuery.of(context).padding.top + kToolbarHeight),
-                    ),
-                    child: Form(
-                      key: controller.formKey,
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          if (controller.isMultiOrg) ...[
-                            Align(
-                              alignment: Alignment.centerLeft,
-                              child: Text(
-                                'Selecciona tu club',
-                                style: theme.textTheme.bodyMedium?.copyWith(
-                                  fontWeight: FontWeight.w600,
-                                ),
+                  child: Form(
+                    key: controller.formKey,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        if (controller.isMultiOrg) ...[
+                          Align(
+                            alignment: Alignment.centerLeft,
+                            child: Text(
+                              'Selecciona tu club',
+                              style: theme.textTheme.bodyMedium?.copyWith(
+                                fontWeight: FontWeight.w600,
                               ),
                             ),
-                            const SizedBox(height: 8),
-                            Obx(() {
-                              if (controller.isLoadingOrganizations.value) {
-                                return const Center(
-                                  child: CircularProgressIndicator(),
-                                );
-                              }
-
-                              final orgs = controller.organizations;
-                              return DropdownButtonFormField<
-                                OrganizationResponse
-                              >(
-                                isExpanded: true,
-                                decoration: const InputDecoration(
-                                  prefixIcon: Icon(Icons.sports_football),
-                                  border: OutlineInputBorder(),
-                                ),
-                                hint: const Text('Elige tu organización'),
-                                value: controller.selectedOrganization.value,
-                                items: orgs
-                                    .map(
-                                      (o) =>
-                                          DropdownMenuItem<
-                                            OrganizationResponse
-                                          >(
-                                            value: o,
-                                            child: Text(
-                                              o.name ??
-                                                  o.slug ??
-                                                  'Org #${o.id}',
-                                            ),
-                                          ),
-                                    )
-                                    .toList(),
-                                onChanged: (org) {
-                                  if (org != null) {
-                                    controller.onSelectOrganization(org);
-                                  }
-                                },
-                                validator: (value) {
-                                  if (controller.isMultiOrg &&
-                                      controller.selectedOrganization.value ==
-                                          null) {
-                                    return 'Selecciona una organización';
-                                  }
-                                  return null;
-                                },
+                          ),
+                          const SizedBox(height: 8),
+                          Obx(() {
+                            if (controller.isLoadingOrganizations.value) {
+                              return const Center(
+                                child: CircularProgressIndicator(),
                               );
-                            }),
-                            const SizedBox(height: 20),
-                          ],
-                          CachedNetworkImage(
-                            imageUrl: controller.url.value ?? "",
+                            }
+
+                            final orgs = controller.organizations;
+                            return DropdownButtonFormField<
+                              OrganizationResponse
+                            >(
+                              isExpanded: true,
+                              decoration: const InputDecoration(
+                                prefixIcon: Icon(Icons.sports_football),
+                                border: OutlineInputBorder(),
+                              ),
+                              hint: const Text('Elige tu organización'),
+                              value: controller.selectedOrganization.value,
+                              items: orgs
+                                  .map(
+                                    (o) =>
+                                        DropdownMenuItem<OrganizationResponse>(
+                                          value: o,
+                                          child: Text(
+                                            o.name ?? o.slug ?? 'Org #${o.id}',
+                                          ),
+                                        ),
+                                  )
+                                  .toList(),
+                              onChanged: (org) {
+                                if (org != null) {
+                                  controller.onSelectOrganization(org);
+                                }
+                              },
+                              validator: (value) {
+                                if (controller.isMultiOrg &&
+                                    controller.selectedOrganization.value ==
+                                        null) {
+                                  return 'Selecciona una organización';
+                                }
+                                return null;
+                              },
+                            );
+                          }),
+                          const SizedBox(height: 20),
+                        ],
+                        Obx(() {
+                          final imageUrl = controller.url.value ?? '';
+
+                          if (imageUrl.isEmpty) {
+                            return Icon(
+                              Icons.image_not_supported_outlined,
+                              color: theme.colorScheme.primary,
+                              size: keyboard ? 40 : 64,
+                            );
+                          }
+
+                          return CachedNetworkImage(
+                            key: ValueKey(imageUrl),
+                            imageUrl: imageUrl,
                             width: keyboard ? 140 : 200,
                             height: keyboard ? 140 : 200,
                             fit: BoxFit.contain,
@@ -119,104 +126,104 @@ class LoginView extends GetView<LoginController> {
                               color: theme.colorScheme.primary,
                               size: keyboard ? 40 : 64,
                             ),
-                          ),
-                          const SizedBox(height: 12),
+                          );
+                        }),
+                        const SizedBox(height: 12),
 
-                          Text(
-                            'Bienvenido',
-                            textAlign: TextAlign.center,
-                            style: theme.textTheme.headlineSmall?.copyWith(
-                              fontWeight: FontWeight.bold,
-                            ),
+                        Text(
+                          'Bienvenido',
+                          textAlign: TextAlign.center,
+                          style: theme.textTheme.headlineSmall?.copyWith(
+                            fontWeight: FontWeight.bold,
                           ),
-                          const SizedBox(height: 16),
+                        ),
+                        const SizedBox(height: 16),
 
-                          TextFormField(
-                            controller: controller.emailCtrl,
-                            focusNode: controller.emailFocus,
-                            keyboardType: TextInputType.emailAddress,
-                            textInputAction: TextInputAction.next,
-                            decoration: const InputDecoration(
-                              labelText: 'Email',
-                              hintText: 'tu@email.com',
-                              prefixIcon: Icon(Icons.alternate_email),
-                            ),
-                            validator: controller.validateEmailPublic,
-                            onFieldSubmitted: (_) {
-                              controller.passFocus.requestFocus();
-                            },
+                        TextFormField(
+                          controller: controller.emailCtrl,
+                          focusNode: controller.emailFocus,
+                          keyboardType: TextInputType.emailAddress,
+                          textInputAction: TextInputAction.next,
+                          decoration: const InputDecoration(
+                            labelText: 'Email',
+                            hintText: 'tu@email.com',
+                            prefixIcon: Icon(Icons.alternate_email),
                           ),
-                          const SizedBox(height: 12),
+                          validator: controller.validateEmailPublic,
+                          onFieldSubmitted: (_) {
+                            controller.passFocus.requestFocus();
+                          },
+                        ),
+                        const SizedBox(height: 12),
 
-                          Obx(
-                            () => TextFormField(
-                              controller: controller.passCtrl,
-                              focusNode: controller.passFocus,
-                              obscureText: controller.obscure.value,
-                              textInputAction: TextInputAction.done,
-                              decoration: InputDecoration(
-                                labelText: 'Contraseña',
-                                hintText: '••••••••',
-                                prefixIcon: const Icon(Icons.lock_outline),
-                                suffixIcon: IconButton(
-                                  onPressed: () => controller.obscure.toggle(),
-                                  icon: Icon(
-                                    controller.obscure.value
-                                        ? Icons.visibility_off_outlined
-                                        : Icons.visibility_outlined,
-                                  ),
-                                  tooltip: controller.obscure.value
-                                      ? 'Mostrar contraseña'
-                                      : 'Ocultar contraseña',
+                        Obx(
+                          () => TextFormField(
+                            controller: controller.passCtrl,
+                            focusNode: controller.passFocus,
+                            obscureText: controller.obscure.value,
+                            textInputAction: TextInputAction.done,
+                            decoration: InputDecoration(
+                              labelText: 'Contraseña',
+                              hintText: '••••••••',
+                              prefixIcon: const Icon(Icons.lock_outline),
+                              suffixIcon: IconButton(
+                                onPressed: () => controller.obscure.toggle(),
+                                icon: Icon(
+                                  controller.obscure.value
+                                      ? Icons.visibility_off_outlined
+                                      : Icons.visibility_outlined,
                                 ),
-                              ),
-                              validator: controller.validatePasswordPublic,
-                              onFieldSubmitted: (_) => controller.submit(),
-                            ),
-                          ),
-                          const SizedBox(height: 20),
-
-                          SizedBox(
-                            width: double.infinity,
-                            child: Obx(
-                              () => FilledButton(
-                                onPressed: controller.isLoading.value
-                                    ? null
-                                    : controller.submit,
-                                child: controller.isLoading.value
-                                    ? const SizedBox(
-                                        height: 20,
-                                        width: 20,
-                                        child: CircularProgressIndicator(
-                                          strokeWidth: 2,
-                                        ),
-                                      )
-                                    : const Text('Ingresar'),
+                                tooltip: controller.obscure.value
+                                    ? 'Mostrar contraseña'
+                                    : 'Ocultar contraseña',
                               ),
                             ),
+                            validator: controller.validatePasswordPublic,
+                            onFieldSubmitted: (_) => controller.submit(),
                           ),
+                        ),
+                        const SizedBox(height: 20),
 
-                          const SizedBox(height: 12),
-
-                          // ⬇️ Botón "Crear cuenta"
-                          SizedBox(
-                            width: double.infinity,
-                            child: OutlinedButton.icon(
-                              onPressed: () {
-                                // Si quieres pasar un orgId específico:
-                                // Get.toNamed(Routes.signIn, arguments: {'orgId': 2});
-                                Get.toNamed(Routes.signIn);
-                              },
-                              icon: const Icon(Icons.person_add_alt_1),
-                              label: const Text('Crear cuenta'),
+                        SizedBox(
+                          width: double.infinity,
+                          child: Obx(
+                            () => FilledButton(
+                              onPressed: controller.isLoading.value
+                                  ? null
+                                  : controller.submit,
+                              child: controller.isLoading.value
+                                  ? const SizedBox(
+                                      height: 20,
+                                      width: 20,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                      ),
+                                    )
+                                  : const Text('Ingresar'),
                             ),
                           ),
-                        ],
-                      ),
+                        ),
+
+                        const SizedBox(height: 12),
+
+                        // ⬇️ Botón "Crear cuenta"
+                        SizedBox(
+                          width: double.infinity,
+                          child: OutlinedButton.icon(
+                            onPressed: () {
+                              // Si quieres pasar un orgId específico:
+                              // Get.toNamed(Routes.signIn, arguments: {'orgId': 2});
+                              Get.toNamed(Routes.signIn);
+                            },
+                            icon: const Icon(Icons.person_add_alt_1),
+                            label: const Text('Crear cuenta'),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                );
-              }),
+                ),
+              ),
             ),
           );
         },

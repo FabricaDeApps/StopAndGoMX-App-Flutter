@@ -19,7 +19,7 @@ flutter build ios --flavor zorros -t lib/main_zorros.dart
 flutter build ios --flavor mainapp -t lib/main_stopandgo.dart
 
 
-FASTLANE:
+# FASTLANE:
 
 ZORROS
 ./scripts/use_logo.sh zorros
@@ -66,12 +66,7 @@ deprecated - flutter build ios --config-only --release --flavor zorros --target=
 fastlane deploy_zorros
 
 
-USERS MANAGER DEMO:
-manager@stopandgo.app
-123456
 
-manager@raiders.com
-123456
 
 Nuevo Flavor
 
@@ -100,3 +95,32 @@ CLT625F29B
 # TEAM ID IOS:
 M25Y63Z23D
 
+
+# LIST FLAVORS:
+
+- StopAndGoMX - 
+
+  # Bundle
+    Android: app.stopandgomx.main
+    iOS: app.stopandgomx.stopandgo
+  # demo user
+    manager@stopandgo.app
+    123456
+
+- Zorros Football Academy - 
+  
+  # Bundle
+    Android: app.stopandgomx.zorros
+    iOS: app.stopandgomx.zorros
+  # demo user
+    manager@zorros.com
+    123456
+
+- Raiders Queretaro - 
+  
+  # Bundle
+    Android: app.stopandgomx.raidersqro
+    iOS: app.stopandgomx.raidersqro
+  # demo user
+    manager@raiders.com
+    123456

@@ -42,10 +42,10 @@ class LoginController extends GetxController {
   @override
   void onReady() {
     super.onReady();
+    _loadBrandingFromStorage();
+
     if (isMultiOrg) {
       _loadOrganizations();
-    } else {
-      _loadBrandingFromStorage();
     }
   }
 
@@ -86,8 +86,16 @@ class LoginController extends GetxController {
     await AppStorage.setOrganization(org);
 
     // 3) Actualiza logo y tema
-    url.value = org.logo;
+    url.value = _buildLogoUrl(org.logo);
+
     Get.find<ThemeController>().refreshTheme();
+  }
+
+  String _buildLogoUrl(String? path) {
+    if (path == null || path.isEmpty) return '';
+    if (path.startsWith('http')) return path;
+    final cleanPath = path.startsWith('/') ? path.substring(1) : path;
+    return 'https://stopandgomx.app/storage/$cleanPath';
   }
 
   void _loadBrandingFromStorage() {
