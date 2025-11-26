@@ -6,7 +6,7 @@
       "request": "launch",
       "type": "dart",
       "flutterMode": "debug",
-      "program": "lib/main_stopandgo.dart",
+      "program": "lib/main_mainapp.dart",
       "args": ["--flavor", "mainapp"],
       "preLaunchTask": "prepare-stopandgo-assets"
     },

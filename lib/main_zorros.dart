@@ -3,6 +3,7 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/date_symbol_data_local.dart';
+
 import 'package:stopandgo/app_binding.dart';
 import 'package:stopandgo/core/services/notification_service.dart';
 import 'package:stopandgo/core/storage/app_storage.dart';
@@ -16,7 +17,6 @@ import 'core/network/api_client.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-
   await initializeDateFormatting('es_MX', null);
   await AppStorage.init();
   FlavorConfig.init(

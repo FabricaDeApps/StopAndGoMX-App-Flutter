@@ -25,9 +25,9 @@ Future<void> main() async {
     organizationId: 1,
   );
 
-  await ApiClient.init();
   FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
   await NotificationService.initialize();
+  await ApiClient.init();
 
   runApp(StopAndGoApp());
 }

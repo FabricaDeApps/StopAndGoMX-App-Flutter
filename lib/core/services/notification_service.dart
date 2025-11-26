@@ -1,7 +1,7 @@
-import 'package:firebase_messaging/firebase_messaging.dart';
-import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:flutter/material.dart';
 import 'dart:developer' as developer;
+import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 import 'package:stopandgo/core/storage/app_storage.dart';
 
@@ -23,16 +23,21 @@ class NotificationService {
       name: 'FCM',
     );
 
-    // 2) Inicialización LOCAL notifications (Android + iOS)
+    // 1.1) iOS: mostrar notifs en foreground también
+    await _messaging.setForegroundNotificationPresentationOptions(
+      alert: true,
+      badge: true,
+      sound: true,
+    );
 
+    // 2) Inicialización LOCAL notifications (Android + iOS)
     const androidInit = AndroidInitializationSettings('@mipmap/ic_launcher');
 
     const iosInit = DarwinInitializationSettings(
+      // ya pedimos permiso arriba con FCM
       requestAlertPermission: false,
       requestBadgePermission: false,
       requestSoundPermission: false,
-      // Si quieres manejar taps en notifs locales:
-      // onDidReceiveLocalNotification: ...
     );
 
     const initSettings = InitializationSettings(
@@ -42,9 +47,7 @@ class NotificationService {
 
     await _local.initialize(
       initSettings,
-      // onDidReceiveNotificationResponse: (NotificationResponse response) {
-      //   // Aquí podrías navegar según payload, etc.
-      // },
+      // onDidReceiveNotificationResponse: (NotificationResponse response) {}
     );
 
     // 3) Mensajes en FOREGROUND
@@ -56,17 +59,27 @@ class NotificationService {
         '📲 App abierta desde notif: ${message.messageId}',
         name: 'FCM',
       );
-      // Aquí navegas si quieres, según message.data
+      // Aquí navegas según message.data si quieres
     });
 
     // 5) Token FCM
     final token = await _messaging.getToken();
-    developer.log('🔥 TOKEN FCM: $token', name: 'FCM');
-
+    await debugPrintFcmTokens(); // ahora es static
     await AppStorage.setTokenDevice(token);
 
-    // Ejemplo: suscribirse a topic por organización
+    developer.log('📡 FCM TOKEN GUARDADO: $token', name: 'FCM');
+
+    // Ejemplo: suscripción a topic por organización (si luego quieres)
     // await _messaging.subscribeToTopic('org_${FlavorConfig.I.organizationId}');
+  }
+
+  /// 👇 OJO: static, para poder llamarla desde initialize()
+  static Future<void> debugPrintFcmTokens() async {
+    final fcmToken = await _messaging.getToken();
+    final apnsToken = await _messaging.getAPNSToken();
+
+    developer.log('🔥 iOS FCM TOKEN: $fcmToken', name: 'FCM');
+    developer.log('🍎 APNS TOKEN: $apnsToken', name: 'FCM');
   }
 
   static void _onForegroundMessage(RemoteMessage message) {
@@ -84,14 +97,15 @@ class NotificationService {
       notification.hashCode,
       notification.title,
       notification.body,
-      NotificationDetails(
+      const NotificationDetails(
         android: AndroidNotificationDetails(
           'default_channel',
           'Notificaciones',
           importance: Importance.high,
           priority: Priority.high,
-          icon: android?.smallIcon,
         ),
+        // Si quieres también configuración específica para iOS:
+        // iOS: DarwinNotificationDetails(),
       ),
     );
   }
