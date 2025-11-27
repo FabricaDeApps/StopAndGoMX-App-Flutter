@@ -39,6 +39,14 @@ Deploy iOS mainapp (StopAndGo)
 
 Deploy iOS Zorros
 
+### ios deploy_raidersqro
+
+```sh
+[bundle exec] fastlane ios deploy_raidersqro
+```
+
+Deploy iOS Zorros
+
 ----
 
 This README.md is auto-generated and will be re-generated every time [_fastlane_](https://fastlane.tools) is run.

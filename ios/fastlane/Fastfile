@@ -117,6 +117,8 @@ platform :ios do
                    "lib/main_mainapp.dart"
                  when "zorros"
                    "lib/main_zorros.dart"
+                when "raidersqro"
+                   "lib/main_raidersqro.dart"
                  else
                    UI.user_error!("No conozco el entrypoint para flavor=#{flavor}")
                  end
@@ -185,6 +187,17 @@ platform :ios do
       scheme: "zorros",                        # scheme zorros en Xcode
       bundle_id: "app.stopandgomx.zorros",
       ipa_name: "stopandgo-zorros.ipa",
+      groups: ["internal"]
+    )
+  end
+
+  desc "Deploy iOS Zorros"
+  lane :deploy_raidersqro do
+    deploy(
+      flavor: "raidersqro",
+      scheme: "raidersqro",
+      bundle_id: "app.stopandgomx.raidersqro",
+      ipa_name: "stopandgo-raidersqro.ipa",
       groups: ["internal"]
     )
   end

@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../home_controller.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'dart:io' show Platform;
+import 'package:flutter/foundation.dart' show kIsWeb;
 
 class NoticesTab extends StatelessWidget {
   const NoticesTab({super.key, required this.controller});
@@ -63,8 +66,56 @@ class NoticesTab extends StatelessWidget {
                   ],
                 ],
               ),
-              trailing: const Icon(Icons.chevron_right),
-              onTap: () => controller.onTapNotice(n),
+              trailing: (n.attachment != null && n.attachment!.isNotEmpty)
+                  ? const Icon(Icons.chevron_right)
+                  : null,
+              onTap: () async {
+                final attachment = n.attachment;
+
+                // Si hay attachment, intentamos abrirlo
+                if (attachment != null && attachment.isNotEmpty) {
+                  final url = attachment.trim();
+                  debugPrint('Intentando abrir attachment: $url');
+
+                  final uri = Uri.parse(url);
+
+                  // Modo de apertura según plataforma
+                  LaunchMode mode;
+                  if (kIsWeb) {
+                    mode = LaunchMode.platformDefault;
+                  } else if (Platform.isAndroid || Platform.isIOS) {
+                    mode = LaunchMode.externalApplication;
+                  } else {
+                    mode = LaunchMode.platformDefault;
+                  }
+                  try {
+                    final can = await canLaunchUrl(uri);
+                    debugPrint('canLaunchUrl($uri) = $can');
+
+                    if (can) {
+                      final ok = await launchUrl(uri, mode: mode);
+                      if (!ok) {
+                        Get.snackbar(
+                          'Error',
+                          'No se pudo abrir el archivo adjunto',
+                          snackPosition: SnackPosition.BOTTOM,
+                        );
+                      }
+                    } else {
+                      Get.snackbar(
+                        'Error',
+                        'No se pudo abrir el archivo adjunto:\n$url',
+                        snackPosition: SnackPosition.BOTTOM,
+                      );
+                    }
+                  } catch (e) {
+                    print(e);
+                  }
+                } else {
+                  // Sin attachment -> flujo normal
+                  controller.onTapNotice(n);
+                }
+              },
             ),
           );
         },

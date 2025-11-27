@@ -35,6 +35,8 @@ fastlane android deploy flavor:zorros target:lib/main_zorros.dart track:producti
 STOPANDGO
 ./scripts/use_logo.sh stopandgo
 
+./scripts/use_logo.sh raidersqro
+
 
 
 
@@ -65,7 +67,11 @@ deprecated - flutter build ios --config-only --release --flavor zorros --target=
 
 fastlane deploy_zorros
 
+# raidersqro
+./scripts/use_logo.sh raidersqro
+deprecated - flutter build ios --config-only --release --flavor raidersqro --target=lib/main_raidersqro.dart
 
+fastlane deploy_raidersqro
 
 
 Nuevo Flavor
@@ -80,11 +86,17 @@ Nuevo Flavor
 
 
 
-# FIREBASE CONFIGUR:
+# FIREBASE CONFIGURE:
 flutterfire configure \
   --project=stopandgomx-4ab82 \
   --android-app-id=app.stopandgomx.raidersqro \
   --platforms=android \
+  --out=lib/firebase_options_raidersqro.dart
+
+flutterfire configure \
+  --project=stopandgomx-4ab82 \
+  --ios-app-id=app.stopandgomx.raidersqro \
+  --platforms=ios \
   --out=lib/firebase_options_raidersqro.dart
 
 Copiar el json a su carpeta en src
