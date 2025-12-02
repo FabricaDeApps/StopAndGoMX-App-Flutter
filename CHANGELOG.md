@@ -18,6 +18,8 @@ y el versionado está basado en **Semantic Versioning (SemVer)**.
 - (Por definir)
 
 ---
+## [1.0.8] - 2025-12-1
+- Fix open notices
 
 ## [1.0.7] - 2025-11-25
 - Login add device info
