@@ -119,6 +119,8 @@ platform :ios do
                    "lib/main_zorros.dart"
                 when "raidersqro"
                    "lib/main_raidersqro.dart"
+                when "wolverinesqro"
+                   "lib/main_wolverinesqro.dart"
                  else
                    UI.user_error!("No conozco el entrypoint para flavor=#{flavor}")
                  end
@@ -198,6 +200,17 @@ platform :ios do
       scheme: "raidersqro",
       bundle_id: "app.stopandgomx.raidersqro",
       ipa_name: "stopandgo-raidersqro.ipa",
+      groups: ["internal"]
+    )
+  end
+
+  desc "Deploy iOS Wolverines Qro"
+  lane :deploy_wolverinesqro do
+    deploy(
+      flavor: "wolverinesqro",
+      scheme: "wolverinesqro",
+      bundle_id: "app.stopandgomx.wolverinesqro",
+      ipa_name: "stopandgo-wolverinesqro.ipa",
       groups: ["internal"]
     )
   end

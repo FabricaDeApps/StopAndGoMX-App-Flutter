@@ -70,6 +70,13 @@ android {
             applicationId = "app.stopandgomx.raidersqro"
             resValue("string", "app_name", "Raiders Qro")
         }
+
+        // Flavor Wolverines Qro
+        create("wolverinesqro") {
+            dimension = "default"
+            applicationId = "app.stopandgomx.wolverinesqro"
+            resValue("string", "app_name", "Wolverines Querétaro")
+        }
     }
 
     signingConfigs {

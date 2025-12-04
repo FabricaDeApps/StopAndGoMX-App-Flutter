@@ -18,6 +18,12 @@
       "type": "shell",
       "command": "./scripts/use_logo.sh raidersqro",
       "problemMatcher": []
+    },
+    {
+      "label": "prepare-wolverinesqro-assets",
+      "type": "shell",
+      "command": "./scripts/use_logo.sh wolverinesqro",
+      "problemMatcher": []
     }
   ]
 }

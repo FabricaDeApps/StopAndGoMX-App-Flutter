@@ -146,4 +146,16 @@ platform :android do
       track: "production"
     )
   end
+
+
+  # WOLVERINES QRO - PRODUCTION
+  desc "Deploy Android WOLVERINES QRO a track PRODUCTION"
+  lane :deploy_wolverinesqro_production do
+    deploy(
+      flavor: "wolverinesqro",
+      target: "lib/main_wolverinesqro.dart",
+      package_name: "app.stopandgomx.wolverinesqro",
+      track: "production"
+    )
+  end
 end

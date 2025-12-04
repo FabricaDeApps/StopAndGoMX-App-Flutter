@@ -47,6 +47,14 @@ Deploy iOS Zorros
 
 Deploy iOS Zorros
 
+### ios deploy_wolverinesqro
+
+```sh
+[bundle exec] fastlane ios deploy_wolverinesqro
+```
+
+Deploy iOS Wolverines Qro
+
 ----
 
 This README.md is auto-generated and will be re-generated every time [_fastlane_](https://fastlane.tools) is run.

@@ -93,16 +93,25 @@ class HomeView extends GetView<HomeController> {
 
               // ====== CONTENIDO DE TABS ======
               Expanded(
-                child: TabBarView(
-                  controller: controller.tabController,
-                  children: [
-                    //_DashboardTab(controller: controller),
-                    Container(),
-                    GamesTab(controller: controller),
-                    PaymentsTab(controller: controller),
-                    NoticesTab(controller: controller),
-                  ],
-                ),
+                child: Obx(() {
+                  return TabBarView(
+                    controller: controller.tabController,
+                    children: controller.tabs.map((t) {
+                      switch (t) {
+                        case "dashboard":
+                          return Container(); // tu dashboard
+                        case "games":
+                          return GamesTab(controller: controller);
+                        case "payments":
+                          return PaymentsTab(controller: controller);
+                        case "notices":
+                          return NoticesTab(controller: controller);
+                        default:
+                          return const SizedBox();
+                      }
+                    }).toList(),
+                  );
+                }),
               ),
             ],
           ),
@@ -113,26 +122,38 @@ class HomeView extends GetView<HomeController> {
             color: theme.colorScheme.surface,
             child: SafeArea(
               top: false,
-              child: TabBar(
-                controller: controller.tabController,
-                labelPadding: const EdgeInsets.symmetric(vertical: 8),
-                indicatorColor: theme.colorScheme.primary,
-                labelColor: theme.colorScheme.primary,
-                unselectedLabelColor: theme.colorScheme.onSurface.withOpacity(
-                  0.6,
-                ),
-                tabs: const [
-                  Tab(icon: Icon(Icons.dashboard), text: 'Dashboard'),
-                  Tab(icon: Icon(Icons.sports_football), text: 'Juegos'),
-                  Tab(icon: Icon(Icons.payments_outlined), text: 'Pagos'),
-                  Tab(icon: Icon(Icons.campaign_outlined), text: 'Avisos'),
-                ],
-              ),
+              child: Obx(() {
+                return TabBar(
+                  controller: controller.tabController,
+                  labelPadding: const EdgeInsets.symmetric(vertical: 8),
+                  indicatorColor: theme.colorScheme.primary,
+                  labelColor: theme.colorScheme.primary,
+                  unselectedLabelColor: theme.colorScheme.onSurface.withOpacity(
+                    0.6,
+                  ),
+                  tabs: controller.tabs.map((t) => _buildTab(t)).toList(),
+                );
+              }),
             ),
           ),
         ),
       );
     });
+  }
+
+  Tab _buildTab(String key) {
+    switch (key) {
+      case "dashboard":
+        return const Tab(icon: Icon(Icons.dashboard), text: "Dashboard");
+      case "games":
+        return const Tab(icon: Icon(Icons.sports_football), text: "Juegos");
+      case "payments":
+        return const Tab(icon: Icon(Icons.payments_outlined), text: "Pagos");
+      case "notices":
+        return const Tab(icon: Icon(Icons.campaign_outlined), text: "Avisos");
+      default:
+        return const Tab(text: "N/A");
+    }
   }
 
   // ================= Drawer =================
@@ -262,27 +283,26 @@ class _ManagerDashboard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return Obx(() {
-      return Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: [
-              theme.colorScheme.primary.withOpacity(.10),
-              theme.colorScheme.secondary.withOpacity(.10),
-            ],
-          ),
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(
-            color: theme.colorScheme.outlineVariant.withOpacity(.4),
-          ),
+    return Container(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            theme.colorScheme.primary.withOpacity(.10),
+            theme.colorScheme.secondary.withOpacity(.10),
+          ],
         ),
-        padding: const EdgeInsets.all(14),
-        child: Column(
-          children: [
-            // Métricas
-            Row(
-              children: [
-                Expanded(
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: theme.colorScheme.outlineVariant.withOpacity(.4),
+        ),
+      ),
+      padding: const EdgeInsets.all(14),
+      child: Column(
+        children: [
+          // Métricas
+          Row(
+            children: [
+              /* Expanded(
                   child: MetricCard(
                     icon: Icons.account_balance_wallet_outlined,
                     label: 'Saldo pendiente',
@@ -291,7 +311,7 @@ class _ManagerDashboard extends StatelessWidget {
                     onTap: controller.onTapPay,
                   ),
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: 12), 
                 Expanded(
                   child: MetricCard(
                     icon: Icons.payments_outlined,
@@ -300,15 +320,14 @@ class _ManagerDashboard extends StatelessWidget {
                         '\$${controller.pagosRealizados.value.toStringAsFixed(2)}',
                     onTap: controller.onTapPay,
                   ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            _GamesAndNotices(controller: controller),
-          ],
-        ),
-      );
-    });
+                ),*/
+            ],
+          ),
+          const SizedBox(height: 12),
+          _GamesAndNotices(controller: controller),
+        ],
+      ),
+    );
   }
 }
 
@@ -483,12 +502,16 @@ class _CategoryDropdown extends StatelessWidget {
       value: value ?? items.first.id,
       underline: const SizedBox.shrink(),
       icon: const Icon(Icons.keyboard_arrow_down),
-      focusColor: Colors.transparent,
+      focusColor: const Color.fromARGB(0, 255, 255, 255),
       items: items
           .map(
             (c) => DropdownMenuItem<int>(
               value: c.id,
-              child: Text(c.name, overflow: TextOverflow.ellipsis),
+              child: Text(
+                c.name,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(color: Colors.white),
+              ),
             ),
           )
           .toList(),

@@ -32,11 +32,20 @@ class PaymentsTab extends StatelessWidget {
           final paid = p.status == 'paid';
           final partial = p.status == 'partial';
 
+          // 💰 Total recibido (suma de recibos)
           final totalRecibido = p.receipts.fold<double>(
             0.0,
             (sum, r) => sum + r.amount,
           );
-          final balance = (p.amount - totalRecibido).clamp(0, double.infinity);
+
+          // 💳 Monto efectivo después de descuentos
+          final effectiveAmount = p.netAmount; // <- ya viene del backend/DTO
+
+          // 🧮 Saldo = neto - pagado
+          final balance = (effectiveAmount - totalRecibido).clamp(
+            0,
+            double.infinity,
+          );
 
           Color chipColor;
           String chipText;
@@ -76,29 +85,86 @@ class PaymentsTab extends StatelessWidget {
                   if (p.playerName != null && p.playerName!.isNotEmpty)
                     Text(p.playerName!, style: theme.textTheme.bodySmall),
                   const SizedBox(height: 2),
+
+                  // Línea principal con Monto/Neto/Pagado/Saldo
                   Text(
-                    'Monto: \$${p.amount.toStringAsFixed(2)} · '
-                    'Pagado: \$${totalRecibido.toStringAsFixed(2)} · '
-                    'Saldo: \$${balance.toStringAsFixed(2)}',
+                    // Monto original + neto si hay descuento
+                    p.hasDiscount
+                        ? 'Monto: \$${p.amount.toStringAsFixed(2)} '
+                              '· Neto: \$${effectiveAmount.toStringAsFixed(2)} '
+                              '· Pagado: \$${totalRecibido.toStringAsFixed(2)} '
+                              '· Saldo: \$${balance.toStringAsFixed(2)}'
+                        : 'Monto: \$${p.amount.toStringAsFixed(2)} '
+                              '· Pagado: \$${totalRecibido.toStringAsFixed(2)} '
+                              '· Saldo: \$${balance.toStringAsFixed(2)}',
                     style: theme.textTheme.bodySmall,
                   ),
-                  if (p.dueDate != null)
+
+                  // Línea corta con el total descontado
+                  if (p.hasDiscount) ...[
+                    const SizedBox(height: 2),
+                    Text(
+                      'Descuento aplicado: -\$${p.discountsSumAmount.toStringAsFixed(2)}',
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.colorScheme.primary,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+
+                  if (p.dueDate != null) ...[
+                    const SizedBox(height: 2),
                     Text(
                       'Vence: ${_fmtDateOnly(p.dueDate!)}',
                       style: theme.textTheme.bodySmall?.copyWith(
                         color: theme.colorScheme.onSurfaceVariant,
                       ),
                     ),
+                  ],
                 ],
               ),
-              trailing: Chip(
-                label: Text(
-                  chipText,
-                  style: const TextStyle(color: Colors.white),
-                ),
-                backgroundColor: chipColor,
+              trailing: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Chip(
+                    label: Text(
+                      chipText,
+                      style: const TextStyle(color: Colors.white),
+                    ),
+                    backgroundColor: chipColor,
+                  ),
+                ],
               ),
               children: [
+                // 🔹 Detalle de DESCUENTOS (si hay)
+                if (p.hasDiscount && p.discounts.isNotEmpty) ...[
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 4),
+                    child: Text(
+                      'Descuentos aplicados',
+                      style: theme.textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                  ...p.discounts.map((d) {
+                    return ListTile(
+                      dense: true,
+                      contentPadding: EdgeInsets.zero,
+                      leading: const Icon(Icons.local_offer),
+                      title: Text('-\$${d.amount.toStringAsFixed(2)}'),
+                      subtitle: Text(
+                        d.createdAt != null
+                            ? 'Fecha: ${_fmtDateOnly(d.createdAt!)}'
+                            : 'Sin fecha',
+                      ),
+                    );
+                  }),
+                  const Divider(),
+                ],
+
+                // 🔹 Detalle de RECIBOS
                 if (p.receipts.isEmpty)
                   Text('Sin recibos', style: theme.textTheme.bodySmall),
                 if (p.receipts.isNotEmpty)
@@ -165,13 +231,12 @@ class PaymentsTab extends StatelessWidget {
       isScrollControlled: true,
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       builder: (_) => SizedBox(
-        width: double.infinity, // 👈 ocupa todo el ancho
+        width: double.infinity,
         child: Padding(
           padding: const EdgeInsets.all(16),
           child: Column(
             mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment:
-                CrossAxisAlignment.stretch, // 👈 botones full width
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               const Icon(Icons.image, size: 28),
               const SizedBox(height: 8),
@@ -183,7 +248,7 @@ class PaymentsTab extends StatelessWidget {
               const SizedBox(height: 16),
               FilledButton.icon(
                 style: FilledButton.styleFrom(
-                  minimumSize: const Size.fromHeight(48), // 👈 alto consistente
+                  minimumSize: const Size.fromHeight(48),
                 ),
                 onPressed: () {
                   Get.back();

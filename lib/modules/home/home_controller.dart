@@ -1,6 +1,7 @@
 // lib/modules/home/home_controller.dart
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:stopandgo/core/config/flavor_config.dart';
 import 'package:stopandgo/core/models/category.dart';
 import 'package:stopandgo/core/models/dto/payment_dto.dart';
 import 'package:stopandgo/core/models/games.dart';
@@ -33,8 +34,7 @@ class SimplePlayer {
   SimplePlayer({required this.id, required this.name, this.avatarUrl});
 }
 
-class HomeController extends GetxController
-    with GetSingleTickerProviderStateMixin {
+class HomeController extends GetxController with GetTickerProviderStateMixin {
   final api = Get.find<ApiRepository>();
 
   // Perfil / sesión
@@ -74,10 +74,20 @@ class HomeController extends GetxController
 
   final payments = <PaymentDto>[].obs;
 
+  final tabs = <String>[].obs;
+
   @override
   void onInit() {
     super.onInit();
-    tabController = TabController(length: 4, vsync: this);
+  }
+
+  @override
+  Future<void> onReady() async {
+    super.onReady();
+    _loadSession();
+
+    tabs.value = FlavorConfig.I.getTabsForRole(userRole.value);
+    tabController = TabController(length: tabs.length, vsync: this);
     tabController.addListener(() async {
       currentTab.value = tabController.index;
       if (tabController.index == 1) {
@@ -88,12 +98,6 @@ class HomeController extends GetxController
         await loadNoticesTab();
       }
     });
-  }
-
-  @override
-  Future<void> onReady() async {
-    super.onReady();
-    _loadSession();
 
     switch (userRole.value) {
       case 'manager':
@@ -376,6 +380,7 @@ class HomeController extends GetxController
     try {
       payments.clear();
 
+      List<PaymentDto> list;
       if (userRole.value == 'manager') {
         final categoryId =
             selectedCategoryId.value ?? AppStorage.getSelectedCategoryId();
@@ -385,10 +390,8 @@ class HomeController extends GetxController
           );
           return;
         }
-        final list = await api.managerCategoryPayments(categoryId: categoryId);
-        payments.assignAll(list);
+        list = await api.managerCategoryPayments(categoryId: categoryId);
       } else {
-        // parent / player
         final playerId =
             selectedPlayerId.value ?? AppStorage.getSelectedPlayerId();
         if (playerId == null) {
@@ -397,9 +400,28 @@ class HomeController extends GetxController
           );
           return;
         }
-        final list = await api.playerMyPayments(playerId: playerId);
-        payments.assignAll(list);
+        list = await api.playerMyPayments(playerId: playerId);
       }
+
+      payments.assignAll(list);
+
+      // 🔢 opcional: recalcular totales de la cabecera
+      double totalPagado = 0.0;
+      double totalAdeudo = 0.0;
+
+      for (final p in list) {
+        final totalRecibido = p.receipts.fold<double>(
+          0.0,
+          (sum, r) => sum + r.amount,
+        );
+        final effectiveAmount = p.netAmount;
+        totalPagado += totalRecibido;
+        final balance = (effectiveAmount - totalRecibido);
+        if (balance > 0) totalAdeudo += balance;
+      }
+
+      pagosRealizados.value = totalPagado;
+      saldoPendiente.value = totalAdeudo;
     } catch (e, st) {
       debugPrint('[HomeController] ❌ Error cargando pagos: $e\n$st');
       Get.snackbar(

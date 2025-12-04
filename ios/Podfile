@@ -10,6 +10,8 @@ project 'Runner', {
   'Release-zorros' => :release,
   'Debug-raidersqro' => :debug,
   'Release-raidersqro' => :release,
+  'Debug-wolverinesqro' => :debug,
+  'Release-wolverinesqro' => :release,
 }
 
 def flutter_root

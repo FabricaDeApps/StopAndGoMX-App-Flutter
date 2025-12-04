@@ -1,3 +1,38 @@
+# NUEVO FLAVOR
+
+- crear assets en https://makeappicon.com/ 
+- agregar logo a branding
+- .vscode launcher agregar tarea y el comando de assets
+- crear el main de dart y configurar el flavor en flutter
+- en android 
+  - carpeta de iconos en app/src/_flavor_
+  - agregar en build.gradle
+  - export PATH="$PATH:$HOME/.pub-cache/bin"
+  - correr el comando FIREBASE CONFIGURE
+  - revisar el import del main que apunte al fireabase_options correcto del flavor
+  - agregar google-services.json en carpeta de flavor
+  - flutter clean
+  - compilar
+  - crear tienda
+- en ios
+  - Abrir Xcode
+  - Primero duplicar y crear el scheme en manage schemes
+  - Project -> Info y agregar los build configs y setearlos al scheme
+  - Configurar bundle y Appicon en cada buildconfig que se creo, la firma
+  - export PATH="$PATH:$HOME/.pub-cache/bin"
+  - correr el comando FIREBASE CONFIGURE
+  - mover el plist que crea google a la carpeta de los demas flavors
+  - ajustar lo de los pods y flavors
+  - revisar build phases
+  - revisar lo de plist en build settings
+  - flutter build ios --config-only --debug --flavor <flavor> --target=lib/main_<flavor>.dart
+  - compilar
+  - crear tienda
+
+- LANES
+  - configurar los lanes una vez que tenemos ya los builds
+
+
 # stopandgo FLAVOR 
 
 Imoportante correr esto para los logos:
@@ -10,6 +45,7 @@ Flavors Android:
 flutter build aab --flavor zorros -t lib/main_zorros.dart
 flutter build aab --flavor mainapp -t lib/main_stopandgo.dart
 flutter build aab --flavor raidersqro -t lib/main_raidersqro.dart
+flutter build aab --flavor wolverinesqro -t lib/main_wolverinesqro.dart
 
 
 Flavors iOS
@@ -40,49 +76,7 @@ STOPANDGO
 
 
 
-### ANDROID - WORKING
 
-# Zorros a producción
-fastlane deploy_zorros_production
-
-# Mainapp a producción
-fastlane deploy_mainapp_production
-
-# RaidersQro a producción
-fastlane deploy_raidersqro_production
-
-
-
-IOS - WORKS
-
-# mainapp
-deprecated - ./scripts/use_logo.sh stopandgo
-deprecated - flutter build ios --config-only --release --flavor mainapp --target=lib/main_mainapp.dart
-
-fastlane deploy_mainapp
-
-# zorros
-deprecated - ./scripts/use_logo.sh zorros
-deprecated - flutter build ios --config-only --release --flavor zorros --target=lib/main_zorros.dart
-
-fastlane deploy_zorros
-
-# raidersqro
-./scripts/use_logo.sh raidersqro
-deprecated - flutter build ios --config-only --release --flavor raidersqro --target=lib/main_raidersqro.dart
-
-fastlane deploy_raidersqro
-
-
-Nuevo Flavor
-
-- crear assets en https://makeappicon.com/ 
-- agregar logo a branding
-- .vscode launcher agregar tarea y el comando de assets
-- crear el main de dart y configurar el flavor en flutter
-- en android 
-  - carpeta de iconos
-  - agregar en build.gradle
 
 
 
@@ -98,6 +92,18 @@ flutterfire configure \
   --ios-app-id=app.stopandgomx.raidersqro \
   --platforms=ios \
   --out=lib/firebase_options_raidersqro.dart
+
+flutterfire configure \
+  --project=stopandgomx-4ab82 \
+  --android-app-id=app.stopandgomx.wolverinesqro \
+  --platforms=android \
+  --out=lib/firebase_options_wolverinesqro.dart
+
+flutterfire configure \
+  --project=stopandgomx-4ab82 \
+  --ios-bundle-id=app.stopandgomx.wolverinesqro \
+  --platforms=ios \
+  --out=lib/firebase_options_wolverinesqro.dart
 
 Copiar el json a su carpeta en src
 
@@ -135,4 +141,14 @@ M25Y63Z23D
     iOS: app.stopandgomx.raidersqro
   # demo user
     manager@raiders.com
+    123456
+
+
+- Wolverines Queretaro - wolverinesqro
+  
+  # Bundle
+    Android: app.stopandgomx.wolverinesqro
+    iOS: app.stopandgomx.wolverinesqro
+  # demo user
+    manager@wolverines.com
     123456

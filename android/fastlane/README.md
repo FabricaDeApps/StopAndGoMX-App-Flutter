@@ -47,6 +47,14 @@ Deploy Android Zorros a track PRODUCTION
 
 Deploy Android RaidersQRO a track PRODUCTION
 
+### android deploy_wolverinesqro_production
+
+```sh
+[bundle exec] fastlane android deploy_wolverinesqro_production
+```
+
+Deploy Android WOLVERINES QRO a track PRODUCTION
+
 ----
 
 This README.md is auto-generated and will be re-generated every time [_fastlane_](https://fastlane.tools) is run.
