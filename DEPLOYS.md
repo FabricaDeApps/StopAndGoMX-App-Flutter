@@ -44,20 +44,11 @@ deprecated - flutter build ios --config-only --release --flavor mainapp --target
 fastlane deploy_mainapp
 
 # zorros
-deprecated - ./scripts/use_logo.sh zorros
-deprecated - flutter build ios --config-only --release --flavor zorros --target=lib/main_zorros.dart
-
 fastlane deploy_zorros
 
 # raidersqro
-./scripts/use_logo.sh raidersqro
-deprecated - flutter build ios --config-only --release --flavor raidersqro --target=lib/main_raidersqro.dart
-
 fastlane deploy_raidersqro
 
 
 # wolverinesqro
-./scripts/use_logo.sh wolverinesqro
-deprecated - flutter build ios --config-only --release --flavor wolverinesqro --target=lib/main_wolverinesqro.dart
-
 fastlane deploy_wolverinesqro

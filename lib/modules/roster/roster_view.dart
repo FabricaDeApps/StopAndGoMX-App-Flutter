@@ -66,6 +66,9 @@ class RosterView extends GetView<RosterController> {
                           : null,
                     ),
                     title: Text(player.name),
+                    subtitle: Text(
+                      "#${player.number.toString()} - ${player.position} ",
+                    ),
                     trailing: IconButton(
                       icon: const Icon(Icons.camera_alt),
                       onPressed: () => controller.updatePlayerPhoto(player),

@@ -1,6 +1,8 @@
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:stopandgo/core/models/players.dart';
 import 'package:stopandgo/core/network/api_repository.dart';
 import 'package:stopandgo/core/storage/app_storage.dart';
@@ -46,6 +48,16 @@ class RosterController extends GetxController {
 
   Future<void> updatePlayerPhoto(Player player) async {
     try {
+      final allowed = await _ensureCameraPermission();
+      if (!allowed) {
+        Get.snackbar(
+          'Permiso requerido',
+          'No se puede usar la cámara sin permiso.',
+          snackPosition: SnackPosition.BOTTOM,
+        );
+        return;
+      }
+
       final picker = ImagePicker();
       final image = await picker.pickImage(
         source: ImageSource.camera,
@@ -64,7 +76,6 @@ class RosterController extends GetxController {
         filePath: image.path,
       );
 
-      // Opcional: recargar lista para que se vea la foto nueva
       await _loadPlayers();
 
       Get.snackbar(
@@ -81,5 +92,49 @@ class RosterController extends GetxController {
     } finally {
       isLoading.value = false;
     }
+  }
+
+  Future<bool> _ensureCameraPermission() async {
+    var status = await Permission.camera.status;
+    print('Camera status BEFORE request: $status');
+
+    if (status.isGranted) return true;
+
+    // Pedir permiso
+    status = await Permission.camera.request();
+    print('Camera status AFTER request: $status');
+
+    if (status.isGranted) {
+      return true;
+    }
+
+    if (status.isPermanentlyDenied) {
+      // En este punto iOS ya debió haber mostrado el popup alguna vez
+      // y el usuario lo bloqueó desde settings
+      await Get.dialog(
+        AlertDialog(
+          title: const Text('Permiso de cámara bloqueado'),
+          content: const Text(
+            'El acceso a la cámara está bloqueado. '
+            'Ve a Configuración > Privacidad > Cámara y habilita el acceso para esta app.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Get.back(),
+              child: const Text('Cerrar'),
+            ),
+            TextButton(
+              onPressed: () {
+                openAppSettings();
+                Get.back();
+              },
+              child: const Text('Abrir Configuración'),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return false;
   }
 }
