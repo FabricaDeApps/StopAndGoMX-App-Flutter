@@ -18,6 +18,15 @@ y el versionado está basado en **Semantic Versioning (SemVer)**.
 - (Por definir)
 
 ---
+## [1.0.10] - 2025-12-?????
+- Player & Parent Role fixes
+
+
+## [1.0.10] - 2025-12-7
+- Analytics Fireabase
+- Change logo Zorros
+
+
 ## [1.0.8] - 2025-12-1
 - Fix open notices
 

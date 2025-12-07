@@ -51,6 +51,10 @@ class HomeController extends GetxController with GetTickerProviderStateMixin {
   final myPlayers = <SimplePlayer>[].obs;
   final selectedPlayerId = RxnInt();
 
+  // ========== PLAYER ==========
+  final myCategories = <Category>[].obs;
+  final selectedPlayerCategoryId = RxnInt();
+
   // ========== Dashboard ==========
   final saldoPendiente = 0.0.obs;
   final pagosRealizados = 0.0.obs;
@@ -106,7 +110,10 @@ class HomeController extends GetxController with GetTickerProviderStateMixin {
       case 'parent':
         await _bootstrapParent();
         break;
-      default: // 'player'
+      case 'player':
+        await _bootstrapPlayer();
+        break;
+      default:
         await _loadDashboardForPlayerOrParent();
         break;
     }
@@ -243,6 +250,36 @@ class HomeController extends GetxController with GetTickerProviderStateMixin {
     }
   }
 
+  // ========= Player =========
+  Future<void> _bootstrapPlayer() async {
+    final user = AppStorage.getUser();
+    await AppStorage.setSelectedPlayerId(user!.id);
+    await _loadPlayerCategories();
+    if (myCategories.isNotEmpty && selectedPlayerCategoryId.value == null) {
+      selectedPlayerCategoryId.value = myCategories.first.id;
+    }
+    await _loadDashboardForPlayerOrParent();
+  }
+
+  Future<void> _loadPlayerCategories() async {
+    try {
+      isLoadingCats.value = true;
+      final list = await api.getMyPlayerCategories();
+      myCategories.assignAll(list);
+    } catch (e, st) {
+      debugPrint(
+        '[HomeController] ❌ Error cargando categorías del player: $e\n$st',
+      );
+      Get.snackbar(
+        'Categorías',
+        'No se pudieron cargar tus categorías: $e',
+        snackPosition: SnackPosition.BOTTOM,
+      );
+    } finally {
+      isLoadingCats.value = false;
+    }
+  }
+
   /// Usa /player/home para PARENT y PLAYER (dashboard general)
   Future<void> _loadDashboardForPlayerOrParent() async {
     try {
@@ -344,6 +381,22 @@ class HomeController extends GetxController with GetTickerProviderStateMixin {
         });
 
         upcomingGames.assignAll(dtos);
+      } else if (userRole.value == 'parent') {
+        final playerId =
+            selectedPlayerId.value ?? AppStorage.getSelectedPlayerId();
+        if (playerId == null) {
+          debugPrint('[HomeController] ⚠️ No hay jugador seleccionado.');
+          return;
+        }
+
+        final dtos = await api.playerMyGamesFromParent(playerId: playerId);
+        dtos.sort((a, b) {
+          final aDate = a.startsAt ?? DateTime(2100);
+          final bDate = b.startsAt ?? DateTime(2100);
+          return aDate.compareTo(bDate);
+        });
+
+        upcomingGames.assignAll(dtos);
       } else {
         final playerId =
             selectedPlayerId.value ?? AppStorage.getSelectedPlayerId();
@@ -352,7 +405,7 @@ class HomeController extends GetxController with GetTickerProviderStateMixin {
           return;
         }
 
-        final dtos = await api.playerMyGames(playerId: playerId);
+        final dtos = await api.playerMyGames();
         dtos.sort((a, b) {
           final aDate = a.startsAt ?? DateTime(2100);
           final bDate = b.startsAt ?? DateTime(2100);
@@ -391,7 +444,7 @@ class HomeController extends GetxController with GetTickerProviderStateMixin {
           return;
         }
         list = await api.managerCategoryPayments(categoryId: categoryId);
-      } else {
+      } else if (userRole.value == 'parent') {
         final playerId =
             selectedPlayerId.value ?? AppStorage.getSelectedPlayerId();
         if (playerId == null) {
@@ -401,6 +454,16 @@ class HomeController extends GetxController with GetTickerProviderStateMixin {
           return;
         }
         list = await api.playerMyPayments(playerId: playerId);
+      } else {
+        final playerId =
+            selectedPlayerId.value ?? AppStorage.getSelectedPlayerId();
+        if (playerId == null) {
+          debugPrint(
+            '[HomeController] ⚠️ No hay jugador seleccionado para pagos.',
+          );
+          return;
+        }
+        list = await api.myPayments();
       }
 
       payments.assignAll(list);
@@ -537,6 +600,29 @@ class HomeController extends GetxController with GetTickerProviderStateMixin {
     } else if (tabController.index == 3) {
       await loadNoticesTab();
     }
+  }
+
+  Future<void> onChangePlayerCategory(int? id) async {
+    if (id == null) return;
+    if (userRole.value != 'player') return;
+
+    selectedPlayerCategoryId.value = id;
+
+    await AppStorage.setSelectedCategoryId(id);
+
+    Category? cat;
+    for (final c in categories) {
+      if (c.id == id) {
+        cat = c;
+        break;
+      }
+    }
+
+    if (cat != null) {
+      await AppStorage.setSelectedCategoryName(cat.name);
+    }
+
+    _loadDashboardForPlayerOrParent();
   }
 
   void onTapGame(Game g) {}

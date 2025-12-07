@@ -146,10 +146,20 @@ class ApiRepository {
   }
 
   // /player/my-games?player_id=...
-  Future<List<Game>> playerMyGames({required int playerId}) async {
+  Future<List<Game>> playerMyGamesFromParent({required int playerId}) async {
     final res = await _dio.get(
       '/player/my-games',
       queryParameters: {'player_id': playerId},
+      options: Options(headers: _headers()),
+    );
+
+    final data = res.data['data']; // <- AQUÍ VIENE LA LISTA
+    return gameDtoListFromData(data);
+  }
+
+  Future<List<Game>> playerMyGames() async {
+    final res = await _dio.get(
+      '/player/my-games',
       options: Options(headers: _headers()),
     );
 
@@ -207,11 +217,32 @@ class ApiRepository {
     return data.map((e) => Category.fromJson(e)).toList();
   }
 
+  Future<List<Category>> getMyPlayerCategories() async {
+    final res = await _dio.get(
+      '/player/my-categories',
+      options: Options(headers: _headers()),
+    );
+    final data = (res.data as List).cast<Map<String, dynamic>>();
+
+    return data.map((e) => Category.fromJson(e)).toList();
+  }
+
   // player: /player/my-payments?player_id=X  (usa res.data['data'])
   Future<List<PaymentDto>> playerMyPayments({required int playerId}) async {
     final res = await _dio.get(
       '/player/my-payments',
       queryParameters: {'player_id': playerId},
+      options: Options(headers: _headers()),
+    );
+    final data = (res.data['data'] as List?) ?? const [];
+    return data
+        .map((e) => PaymentDto.fromJson(Map<String, dynamic>.from(e as Map)))
+        .toList();
+  }
+
+  Future<List<PaymentDto>> myPayments() async {
+    final res = await _dio.get(
+      '/player/my-payments',
       options: Options(headers: _headers()),
     );
     final data = (res.data['data'] as List?) ?? const [];

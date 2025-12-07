@@ -1,6 +1,6 @@
 class Category {
   final int id;
-  final int organizationId;
+  final int? organizationId;
   final String name;
   final String? slug;
   final String? code;
@@ -10,8 +10,8 @@ class Category {
 
   Category({
     required this.id,
-    required this.organizationId,
     required this.name,
+    this.organizationId,
     this.slug,
     this.code,
     this.ageRange,
@@ -21,7 +21,9 @@ class Category {
 
   factory Category.fromJson(Map<String, dynamic> json) => Category(
     id: json['id'] as int,
-    organizationId: json['organization_id'] as int,
+    organizationId: json['organization_id'] != null
+        ? json['organization_id'] as int
+        : null,
     name: json['name'] as String,
     slug: json['slug'] as String?,
     code: json['code'] as String?,

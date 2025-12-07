@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:stopandgo/routes/app_routes.dart';
 import 'no_category_controller.dart';
 
 class NoCategoryView extends GetView<NoCategoryController> {
@@ -38,6 +39,25 @@ class NoCategoryView extends GetView<NoCategoryController> {
                   'para que te asigne una categoría. Y vuelve a ingresar.',
                   style: TextStyle(fontSize: 16),
                   textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 24),
+                ElevatedButton.icon(
+                  onPressed: () {
+                    Get.offAllNamed(Routes.home);
+                  },
+                  icon: const Icon(Icons.refresh),
+                  label: const Text('Reintentar'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.orange,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 24,
+                      vertical: 12,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
                 ),
               ],
             ),

@@ -56,6 +56,19 @@ class HomeView extends GetView<HomeController> {
                       onChanged: controller.onChangePlayer,
                     ),
                   ),
+                ] else if (isPlayer) ...[
+                  const Text(
+                    'Categoría: ',
+                    style: TextStyle(fontWeight: FontWeight.w600),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: _PlayerCategoryDropdown(
+                      items: controller.myCategories,
+                      value: controller.selectedPlayerCategoryId.value,
+                      onChanged: controller.onChangePlayerCategory,
+                    ),
+                  ),
                 ] else ...[
                   Expanded(
                     child: Text(
@@ -503,6 +516,8 @@ class _CategoryDropdown extends StatelessWidget {
       underline: const SizedBox.shrink(),
       icon: const Icon(Icons.keyboard_arrow_down),
       focusColor: const Color.fromARGB(0, 255, 255, 255),
+      dropdownColor: Colors.grey,
+      style: const TextStyle(color: Colors.black),
       items: items
           .map(
             (c) => DropdownMenuItem<int>(
@@ -543,11 +558,61 @@ class _PlayerDropdown extends StatelessWidget {
       underline: const SizedBox.shrink(),
       icon: const Icon(Icons.keyboard_arrow_down),
       focusColor: Colors.transparent,
+      dropdownColor: Colors.grey,
+      style: const TextStyle(color: Colors.black),
       items: items
           .map(
             (p) => DropdownMenuItem<int>(
               value: p.id,
-              child: Text(p.name, overflow: TextOverflow.ellipsis),
+              child: Text(
+                p.name,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(color: Colors.white),
+              ),
+            ),
+          )
+          .toList(),
+      onChanged: onChanged,
+    );
+  }
+}
+
+class _PlayerCategoryDropdown extends StatelessWidget {
+  const _PlayerCategoryDropdown({
+    required this.items,
+    required this.value,
+    required this.onChanged,
+  });
+
+  final List<Category> items;
+  final int? value;
+  final ValueChanged<int?> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    if (items.isEmpty) {
+      return Text('Sin categorías', style: theme.textTheme.bodyMedium);
+    }
+    final selected = value ?? items.first.id;
+
+    return DropdownButton<int>(
+      isExpanded: true,
+      value: selected,
+      underline: const SizedBox.shrink(),
+      icon: const Icon(Icons.keyboard_arrow_down),
+      focusColor: Colors.transparent,
+      dropdownColor: Colors.grey,
+      style: const TextStyle(color: Colors.black),
+      items: items
+          .map(
+            (c) => DropdownMenuItem<int>(
+              value: c.id,
+              child: Text(
+                c.name,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(color: Colors.white),
+              ),
             ),
           )
           .toList(),

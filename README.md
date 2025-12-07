@@ -17,3 +17,23 @@ samples, guidance on mobile development, and a full API reference.
 
 
 ./scripts/make_module.sh home    
+
+
+
+
+# ANALTYICS
+
+setear eventos:
+
+
+firebaseAnalytics = FirebaseAnalytics.instance;
+firebaseObserver = FirebaseAnalyticsObserver(analytics: firebaseAnalytics);
+
+await firebaseAnalytics.logEvent(
+  name: 'payment_completed',
+  parameters: {
+    'amount': 1800,
+    'category': 'juvenil',
+    'role': 'parent',
+  },
+);
