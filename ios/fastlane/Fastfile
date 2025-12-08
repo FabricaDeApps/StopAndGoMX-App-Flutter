@@ -68,6 +68,7 @@ platform :ios do
       api_key: app_store_api_key_config,
       app_identifier: bundle_id,
       skip_waiting_for_build_processing: true,
+      skip_submission: true, 
       distribute_external: false,
       groups: groups,
       changelog: changelog
