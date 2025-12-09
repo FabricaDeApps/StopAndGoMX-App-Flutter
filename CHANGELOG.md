@@ -4,21 +4,14 @@ Todos los cambios importantes del proyecto **StopAndGoMX** se documentan en este
 El formato sigue las recomendaciones de **Keep a Changelog**  
 y el versionado está basado en **Semantic Versioning (SemVer)**.
 
----
 
-## [Unreleased]
-
-### Added
-- (Por definir)
-
-### Changed
-- (Por definir)
-
-### Fixed
-- (Por definir)
+## [1.0.12] - 2025-12-9
+- Editar entrenamientos
+- Fix Log Out
+- Fix Aviso adjunto
 
 ---
-## [1.0.10] - 2025-12-?????
+## [1.0.11] - 2025-12-8
 - Player & Parent Role fixes
 
 

@@ -69,9 +69,7 @@ platform :ios do
       app_identifier: bundle_id,
       skip_waiting_for_build_processing: true,
       skip_submission: true, 
-      distribute_external: false,
-      groups: groups,
-      changelog: changelog
+      distribute_external: false
     )
   end
 

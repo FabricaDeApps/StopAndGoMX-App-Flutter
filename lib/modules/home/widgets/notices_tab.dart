@@ -77,7 +77,7 @@ class NoticesTab extends StatelessWidget {
                   final url = attachment.trim();
                   debugPrint('Intentando abrir attachment: $url');
 
-                  final uri = Uri.parse("https://stopandgomx.app/storage/$url");
+                  final uri = Uri.parse(url);
 
                   // Modo de apertura según plataforma
                   LaunchMode mode;

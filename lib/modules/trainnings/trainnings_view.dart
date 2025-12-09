@@ -108,6 +108,7 @@ class TrainingsView extends GetView<TrainingsController> {
             itemBuilder: (context, index) {
               final t = trainings[index];
               final isScheduled = t.status == 'scheduled';
+              final isCompleted = t.status == 'completed';
 
               return Slidable(
                 key: ValueKey(t.id),
@@ -117,9 +118,7 @@ class TrainingsView extends GetView<TrainingsController> {
                         motion: const DrawerMotion(),
                         children: [
                           SlidableAction(
-                            onPressed: (_) {
-                              controller.completeTraining(t);
-                            },
+                            onPressed: (_) => controller.completeTraining(t),
                             backgroundColor: Colors.green,
                             foregroundColor: Colors.white,
                             icon: Icons.check_circle,
@@ -139,7 +138,9 @@ class TrainingsView extends GetView<TrainingsController> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // FECHA + STATUS
+                        // -------------------------
+                        // FECHA + STATUS  (TU CÓDIGO)
+                        // -------------------------
                         Row(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
@@ -170,9 +171,12 @@ class TrainingsView extends GetView<TrainingsController> {
                             ),
                           ],
                         ),
+
                         const SizedBox(height: 8),
 
-                        // LUGAR
+                        // -------------------------
+                        // LUGAR (TU CÓDIGO)
+                        // -------------------------
                         if (t.venue != null && t.venue!.isNotEmpty)
                           Row(
                             children: [
@@ -187,6 +191,9 @@ class TrainingsView extends GetView<TrainingsController> {
                             ],
                           ),
 
+                        // -------------------------
+                        // DIRECCIÓN / CIUDAD (TU CÓDIGO)
+                        // -------------------------
                         if ((t.address != null && t.address!.isNotEmpty) ||
                             (t.city != null && t.city!.isNotEmpty))
                           Padding(
@@ -217,6 +224,9 @@ class TrainingsView extends GetView<TrainingsController> {
                             ),
                           ),
 
+                        // -------------------------
+                        // DURACIÓN (TU CÓDIGO)
+                        // -------------------------
                         if (t.durationMinutes != null) ...[
                           const SizedBox(height: 4),
                           Row(
@@ -231,6 +241,9 @@ class TrainingsView extends GetView<TrainingsController> {
                           ),
                         ],
 
+                        // -------------------------
+                        // NOTAS (TU CÓDIGO)
+                        // -------------------------
                         if (t.notes != null && t.notes!.isNotEmpty) ...[
                           const SizedBox(height: 8),
                           Text(t.notes!, style: theme.textTheme.bodySmall),
@@ -238,20 +251,29 @@ class TrainingsView extends GetView<TrainingsController> {
 
                         const SizedBox(height: 12),
 
-                        // 👉 Botón “Pasar lista”
-                        if (isScheduled)
+                        // ----------------------------------------------------
+                        // AQUI SOLO CAMBIAMOS EL BOTÓN  (LO ÚNICO QUE EDITÉ)
+                        // ----------------------------------------------------
+                        if (isScheduled || isCompleted)
                           Align(
                             alignment: Alignment.centerRight,
                             child: TextButton.icon(
                               onPressed: () async {
                                 await Get.toNamed(
                                   Routes.trainingAttendance,
-                                  arguments: {'trainingId': t.id},
+                                  arguments: {
+                                    'trainingId': t.id,
+                                    'isEdit': isCompleted,
+                                  },
                                 );
                                 controller.loadTrainings();
                               },
                               icon: const Icon(Icons.checklist_rtl),
-                              label: const Text('Pasar lista'),
+                              label: Text(
+                                isScheduled
+                                    ? 'Pasar lista'
+                                    : 'Ver / editar lista',
+                              ),
                             ),
                           ),
                       ],

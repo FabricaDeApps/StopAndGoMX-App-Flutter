@@ -11,6 +11,7 @@ import 'package:stopandgo/core/models/responses/generic_response.dart';
 import 'package:stopandgo/core/models/responses/login_response.dart';
 import 'package:stopandgo/core/models/responses/organization_response.dart';
 import 'package:stopandgo/core/models/training.dart';
+import 'package:stopandgo/core/models/trainning_attendance.dart';
 import 'package:stopandgo/core/storage/app_storage.dart';
 import 'package:stopandgo/core/utils/device_info.dart';
 import 'api_client.dart';
@@ -862,8 +863,64 @@ class ApiRepository {
     }
   }
 
-  String _fmtDate(DateTime d) =>
-      '${d.year.toString().padLeft(4, '0')}-'
-      '${d.month.toString().padLeft(2, '0')}-'
-      '${d.day.toString().padLeft(2, '0')}';
+  Future<List<TrainingAttendanceItem>> getTrainningAttendance(
+    int trainingId,
+    int categoryId,
+  ) async {
+    try {
+      final response = await _dio.get(
+        '/manager/$categoryId/trainings/$trainingId/attendance',
+      );
+      final data = response.data['data'] as List<dynamic>;
+      return data.map((json) => TrainingAttendanceItem.fromJson(json)).toList();
+    } on DioException catch (e) {
+      if (e.response != null) {
+        final msg = e.response?.data['message'] ?? 'Ocurrió un error.';
+        throw Exception(msg);
+      }
+
+      if (e.type == DioExceptionType.connectionTimeout ||
+          e.type == DioExceptionType.receiveTimeout ||
+          e.type == DioExceptionType.sendTimeout) {
+        throw Exception('La solicitud tardó demasiado. Inténtalo de nuevo.');
+      }
+
+      throw Exception('No se pudo conectar con el servidor.');
+    } catch (e) {
+      throw Exception('Error inesperado: $e');
+    }
+  }
+
+  Future<void> updateTrainingAttendance({
+    required int categoryId,
+    required int trainingId,
+    required int attendanceId,
+    required String status,
+    required int minutesLate,
+    String? notes,
+  }) async {
+    try {
+      await _dio.put(
+        '/manager/$categoryId/trainings/$trainingId/attendance/$attendanceId',
+        data: {'status': status, 'minutes_late': minutesLate, 'notes': notes},
+      );
+    } on DioException catch (e) {
+      // Error devuelto por el backend
+      if (e.response != null) {
+        final msg = e.response?.data['message'] ?? 'Ocurrió un error.';
+        throw Exception(msg);
+      }
+
+      // Timeouts o desconexión
+      if (e.type == DioExceptionType.connectionTimeout ||
+          e.type == DioExceptionType.receiveTimeout ||
+          e.type == DioExceptionType.sendTimeout) {
+        throw Exception('La solicitud tardó demasiado. Inténtalo de nuevo.');
+      }
+
+      throw Exception('No se pudo conectar con el servidor.');
+    } catch (e) {
+      throw Exception('Error inesperado: $e');
+    }
+  }
 }

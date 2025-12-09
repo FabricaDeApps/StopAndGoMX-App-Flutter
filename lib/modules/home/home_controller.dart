@@ -6,6 +6,7 @@ import 'package:stopandgo/core/models/category.dart';
 import 'package:stopandgo/core/models/dto/payment_dto.dart';
 import 'package:stopandgo/core/models/games.dart';
 import 'package:stopandgo/core/network/api_repository.dart';
+import 'package:stopandgo/core/network/token_storage.dart';
 import 'package:stopandgo/core/storage/app_storage.dart';
 import 'package:stopandgo/routes/app_routes.dart';
 
@@ -121,8 +122,12 @@ class HomeController extends GetxController with GetTickerProviderStateMixin {
 
   Future<void> logout() async {
     try {
+      final tokenStorage = Get.find<TokenStorage>();
+      tokenStorage.clear();
+      AppStorage.clearAll();
       await api.logout();
     } catch (_) {
+      Get.offAllNamed(Routes.login);
     } finally {
       Get.offAllNamed(Routes.login);
     }

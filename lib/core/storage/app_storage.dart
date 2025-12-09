@@ -129,9 +129,10 @@ class AppStorage {
     await _box.remove(keySplashUrl);
   }
 
-  // ---------- UTIL: limpiar todo (logout) ----------
   static Future<void> clearAll() async {
     await clearUser();
-    //await clearOrganization();
+    await setSelectedCategoryId(null);
+    await setSelectedCategoryName(null);
+    await setSelectedPlayerId(null);
   }
 }

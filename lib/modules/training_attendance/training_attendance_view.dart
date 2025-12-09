@@ -11,7 +11,11 @@ class TrainingAttendanceView extends GetView<TrainingAttendanceController> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Asistencia a Entrenamiento'),
+        title: Text(
+          controller.isEditMode
+              ? 'Editar asistencia'
+              : 'Asistencia a Entrenamiento',
+        ),
         centerTitle: true,
       ),
       body: Obx(() {
@@ -30,9 +34,25 @@ class TrainingAttendanceView extends GetView<TrainingAttendanceController> {
 
         return Column(
           children: [
+            // 🔍 Buscador por nombre
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+              child: TextField(
+                onChanged: controller.onSearchChanged,
+                decoration: InputDecoration(
+                  prefixIcon: const Icon(Icons.search),
+                  hintText: 'Buscar jugador...',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  isDense: true,
+                ),
+              ),
+            ),
+
             Expanded(
               child: ListView.builder(
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.all(16).copyWith(top: 8),
                 itemCount: controller.rows.length,
                 itemBuilder: (_, index) {
                   final row = controller.rows[index];
@@ -46,7 +66,7 @@ class TrainingAttendanceView extends GetView<TrainingAttendanceController> {
                         children: [
                           // Player name
                           Text(
-                            row.player.name,
+                            "#${row.player.number} - ${row.player.name}",
                             style: theme.textTheme.titleMedium!.copyWith(
                               fontWeight: FontWeight.bold,
                             ),
@@ -84,8 +104,9 @@ class TrainingAttendanceView extends GetView<TrainingAttendanceController> {
 
                           // Minutes late
                           Obx(() {
-                            if (row.status.value != 'late')
+                            if (row.status.value != 'late') {
                               return const SizedBox.shrink();
+                            }
 
                             return Padding(
                               padding: const EdgeInsets.only(top: 8),
@@ -130,24 +151,29 @@ class TrainingAttendanceView extends GetView<TrainingAttendanceController> {
               ),
             ),
 
-            // Save button
-            Obx(() {
-              return Padding(
-                padding: const EdgeInsets.all(16),
-                child: ElevatedButton.icon(
-                  onPressed: controller.isSaving.value
-                      ? null
-                      : controller.saveAttendance,
-                  icon: controller.isSaving.value
-                      ? const CircularProgressIndicator()
-                      : const Icon(Icons.save),
-                  label: const Text('Guardar asistencia'),
-                  style: ElevatedButton.styleFrom(
-                    minimumSize: const Size(double.infinity, 48),
+            // Botón guardar solo si NO es modo edición
+            if (!controller.isEditMode)
+              Obx(() {
+                return Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: ElevatedButton.icon(
+                    onPressed: controller.isSaving.value
+                        ? null
+                        : controller.saveAttendance,
+                    icon: controller.isSaving.value
+                        ? const SizedBox(
+                            width: 18,
+                            height: 18,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : const Icon(Icons.save),
+                    label: const Text('Guardar asistencia'),
+                    style: ElevatedButton.styleFrom(
+                      minimumSize: const Size(double.infinity, 48),
+                    ),
                   ),
-                ),
-              );
-            }),
+                );
+              }),
           ],
         );
       }),
@@ -162,17 +188,32 @@ class TrainingAttendanceView extends GetView<TrainingAttendanceController> {
   ) {
     final isSelected = row.status.value == value;
 
-    return ChoiceChip(
-      selected: isSelected,
-      label: Text(label),
-      selectedColor: color.withOpacity(0.2),
-      labelStyle: TextStyle(
-        color: isSelected ? color : Colors.black,
-        fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-      ),
-      onSelected: (_) {
-        row.status.value = value;
-      },
-    );
+    return Obx(() {
+      final isUpdating = row.isUpdating.value;
+
+      return ChoiceChip(
+        selected: isSelected,
+        label: Text(label),
+        selectedColor: color.withOpacity(0.2),
+        labelStyle: TextStyle(
+          color: isSelected ? color : Colors.black,
+          fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+        ),
+        onSelected: isUpdating
+            ? null
+            : (_) async {
+                row.status.value = value;
+                if (value != 'late') {
+                  row.minutesLate.value = 0;
+                }
+
+                // 👉 En modo EDIT disparamos el PUT
+                final c = Get.find<TrainingAttendanceController>();
+                if (c.isEditMode) {
+                  await c.updateSingleAttendance(row);
+                }
+              },
+      );
+    });
   }
 }
