@@ -6,6 +6,7 @@ import 'package:stopandgo/core/constants/api_endpoints.dart';
 import 'package:stopandgo/core/models/category.dart';
 import 'package:stopandgo/core/models/dto/payment_dto.dart';
 import 'package:stopandgo/core/models/games.dart';
+import 'package:stopandgo/core/models/player_document.dart';
 import 'package:stopandgo/core/models/players.dart';
 import 'package:stopandgo/core/models/responses/generic_response.dart';
 import 'package:stopandgo/core/models/responses/login_response.dart';
@@ -922,5 +923,47 @@ class ApiRepository {
     } catch (e) {
       throw Exception('Error inesperado: $e');
     }
+  }
+
+  Future<List<PlayerDocument>> getPlayerDocuments(int playerId) async {
+    final response = await _dio.get('/player/$playerId/documents');
+
+    final data = response.data['data'] as List<dynamic>? ?? [];
+
+    return data
+        .map((item) => PlayerDocument.fromJson(item as Map<String, dynamic>))
+        .toList();
+  }
+
+  Future<PlayerDocument> uploadPlayerDocument({
+    required int playerId,
+    required File file,
+  }) async {
+    final fileName = file.path.split('/').last;
+
+    final formData = FormData.fromMap({
+      'file': await MultipartFile.fromFile(file.path, filename: fileName),
+    });
+
+    final response = await _dio.post(
+      '/player/$playerId/documents',
+      data: formData,
+      options: Options(contentType: 'multipart/form-data'),
+    );
+
+    final docJson = response.data['document'] as Map<String, dynamic>;
+    return PlayerDocument.fromJson(docJson);
+  }
+
+  Future<bool> deletePlayerDocument({
+    required int playerId,
+    required int documentId,
+  }) async {
+    final response = await _dio.delete(
+      '/player/$playerId/documents/$documentId',
+    );
+
+    // El backend regresa: { ok: true, message: '...' }
+    return response.data['ok'] == true;
   }
 }

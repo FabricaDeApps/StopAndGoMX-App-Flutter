@@ -74,7 +74,7 @@ class TrainingAttendanceController extends GetxController {
           .map((player) => AttendanceRow(player: player))
           .toList();
 
-      // 👉 Ordenar por número de jersey (ajusta el campo si es distinto)
+      // 👉 Ordenar por número de jersey (si tu Player tiene `number`)
       newRows.sort((a, b) {
         final aj = a.player.number ?? 9999;
         final bj = b.player.number ?? 9999;
@@ -90,46 +90,50 @@ class TrainingAttendanceController extends GetxController {
     }
   }
 
-  /// ✏️ Modo EDIT
+  /// Helper para construir Player desde TrainingAttendanceItem
+  Player _playerFromAttendance(TrainingAttendanceItem att) {
+    return Player(
+      id: att.playerId,
+      organizationId: 0,
+      categoryId: null,
+      number: att.playerNumber,
+      isCaptain: false,
+      status: 'active',
+      assignedAt: null,
+      firstName: att.playerName,
+      lastName: '',
+      position: '',
+      name: att.playerName,
+      displayName: att.playerName,
+      photoUrl: att.playerPhoto.isNotEmpty ? att.playerPhoto : null,
+      createdAt: null,
+    );
+  }
+
+  /// ✏️ Modo EDIT → SOLO usa getTrainningAttendance
   Future<void> loadForEdit() async {
     isLoading.value = true;
     error.value = null;
 
     try {
-      final playersJson = await _api.managerCategoryPlayers(categoryId);
-      final players = playersJson.map((p) => Player.fromJson(p)).toList();
-
-      final attendanceItems = await _api.getTrainningAttendance(
-        trainingId,
-        categoryId,
+      final List<TrainingAttendanceItem> attendanceItems = await _api
+          .getTrainningAttendance(trainingId, categoryId);
+      attendanceItems.sort(
+        (a, b) =>
+            a.playerName.toLowerCase().compareTo(b.playerName.toLowerCase()),
       );
 
-      final Map<int, TrainingAttendanceItem> byPlayerId = {
-        for (final a in attendanceItems) a.playerId: a,
-      };
+      final newRows = attendanceItems.map((att) {
+        final player = _playerFromAttendance(att);
 
-      final newRows = <AttendanceRow>[];
+        final row = AttendanceRow(player: player, attendanceId: att.id);
 
-      for (final player in players) {
-        final row = AttendanceRow(player: player);
+        row.status.value = att.status;
+        row.minutesLate.value = att.minutesLate;
+        row.notesController.text = att.notes ?? '';
 
-        final att = byPlayerId[player.id];
-        if (att != null) {
-          row.attendanceId = att.id;
-          row.status.value = att.status;
-          row.minutesLate.value = att.minutesLate;
-          row.notesController.text = att.notes ?? '';
-        }
-
-        newRows.add(row);
-      }
-
-      // 👉 Ordenar por número de jersey también en EDIT
-      newRows.sort((a, b) {
-        final aj = a.player.number ?? 9999;
-        final bj = b.player.number ?? 9999;
-        return aj.compareTo(bj);
-      });
+        return row;
+      }).toList();
 
       allRows.assignAll(newRows);
       _applyFilter();
@@ -204,8 +208,7 @@ class TrainingAttendanceController extends GetxController {
 
   Future<void> updateSingleAttendance(AttendanceRow row) async {
     if (!isEditMode) return;
-    if (row.attendanceId == null)
-      return; // opcional: podrías crearla si no existe
+    if (row.attendanceId == null) return;
 
     row.isUpdating.value = true;
 
@@ -221,7 +224,6 @@ class TrainingAttendanceController extends GetxController {
             : null,
       );
 
-      // opcional: un feedback cortito
       Get.snackbar(
         'Actualizado',
         'Asistencia actualizada para ${row.player.name}',

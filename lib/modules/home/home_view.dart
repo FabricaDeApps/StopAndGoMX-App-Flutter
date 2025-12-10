@@ -3,6 +3,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:stopandgo/core/models/category.dart';
+import 'package:stopandgo/core/storage/app_storage.dart';
 import 'package:stopandgo/core/widgets/cards.dart';
 import 'package:stopandgo/modules/home/widgets/games_tab.dart';
 import 'package:stopandgo/modules/home/widgets/notices_tab.dart';
@@ -177,6 +178,8 @@ class HomeView extends GetView<HomeController> {
           // Lee el rol desde el controlador
           final role = controller.userRole.value;
           final isManager = role == 'manager';
+          final isParent = role == 'parent';
+          final isPlayer = role == 'player';
 
           return Column(
             children: [
@@ -230,6 +233,22 @@ class HomeView extends GetView<HomeController> {
                   onTap: () {
                     Get.back();
                     Get.toNamed(Routes.roster);
+                  },
+                ),
+              ],
+
+              if (isParent) ...[
+                ListTile(
+                  leading: const Icon(Icons.person_outline),
+                  title: const Text('Documentos'),
+                  onTap: () {
+                    Get.back();
+                    final idPlayer = AppStorage.getSelectedPlayerId();
+                    final name = AppStorage.getSelectedPlayerName();
+                    Get.toNamed(
+                      Routes.documents,
+                      arguments: {'playerId': idPlayer, 'playerName': name},
+                    );
                   },
                 ),
               ],

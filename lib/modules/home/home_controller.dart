@@ -5,6 +5,7 @@ import 'package:stopandgo/core/config/flavor_config.dart';
 import 'package:stopandgo/core/models/category.dart';
 import 'package:stopandgo/core/models/dto/payment_dto.dart';
 import 'package:stopandgo/core/models/games.dart';
+import 'package:stopandgo/core/models/players.dart';
 import 'package:stopandgo/core/network/api_repository.dart';
 import 'package:stopandgo/core/network/token_storage.dart';
 import 'package:stopandgo/core/storage/app_storage.dart';
@@ -227,6 +228,8 @@ class HomeController extends GetxController with GetTickerProviderStateMixin {
     await _loadMyPlayers();
     if (myPlayers.isNotEmpty && selectedPlayerId.value == null) {
       selectedPlayerId.value = myPlayers.first.id;
+      await AppStorage.setSelectedPlayerId(selectedPlayerId.value);
+      await AppStorage.setSelectedPlayerName(myPlayers.first.name);
     }
     await _loadDashboardForPlayerOrParent();
   }
@@ -259,6 +262,7 @@ class HomeController extends GetxController with GetTickerProviderStateMixin {
   Future<void> _bootstrapPlayer() async {
     final user = AppStorage.getUser();
     await AppStorage.setSelectedPlayerId(user!.id);
+    await AppStorage.setSelectedPlayerName(user.name);
     await _loadPlayerCategories();
     if (myCategories.isNotEmpty && selectedPlayerCategoryId.value == null) {
       selectedPlayerCategoryId.value = myCategories.first.id;
@@ -595,6 +599,16 @@ class HomeController extends GetxController with GetTickerProviderStateMixin {
 
     selectedPlayerId.value = id;
     await AppStorage.setSelectedPlayerId(id);
+
+    SimplePlayer? player;
+    for (final item in myPlayers) {
+      if (item.id == id) {
+        player = item;
+        break;
+      }
+    }
+
+    await AppStorage.setSelectedPlayerName(player!.name);
 
     await _loadDashboardForPlayerOrParent();
 

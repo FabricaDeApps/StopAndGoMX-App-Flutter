@@ -1,4 +1,5 @@
 import 'package:get/get.dart';
+import 'package:stopandgo/core/models/player_document.dart';
 import 'package:stopandgo/modules/assign_player/index.dart';
 import 'package:stopandgo/modules/attendece_game/index.dart';
 import 'package:stopandgo/modules/auth/login_binding.dart';
@@ -15,6 +16,8 @@ import 'package:stopandgo/modules/my_profile/my_profile_view.dart';
 import 'package:stopandgo/modules/new_game/index.dart';
 import 'package:stopandgo/modules/no_category/index.dart';
 import 'package:stopandgo/modules/no_category/no_category_view.dart';
+import 'package:stopandgo/modules/player_documents/player_documents_binding.dart';
+import 'package:stopandgo/modules/player_documents/player_documents_view.dart';
 import 'package:stopandgo/modules/roster/roster_binding.dart';
 import 'package:stopandgo/modules/roster/roster_view.dart';
 import 'package:stopandgo/modules/sign_in/sign_in_binding.dart';
@@ -115,6 +118,11 @@ class AppPages {
       name: Routes.roster,
       page: () => const RosterView(),
       binding: RosterBinding(),
+    ),
+    GetPage(
+      name: Routes.documents,
+      page: () => const PlayerDocumentsView(),
+      binding: PlayerDocumentsBinding(),
     ),
   ];
 }

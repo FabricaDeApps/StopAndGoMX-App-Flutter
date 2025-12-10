@@ -3,6 +3,7 @@ class TrainingAttendanceItem {
   final int playerId;
   final String playerName;
   final String playerPhoto;
+  final int? playerNumber;
 
   String status;
   int minutesLate;
@@ -20,6 +21,7 @@ class TrainingAttendanceItem {
     required this.playerId,
     required this.playerName,
     required this.playerPhoto,
+    this.playerNumber,
     required this.status,
     required this.minutesLate,
     this.notes,
@@ -36,6 +38,8 @@ class TrainingAttendanceItem {
       playerId: json['player_id'],
       playerName: json['player_name'] ?? '',
       playerPhoto: json['player_photo'] ?? '',
+      playerNumber: json['player_number'],
+
       status: json['status'] ?? 'absent',
       minutesLate: json['minutes_late'] ?? 0,
       notes: json['notes'],
@@ -63,6 +67,7 @@ class TrainingAttendanceItem {
       'player_id': playerId,
       'player_name': playerName,
       'player_photo': playerPhoto,
+      'player_number': playerNumber,
       'status': status,
       'minutes_late': minutesLate,
       'notes': notes,
