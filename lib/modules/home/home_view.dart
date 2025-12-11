@@ -331,31 +331,7 @@ class _ManagerDashboard extends StatelessWidget {
       padding: const EdgeInsets.all(14),
       child: Column(
         children: [
-          // Métricas
-          Row(
-            children: [
-              /* Expanded(
-                  child: MetricCard(
-                    icon: Icons.account_balance_wallet_outlined,
-                    label: 'Saldo pendiente',
-                    value:
-                        '\$${controller.saldoPendiente.value.toStringAsFixed(2)}',
-                    onTap: controller.onTapPay,
-                  ),
-                ),
-                const SizedBox(width: 12), 
-                Expanded(
-                  child: MetricCard(
-                    icon: Icons.payments_outlined,
-                    label: 'Pagos realizados',
-                    value:
-                        '\$${controller.pagosRealizados.value.toStringAsFixed(2)}',
-                    onTap: controller.onTapPay,
-                  ),
-                ),*/
-            ],
-          ),
-          const SizedBox(height: 12),
+          // Aquí podríamos poner métricas de categorías en un futuro
           _GamesAndNotices(controller: controller),
         ],
       ),
@@ -371,6 +347,11 @@ class _PlayerDashboard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Obx(() {
+      final role = controller.userRole.value;
+      final isParent = role == 'parent';
+
+      final saldoLabel = isParent ? 'Saldo pendiente' : 'Saldo pendiente';
+
       return Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(
@@ -392,19 +373,9 @@ class _PlayerDashboard extends StatelessWidget {
                 Expanded(
                   child: MetricCard(
                     icon: Icons.account_balance_wallet_outlined,
-                    label: 'Saldo pendiente',
+                    label: saldoLabel,
                     value:
                         '\$${controller.saldoPendiente.value.toStringAsFixed(2)}',
-                    onTap: controller.onTapPay,
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: MetricCard(
-                    icon: Icons.payments_outlined,
-                    label: 'Pagos realizados',
-                    value:
-                        '\$${controller.pagosRealizados.value.toStringAsFixed(2)}',
                     onTap: controller.onTapPay,
                   ),
                 ),
@@ -426,36 +397,76 @@ class _GamesAndNotices extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
+
+    return Column(
       children: [
-        Expanded(
-          child: MiniCard(
-            title: 'Avisos',
-            child: Obx(() {
-              final list = controller.notices.take(2).toList();
-              if (list.isEmpty) {
-                return Text('Sin avisos', style: theme.textTheme.bodySmall);
-              }
-              return Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: list.map((n) {
-                  return ListTile(
-                    contentPadding: EdgeInsets.zero,
-                    dense: true,
-                    leading: const Icon(Icons.campaign, size: 20),
-                    title: Text(
-                      n.title,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    subtitle: Text(_fmtDate(n.date)),
-                    onTap: () => controller.onTapNotice(n),
-                  );
-                }).toList(),
+        // -------- Próximos juegos --------
+        MiniCard(
+          title: 'Próximos juegos',
+          child: Obx(() {
+            final list = controller.upcomingGames.take(3).toList();
+            if (list.isEmpty) {
+              return Text(
+                'Sin juegos próximos',
+                style: theme.textTheme.bodySmall,
               );
-            }),
-          ),
+            }
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: list.map((g) {
+                final fecha = g.startsAt != null
+                    ? _fmtDate(g.startsAt!)
+                    : 'Fecha por definir';
+
+                return ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  dense: true,
+                  leading: const Icon(Icons.sports_football, size: 20),
+                  title: Text(
+                    g.opponent,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  subtitle: Text(
+                    '$fecha · ${g.venue ?? 'Por definir'}',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  onTap: () => controller.onTapGame(g),
+                );
+              }).toList(),
+            );
+          }),
+        ),
+
+        const SizedBox(height: 12),
+
+        // -------- Avisos --------
+        MiniCard(
+          title: 'Avisos',
+          child: Obx(() {
+            final list = controller.notices.take(2).toList();
+            if (list.isEmpty) {
+              return Text('Sin avisos', style: theme.textTheme.bodySmall);
+            }
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: list.map((n) {
+                return ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  dense: true,
+                  leading: const Icon(Icons.campaign, size: 20),
+                  title: Text(
+                    n.title,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  subtitle: Text(_fmtDate(n.date)),
+                  onTap: () => controller.onTapNotice(n),
+                );
+              }).toList(),
+            );
+          }),
         ),
       ],
     );

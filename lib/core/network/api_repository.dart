@@ -4,6 +4,7 @@ import 'package:dio/dio.dart';
 import 'package:stopandgo/core/config/flavor_config.dart';
 import 'package:stopandgo/core/constants/api_endpoints.dart';
 import 'package:stopandgo/core/models/category.dart';
+import 'package:stopandgo/core/models/dashboard_models.dart';
 import 'package:stopandgo/core/models/dto/payment_dto.dart';
 import 'package:stopandgo/core/models/games.dart';
 import 'package:stopandgo/core/models/player_document.dart';
@@ -962,8 +963,50 @@ class ApiRepository {
     final response = await _dio.delete(
       '/player/$playerId/documents/$documentId',
     );
-
-    // El backend regresa: { ok: true, message: '...' }
     return response.data['ok'] == true;
+  }
+
+  Future<ManagerDashboardResponse> getManagerDashboard() async {
+    final res = await _dio.get(
+      '/dashboards/manager',
+      options: Options(headers: _headers()),
+    );
+
+    if (res.data is! Map) {
+      throw Exception('Respuesta inesperada en dashboard manager');
+    }
+
+    final map = Map<String, dynamic>.from(res.data as Map);
+    return ManagerDashboardResponse.fromJson(map);
+  }
+
+  /// GET /dashboards/player
+  Future<PlayerDashboardResponse> getPlayerDashboard() async {
+    final res = await _dio.get(
+      '/dashboards/player',
+      options: Options(headers: _headers()),
+    );
+
+    if (res.data is! Map) {
+      throw Exception('Respuesta inesperada en dashboard player');
+    }
+
+    final map = Map<String, dynamic>.from(res.data as Map);
+    return PlayerDashboardResponse.fromJson(map);
+  }
+
+  /// GET /dashboards/parent
+  Future<ParentDashboardResponse> getParentDashboard() async {
+    final res = await _dio.get(
+      '/dashboards/parent',
+      options: Options(headers: _headers()),
+    );
+
+    if (res.data is! Map) {
+      throw Exception('Respuesta inesperada en dashboard parent');
+    }
+
+    final map = Map<String, dynamic>.from(res.data as Map);
+    return ParentDashboardResponse.fromJson(map);
   }
 }

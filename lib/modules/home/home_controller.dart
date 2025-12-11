@@ -3,9 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:stopandgo/core/config/flavor_config.dart';
 import 'package:stopandgo/core/models/category.dart';
+import 'package:stopandgo/core/models/dashboard_models.dart';
 import 'package:stopandgo/core/models/dto/payment_dto.dart';
 import 'package:stopandgo/core/models/games.dart';
-import 'package:stopandgo/core/models/players.dart';
 import 'package:stopandgo/core/network/api_repository.dart';
 import 'package:stopandgo/core/network/token_storage.dart';
 import 'package:stopandgo/core/storage/app_storage.dart';
@@ -79,13 +79,10 @@ class HomeController extends GetxController with GetTickerProviderStateMixin {
   final isLoadingNotices = false.obs;
 
   final payments = <PaymentDto>[].obs;
-
   final tabs = <String>[].obs;
 
-  @override
-  void onInit() {
-    super.onInit();
-  }
+  // ✅ FIX: evita doble llamada al cambiar tabs
+  int _lastLoadedTabIndex = -1;
 
   @override
   Future<void> onReady() async {
@@ -94,13 +91,24 @@ class HomeController extends GetxController with GetTickerProviderStateMixin {
 
     tabs.value = FlavorConfig.I.getTabsForRole(userRole.value);
     tabController = TabController(length: tabs.length, vsync: this);
+
     tabController.addListener(() async {
-      currentTab.value = tabController.index;
-      if (tabController.index == 1) {
+      // 🔥 evita múltiples triggers durante animación/cambio
+      if (tabController.indexIsChanging) return;
+
+      final idx = tabController.index;
+
+      // 🔥 evita pegar 2 veces al mismo tab por listeners
+      if (_lastLoadedTabIndex == idx) return;
+      _lastLoadedTabIndex = idx;
+
+      currentTab.value = idx;
+
+      if (idx == 1) {
         await loadTabGameContent();
-      } else if (tabController.index == 2) {
+      } else if (idx == 2) {
         await loadPaymentsTab();
-      } else if (currentTab.value == 3) {
+      } else if (idx == 3) {
         await loadNoticesTab();
       }
     });
@@ -119,6 +127,9 @@ class HomeController extends GetxController with GetTickerProviderStateMixin {
         await _loadDashboardForPlayerOrParent();
         break;
     }
+
+    // ✅ opcional: marcar el tab 0 como ya “visitado”
+    _lastLoadedTabIndex = 0;
   }
 
   Future<void> logout() async {
@@ -145,7 +156,7 @@ class HomeController extends GetxController with GetTickerProviderStateMixin {
     userAvatar.value = null;
   }
 
-  // ========= Manager =========
+  // ========= MANAGER =========
   Future<void> _bootstrapManager() async {
     await _loadCategories();
 
@@ -153,14 +164,14 @@ class HomeController extends GetxController with GetTickerProviderStateMixin {
       Get.offAllNamed(Routes.noCategory);
       return;
     }
-    if (categories.isNotEmpty && selectedCategoryId.value == null) {
+
+    if (selectedCategoryId.value == null) {
       selectedCategoryId.value = categories.first.id;
       await AppStorage.setSelectedCategoryId(categories.first.id);
       await AppStorage.setSelectedCategoryName(categories.first.name);
     }
-    if (selectedCategoryId.value != null) {
-      await _loadDashboardForManager(categoryId: selectedCategoryId.value!);
-    }
+
+    await _loadDashboardForManager();
   }
 
   Future<void> _loadCategories() async {
@@ -179,11 +190,11 @@ class HomeController extends GetxController with GetTickerProviderStateMixin {
     }
   }
 
-  Future<void> _loadDashboardForManager({required int categoryId}) async {
+  Future<void> _loadDashboardForManager() async {
     try {
       isLoadingDash.value = true;
-      final json = await api.managerCategoryDashboard(categoryId);
-      _mapManagerDashboardJson(json);
+      final dash = await api.getManagerDashboard();
+      _mapManagerDashboard(dash);
     } catch (e) {
       Get.snackbar(
         'Dashboard',
@@ -195,42 +206,27 @@ class HomeController extends GetxController with GetTickerProviderStateMixin {
     }
   }
 
-  void _mapManagerDashboardJson(Map<String, dynamic> json) {
-    final data = (json['data'] ?? {}) as Map<String, dynamic>;
-    final totals = (data['totals'] ?? {}) as Map<String, dynamic>;
-    final gamesJson = (data['games'] as List?) ?? const [];
-    final noticesJson = (data['notices'] as List?) ?? const [];
+  void _mapManagerDashboard(ManagerDashboardResponse dash) {
+    // En el endpoint manager actual no hay totales de pagos
+    saldoPendiente.value = 0.0;
+    pagosRealizados.value = 0.0;
 
-    saldoPendiente.value = (totals['saldo_por_pagar'] ?? 0).toDouble();
-    pagosRealizados.value = (totals['pagos_realizados'] ?? 0).toDouble();
+    // Ya viene "proximos 3"
+    upcomingGames.assignAll(_sortedByStart(dash.nextGames));
 
-    final games = gamesJson.map((g) {
-      return Game.fromJson(g);
-    }).toList();
-    upcomingGames.assignAll(games);
-
-    final ns = noticesJson.map((n) {
-      final m = n as Map<String, dynamic>;
-      return NoticeItem(
-        id: (m['id'] ?? 0) as int,
-        title: (m['title'] ?? '') as String,
-        message: m['message']?.toString(),
-        image: m['image']?.toString(),
-        attachment: m['attachment']?.toString(),
-        date: DateTime.tryParse(m['date']?.toString() ?? '') ?? DateTime.now(),
-      );
-    }).toList();
-    notices.assignAll(ns);
+    _setSingleNotice(dash.lastNotice);
   }
 
-  // ========= Parent =========
+  // ========= PARENT =========
   Future<void> _bootstrapParent() async {
     await _loadMyPlayers();
+
     if (myPlayers.isNotEmpty && selectedPlayerId.value == null) {
       selectedPlayerId.value = myPlayers.first.id;
       await AppStorage.setSelectedPlayerId(selectedPlayerId.value);
       await AppStorage.setSelectedPlayerName(myPlayers.first.name);
     }
+
     await _loadDashboardForPlayerOrParent();
   }
 
@@ -258,15 +254,22 @@ class HomeController extends GetxController with GetTickerProviderStateMixin {
     }
   }
 
-  // ========= Player =========
+  // ========= PLAYER =========
   Future<void> _bootstrapPlayer() async {
     final user = AppStorage.getUser();
-    await AppStorage.setSelectedPlayerId(user!.id);
-    await AppStorage.setSelectedPlayerName(user.name);
+    if (user != null) {
+      await AppStorage.setSelectedPlayerId(user.id);
+      await AppStorage.setSelectedPlayerName(user.name);
+    }
+
     await _loadPlayerCategories();
+
     if (myCategories.isNotEmpty && selectedPlayerCategoryId.value == null) {
       selectedPlayerCategoryId.value = myCategories.first.id;
+      await AppStorage.setSelectedCategoryId(myCategories.first.id);
+      await AppStorage.setSelectedCategoryName(myCategories.first.name);
     }
+
     await _loadDashboardForPlayerOrParent();
   }
 
@@ -289,12 +292,22 @@ class HomeController extends GetxController with GetTickerProviderStateMixin {
     }
   }
 
-  /// Usa /player/home para PARENT y PLAYER (dashboard general)
+  /// Usa dashboards nuevos para PARENT y PLAYER
   Future<void> _loadDashboardForPlayerOrParent() async {
     try {
       isLoadingDash.value = true;
-      final json = await api.playerHomeDashboard();
-      _mapPlayerHomeJson(json);
+
+      if (userRole.value == 'player') {
+        final dash = await api.getPlayerDashboard();
+        _mapPlayerDashboard(dash);
+      } else if (userRole.value == 'parent') {
+        final dash = await api.getParentDashboard();
+        _mapParentDashboard(dash);
+      } else {
+        // fallback viejo si algún rol raro cae aquí
+        final json = await api.playerHomeDashboard();
+        _mapPlayerHomeJson(json);
+      }
     } catch (e) {
       Get.snackbar(
         'Dashboard',
@@ -306,6 +319,80 @@ class HomeController extends GetxController with GetTickerProviderStateMixin {
     }
   }
 
+  void _mapPlayerDashboard(PlayerDashboardResponse dash) {
+    saldoPendiente.value = dash.pendingTotal;
+    pagosRealizados.value = 0.0;
+
+    final games = dash.categories
+        .map((c) => c.nextGame)
+        .whereType<Game>()
+        .toList();
+
+    final sorted = _sortedByStart(games);
+    upcomingGames.assignAll(sorted.take(3).toList());
+
+    _setSingleNotice(dash.lastNotice);
+  }
+
+  void _mapParentDashboard(ParentDashboardResponse dash) {
+    saldoPendiente.value = dash.pendingTotal;
+    pagosRealizados.value = 0.0;
+
+    final all = <Game>[];
+    for (final child in dash.children) {
+      all.addAll(child.upcomingGames);
+    }
+
+    final sorted = _sortedByStart(all);
+    upcomingGames.assignAll(sorted.take(3).toList());
+
+    _setSingleNotice(dash.lastNotice);
+  }
+
+  /// ✅ No dependemos de NoticeModel: acepta cualquier DTO con esos campos
+  void _setSingleNotice(dynamic n) {
+    notices.clear();
+    if (n == null) return;
+
+    DateTime date = DateTime.now();
+    try {
+      final published = n.publishedAt;
+      final created = n.createdAt;
+
+      if (published is DateTime) {
+        date = published;
+      } else if (published is String) {
+        date = DateTime.tryParse(published) ?? date;
+      } else if (created is DateTime) {
+        date = created;
+      } else if (created is String) {
+        date = DateTime.tryParse(created) ?? date;
+      }
+    } catch (_) {}
+
+    notices.add(
+      NoticeItem(
+        id: (n.id as int),
+        title: (n.title as String),
+        message: n.message?.toString(),
+        image: n.image?.toString(),
+        attachment: n.attachment?.toString(),
+        date: date,
+      ),
+    );
+  }
+
+  List<Game> _sortedByStart(List<Game> list) {
+    final copy = [...list];
+    copy.sort((a, b) {
+      final da = a.startsAt ?? DateTime(2100);
+      final db = b.startsAt ?? DateTime(2100);
+      return da.compareTo(db);
+    });
+    return copy;
+  }
+
+  /// ⚠️ Versión vieja basada en /player/home (fallback)
   void _mapPlayerHomeJson(Map<String, dynamic> json) {
     final payments = (json['payments'] ?? {}) as Map<String, dynamic>;
     final items = (payments['items'] as List?) ?? const [];
@@ -332,11 +419,8 @@ class HomeController extends GetxController with GetTickerProviderStateMixin {
     final gamesJson =
         ((json['games'] ?? {}) as Map<String, dynamic>)['items'] as List? ??
         const [];
-    final games = gamesJson.map((g) {
-      return Game.fromJson(g);
-    }).toList();
-    upcomingGames.assignAll(games);
-    upcomingGames.assignAll(games);
+    final games = gamesJson.map((g) => Game.fromJson(g)).toList();
+    upcomingGames.assignAll(_sortedByStart(games).take(3).toList());
 
     notices.clear();
     if (json['last_notice'] != null) {
@@ -358,6 +442,8 @@ class HomeController extends GetxController with GetTickerProviderStateMixin {
     }
   }
 
+  // ===================== Tabs existentes =====================
+
   Future<void> loadTabGameContent() async {
     if (isLoadingTab1.value) return;
     isLoadingTab1.value = true;
@@ -368,10 +454,7 @@ class HomeController extends GetxController with GetTickerProviderStateMixin {
       if (userRole.value == 'manager') {
         final categoryId =
             selectedCategoryId.value ?? AppStorage.getSelectedCategoryId();
-        if (categoryId == null) {
-          debugPrint('[HomeController] ⚠️ No hay categoría seleccionada.');
-          return;
-        }
+        if (categoryId == null) return;
 
         final now = DateTime.now();
         final from = DateTime(now.year, now.month, 1);
@@ -383,45 +466,17 @@ class HomeController extends GetxController with GetTickerProviderStateMixin {
           to: _ymd(to),
         );
 
-        dtos.sort((a, b) {
-          final aDate = a.startsAt ?? DateTime(2100);
-          final bDate = b.startsAt ?? DateTime(2100);
-          return aDate.compareTo(bDate);
-        });
-
-        upcomingGames.assignAll(dtos);
+        upcomingGames.assignAll(_sortedByStart(dtos));
       } else if (userRole.value == 'parent') {
         final playerId =
             selectedPlayerId.value ?? AppStorage.getSelectedPlayerId();
-        if (playerId == null) {
-          debugPrint('[HomeController] ⚠️ No hay jugador seleccionado.');
-          return;
-        }
+        if (playerId == null) return;
 
         final dtos = await api.playerMyGamesFromParent(playerId: playerId);
-        dtos.sort((a, b) {
-          final aDate = a.startsAt ?? DateTime(2100);
-          final bDate = b.startsAt ?? DateTime(2100);
-          return aDate.compareTo(bDate);
-        });
-
-        upcomingGames.assignAll(dtos);
+        upcomingGames.assignAll(_sortedByStart(dtos));
       } else {
-        final playerId =
-            selectedPlayerId.value ?? AppStorage.getSelectedPlayerId();
-        if (playerId == null) {
-          debugPrint('[HomeController] ⚠️ No hay jugador seleccionado.');
-          return;
-        }
-
         final dtos = await api.playerMyGames();
-        dtos.sort((a, b) {
-          final aDate = a.startsAt ?? DateTime(2100);
-          final bDate = b.startsAt ?? DateTime(2100);
-          return aDate.compareTo(bDate);
-        });
-
-        upcomingGames.assignAll(dtos);
+        upcomingGames.assignAll(_sortedByStart(dtos));
       }
     } catch (e, st) {
       debugPrint('[HomeController] ❌ Error cargando Tab1: $e\n$st');
@@ -446,38 +501,19 @@ class HomeController extends GetxController with GetTickerProviderStateMixin {
       if (userRole.value == 'manager') {
         final categoryId =
             selectedCategoryId.value ?? AppStorage.getSelectedCategoryId();
-        if (categoryId == null) {
-          debugPrint(
-            '[HomeController] ⚠️ No hay categoría seleccionada para pagos.',
-          );
-          return;
-        }
+        if (categoryId == null) return;
         list = await api.managerCategoryPayments(categoryId: categoryId);
       } else if (userRole.value == 'parent') {
         final playerId =
             selectedPlayerId.value ?? AppStorage.getSelectedPlayerId();
-        if (playerId == null) {
-          debugPrint(
-            '[HomeController] ⚠️ No hay jugador seleccionado para pagos.',
-          );
-          return;
-        }
+        if (playerId == null) return;
         list = await api.playerMyPayments(playerId: playerId);
       } else {
-        final playerId =
-            selectedPlayerId.value ?? AppStorage.getSelectedPlayerId();
-        if (playerId == null) {
-          debugPrint(
-            '[HomeController] ⚠️ No hay jugador seleccionado para pagos.',
-          );
-          return;
-        }
         list = await api.myPayments();
       }
 
       payments.assignAll(list);
 
-      // 🔢 opcional: recalcular totales de la cabecera
       double totalPagado = 0.0;
       double totalAdeudo = 0.0;
 
@@ -531,23 +567,9 @@ class HomeController extends GetxController with GetTickerProviderStateMixin {
         }).toList();
         notices.assignAll(mapped);
       } else {
-        // player / parent: tomar last_notice de /player/home
-        final n = await api.playerLastNotice();
-        if (n != null) {
-          notices.add(
-            NoticeItem(
-              id: (n['id'] ?? 0) as int,
-              title: (n['title'] ?? '') as String,
-              message: n['message']?.toString(),
-              image: n['image']?.toString(),
-              attachment: n['attachment']?.toString(),
-              date:
-                  DateTime.tryParse(
-                    (n['published_at'] ?? n['created_at'] ?? '').toString(),
-                  ) ??
-                  DateTime.now(),
-            ),
-          );
+        // Player/Parent: usamos last_notice del dashboard nuevo
+        if (notices.isEmpty) {
+          await _loadDashboardForPlayerOrParent();
         }
       }
     } catch (e, st) {
@@ -570,19 +592,12 @@ class HomeController extends GetxController with GetTickerProviderStateMixin {
     selectedCategoryId.value = id;
     await AppStorage.setSelectedCategoryId(id);
 
-    Category? cat;
-    for (final c in categories) {
-      if (c.id == id) {
-        cat = c;
-        break;
-      }
-    }
-
+    final cat = categories.firstWhereOrNull((c) => c.id == id);
     if (cat != null) {
       await AppStorage.setSelectedCategoryName(cat.name);
     }
 
-    await _loadDashboardForManager(categoryId: id);
+    await _loadDashboardForManager();
 
     if (tabController.index == 1) {
       await loadTabGameContent();
@@ -600,15 +615,10 @@ class HomeController extends GetxController with GetTickerProviderStateMixin {
     selectedPlayerId.value = id;
     await AppStorage.setSelectedPlayerId(id);
 
-    SimplePlayer? player;
-    for (final item in myPlayers) {
-      if (item.id == id) {
-        player = item;
-        break;
-      }
+    final player = myPlayers.firstWhereOrNull((p) => p.id == id);
+    if (player != null) {
+      await AppStorage.setSelectedPlayerName(player.name);
     }
-
-    await AppStorage.setSelectedPlayerName(player!.name);
 
     await _loadDashboardForPlayerOrParent();
 
@@ -627,21 +637,13 @@ class HomeController extends GetxController with GetTickerProviderStateMixin {
 
     selectedPlayerCategoryId.value = id;
 
-    await AppStorage.setSelectedCategoryId(id);
-
-    Category? cat;
-    for (final c in categories) {
-      if (c.id == id) {
-        cat = c;
-        break;
-      }
-    }
-
+    final cat = myCategories.firstWhereOrNull((c) => c.id == id);
     if (cat != null) {
+      await AppStorage.setSelectedCategoryId(cat.id);
       await AppStorage.setSelectedCategoryName(cat.name);
     }
 
-    _loadDashboardForPlayerOrParent();
+    await _loadDashboardForPlayerOrParent();
   }
 
   void onTapGame(Game g) {}

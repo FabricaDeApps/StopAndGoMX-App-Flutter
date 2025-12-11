@@ -74,7 +74,7 @@ class Game {
       id: (json['id'] ?? 0) as int,
       organizationId: (json['organization_id'] ?? 0) as int,
       categoryId: (json['category_id'] ?? 0) as int,
-      opponent: (json['opponent'] ?? '') as String,
+      opponent: (json['opponent_name'] ?? json['opponent'] ?? '') as String,
       opponentCategory: json['opponent_category']?.toString(),
       opponentNotes: json['opponent_notes']?.toString(),
       startsAt: _parseDate(json['starts_at']?.toString()),
