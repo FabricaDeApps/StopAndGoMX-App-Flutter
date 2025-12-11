@@ -4,6 +4,9 @@ Todos los cambios importantes del proyecto **StopAndGoMX** se documentan en este
 El formato sigue las recomendaciones de **Keep a Changelog**  
 y el versionado está basado en **Semantic Versioning (SemVer)**.
 
+## [1.0.14] - 2025-12-12
+- Nuevo Dashboard para todos
+
 ## [1.0.13] - 2025-12-10
 - Fix lista jugadores editar entrenamiento
 - Padre y Jugador, Documentos de jugador
