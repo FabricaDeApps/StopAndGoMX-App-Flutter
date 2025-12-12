@@ -1,4 +1,84 @@
 // lib/core/models/dto/game_dto.dart
+
+class Venue {
+  final int id;
+  final String name;
+  final String? address;
+  final String? city;
+  final String? state;
+  final String? country;
+  final double? lat;
+  final double? lng;
+  final String? notes;
+  final bool? isActive;
+
+  final DateTime? createdAt;
+  final DateTime? updatedAt;
+  final DateTime? deletedAt;
+
+  Venue({
+    required this.id,
+    required this.name,
+    this.address,
+    this.city,
+    this.state,
+    this.country,
+    this.lat,
+    this.lng,
+    this.notes,
+    this.isActive,
+    this.createdAt,
+    this.updatedAt,
+    this.deletedAt,
+  });
+
+  factory Venue.fromJson(Map<String, dynamic> json) {
+    DateTime? _parseDate(dynamic s) {
+      final str = s?.toString();
+      if (str == null || str.isEmpty) return null;
+      return DateTime.tryParse(str);
+    }
+
+    double? _parseDouble(dynamic v) {
+      if (v == null) return null;
+      if (v is num) return v.toDouble();
+      return double.tryParse(v.toString());
+    }
+
+    return Venue(
+      id: (json['id'] ?? 0) as int,
+      name: (json['name'] ?? '') as String,
+      address: json['address']?.toString(),
+      city: json['city']?.toString(),
+      state: json['state']?.toString(),
+      country: json['country']?.toString(),
+      lat: _parseDouble(json['lat']),
+      lng: _parseDouble(json['lng']),
+      notes: json['notes']?.toString(),
+      isActive: json['is_active'] as bool?,
+      createdAt: _parseDate(json['created_at']),
+      updatedAt: _parseDate(json['updated_at']),
+      deletedAt: _parseDate(json['deleted_at']),
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'name': name,
+    'address': address,
+    'city': city,
+    'state': state,
+    'country': country,
+    'lat': lat,
+    'lng': lng,
+    'notes': notes,
+    'is_active': isActive,
+    'created_at': createdAt?.toIso8601String(),
+    'updated_at': updatedAt?.toIso8601String(),
+    'deleted_at': deletedAt?.toIso8601String(),
+  };
+}
+
 class Game {
   final int id;
   final int organizationId;
@@ -11,7 +91,14 @@ class Game {
   final DateTime? startsAt;
   final int? durationMinutes;
 
+  /// Compat: antes era string, ahora puede venir objeto.
+  /// - venueObj: el objeto venue completo (nuevo)
+  /// - venueId: id del venue (nuevo)
+  /// - venue: nombre fallback (string) para UI rápida/legacy
+  final Venue? venueObj;
+  final int? venueId;
   final String? venue;
+
   final String? address;
   final String? city;
 
@@ -41,6 +128,8 @@ class Game {
     this.opponentNotes,
     this.startsAt,
     this.durationMinutes,
+    this.venueObj,
+    this.venueId,
     this.venue,
     this.address,
     this.city,
@@ -59,9 +148,10 @@ class Game {
   });
 
   factory Game.fromJson(Map<String, dynamic> json) {
-    DateTime? _parseDate(String? s) {
-      if (s == null || s.isEmpty) return null;
-      return DateTime.tryParse(s);
+    DateTime? _parseDate(dynamic s) {
+      final str = s?.toString();
+      if (str == null || str.isEmpty) return null;
+      return DateTime.tryParse(str);
     }
 
     double? _parseDouble(dynamic v) {
@@ -70,6 +160,33 @@ class Game {
       return double.tryParse(v.toString());
     }
 
+    // venue puede venir como:
+    // - Map => venueObj
+    // - String => venue (legacy)
+    // - null
+    Venue? venueObj;
+    int? venueId;
+    String? venueName;
+
+    final v = json['venue'];
+    if (v is Map) {
+      final map = Map<String, dynamic>.from(v as Map);
+      venueObj = Venue.fromJson(map);
+      venueId = (map['id'] as num?)?.toInt();
+      venueName = map['name']?.toString();
+    } else if (v != null) {
+      venueName = v.toString();
+    }
+
+    // Si el backend también manda venue_id separado, lo respetamos
+    venueId ??= (json['venue_id'] as num?)?.toInt();
+
+    // address/city/lat/lng: prioriza venueObj si existe, si no usa campos planos
+    final resolvedAddress = venueObj?.address ?? json['address']?.toString();
+    final resolvedCity = venueObj?.city ?? json['city']?.toString();
+    final resolvedLat = venueObj?.lat ?? _parseDouble(json['lat']);
+    final resolvedLng = venueObj?.lng ?? _parseDouble(json['lng']);
+
     return Game(
       id: (json['id'] ?? 0) as int,
       organizationId: (json['organization_id'] ?? 0) as int,
@@ -77,23 +194,25 @@ class Game {
       opponent: (json['opponent_name'] ?? json['opponent'] ?? '') as String,
       opponentCategory: json['opponent_category']?.toString(),
       opponentNotes: json['opponent_notes']?.toString(),
-      startsAt: _parseDate(json['starts_at']?.toString()),
-      durationMinutes: json['duration_minutes'] as int?,
-      venue: json['venue']?.toString(),
-      address: json['address']?.toString(),
-      city: json['city']?.toString(),
-      lat: _parseDouble(json['lat']),
-      lng: _parseDouble(json['lng']),
+      startsAt: _parseDate(json['starts_at']),
+      durationMinutes: (json['duration_minutes'] as num?)?.toInt(),
+      venueObj: venueObj,
+      venueId: venueId,
+      venue: venueName,
+      address: resolvedAddress,
+      city: resolvedCity,
+      lat: resolvedLat,
+      lng: resolvedLng,
       status: json['status']?.toString(),
       isFriendly: (json['is_friendly'] ?? false) as bool,
       season: json['season']?.toString(),
-      homeScore: json['home_score'] as int?,
-      opponentScore: json['opponent_score'] as int?,
+      homeScore: (json['home_score'] as num?)?.toInt(),
+      opponentScore: (json['opponent_score'] as num?)?.toInt(),
       notes: json['notes']?.toString(),
       evidence: json['evidece']?.toString(), // ojo: backend lo manda con typo
       evidenceUrl: json['evidece_url']?.toString(), // idem
-      createdAt: _parseDate(json['created_at']?.toString()),
-      updatedAt: _parseDate(json['updated_at']?.toString()),
+      createdAt: _parseDate(json['created_at']),
+      updatedAt: _parseDate(json['updated_at']),
     );
   }
 
@@ -106,7 +225,13 @@ class Game {
     'opponent_notes': opponentNotes,
     'starts_at': startsAt?.toIso8601String(),
     'duration_minutes': durationMinutes,
-    'venue': venue,
+
+    // Puedes mandar venue_id al backend (recomendado)
+    'venue_id': venueId,
+
+    // Si necesitas enviar el objeto completo a algún cache/local:
+    'venue': venueObj?.toJson() ?? venue,
+
     'address': address,
     'city': city,
     'lat': lat,

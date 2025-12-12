@@ -1009,4 +1009,23 @@ class ApiRepository {
     final map = Map<String, dynamic>.from(res.data as Map);
     return ParentDashboardResponse.fromJson(map);
   }
+
+  /// GET /dashboards/parent
+  Future<List<Venue>> getVenues() async {
+    final res = await _dio.get(
+      '/venues',
+      options: Options(headers: _headers()),
+    );
+
+    final data = res.data;
+
+    final list = (data is Map && data['data'] is List)
+        ? (data['data'] as List)
+        : (data as List);
+
+    return list
+        .whereType<Map>()
+        .map((e) => Venue.fromJson(Map<String, dynamic>.from(e)))
+        .toList();
+  }
 }

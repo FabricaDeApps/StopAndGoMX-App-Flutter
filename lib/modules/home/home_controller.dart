@@ -647,7 +647,10 @@ class HomeController extends GetxController with GetTickerProviderStateMixin {
   }
 
   void onTapGame(Game g) {}
-  void onTapPay() {}
+  void onTapPay() {
+    tabController.index = 2;
+  }
+
   void onTapNotice(NoticeItem n) {}
 
   @override

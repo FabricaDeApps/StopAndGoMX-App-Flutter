@@ -4,6 +4,11 @@ Todos los cambios importantes del proyecto **StopAndGoMX** se documentan en este
 El formato sigue las recomendaciones de **Keep a Changelog**  
 y el versionado está basado en **Semantic Versioning (SemVer)**.
 
+## [1.0.15] - 2025-12-12
+- Navegación desde dashboard
+- Sedes desde catalogo
+- Icono a maps desde Juego
+
 ## [1.0.14] - 2025-12-12
 - Nuevo Dashboard para todos
 

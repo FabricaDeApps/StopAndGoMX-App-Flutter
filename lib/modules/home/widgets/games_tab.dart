@@ -2,10 +2,41 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:stopandgo/modules/home/home_controller.dart';
 import 'package:stopandgo/routes/app_routes.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class GamesTab extends StatelessWidget {
   const GamesTab({super.key, required this.controller});
   final HomeController controller;
+
+  Future<void> _openInGoogleMaps({
+    required BuildContext context,
+    required double? lat,
+    required double? lng,
+    required String label,
+  }) async {
+    if (lat == null || lng == null) {
+      Get.snackbar(
+        'Sin ubicación',
+        'Este juego no tiene coordenadas (lat/lng).',
+        snackPosition: SnackPosition.BOTTOM,
+      );
+      return;
+    }
+
+    final encodedLabel = Uri.encodeComponent(label);
+    final url = Uri.parse(
+      'https://www.google.com/maps/search/?api=1&query=$lat,$lng&query_place_id=$encodedLabel',
+    );
+
+    final ok = await launchUrl(url, mode: LaunchMode.externalApplication);
+    if (!ok) {
+      Get.snackbar(
+        'Error',
+        'No se pudo abrir Google Maps.',
+        snackPosition: SnackPosition.BOTTOM,
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -26,9 +57,13 @@ class GamesTab extends StatelessWidget {
               itemBuilder: (_, i) {
                 final g = list[i];
                 final now = DateTime.now();
-                final isPast = g.startsAt!.isBefore(now);
+                final isPast = g.startsAt != null && g.startsAt!.isBefore(now);
                 final canComplete =
                     controller.userRole.value == 'manager' && isPast;
+
+                final venueName = g.venueObj?.name ?? g.venue ?? '';
+                final labelForMaps =
+                    '${g.opponent}${venueName.isNotEmpty ? ' · $venueName' : ''}';
 
                 return ListTile(
                   shape: RoundedRectangleBorder(
@@ -48,8 +83,22 @@ class GamesTab extends StatelessWidget {
                     children: [
                       Text(
                         '${g.startsAt?.day.toString().padLeft(2, '0')}/${g.startsAt?.month.toString().padLeft(2, '0')} '
-                        '${g.startsAt?.hour.toString().padLeft(2, '0')}:${g.startsAt?.minute.toString().padLeft(2, '0')} · ${g.venue ?? ''}',
+                        '${g.startsAt?.hour.toString().padLeft(2, '0')}:${g.startsAt?.minute.toString().padLeft(2, '0')}'
+                        '${venueName.isNotEmpty ? ' · $venueName' : ''}',
                       ),
+                      if ((g.notes ?? '').trim().isNotEmpty) ...[
+                        const SizedBox(height: 2),
+                        Text(
+                          g.notes!.trim(),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: theme.textTheme.bodySmall?.color
+                                ?.withOpacity(.85),
+                          ),
+                        ),
+                      ],
+
                       if (g.status == 'completed') ...[
                         const SizedBox(height: 2),
                         Text(
@@ -65,6 +114,18 @@ class GamesTab extends StatelessWidget {
                   trailing: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
+                      // 🗺️ Google Maps
+                      IconButton(
+                        icon: const Icon(Icons.map_outlined),
+                        tooltip: 'Abrir en Google Maps',
+                        onPressed: () => _openInGoogleMaps(
+                          context: context,
+                          lat: g.lat,
+                          lng: g.lng,
+                          label: labelForMaps,
+                        ),
+                      ),
+
                       // 🔹 Icono de asistencia (solo manager y mismo día)
                       if (controller.userRole.value == 'manager' &&
                           g.startsAt != null &&

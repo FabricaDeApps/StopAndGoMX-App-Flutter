@@ -373,7 +373,7 @@ class _PlayerDashboard extends StatelessWidget {
                 Expanded(
                   child: MetricCard(
                     icon: Icons.account_balance_wallet_outlined,
-                    label: saldoLabel,
+                    label: "ddsadsa",
                     value:
                         '\$${controller.saldoPendiente.value.toStringAsFixed(2)}',
                     onTap: controller.onTapPay,
@@ -401,72 +401,82 @@ class _GamesAndNotices extends StatelessWidget {
     return Column(
       children: [
         // -------- Próximos juegos --------
-        MiniCard(
-          title: 'Próximos juegos',
-          child: Obx(() {
-            final list = controller.upcomingGames.take(3).toList();
-            if (list.isEmpty) {
-              return Text(
-                'Sin juegos próximos',
-                style: theme.textTheme.bodySmall,
-              );
-            }
-            return Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: list.map((g) {
-                final fecha = g.startsAt != null
-                    ? _fmtDate(g.startsAt!)
-                    : 'Fecha por definir';
-
-                return ListTile(
-                  contentPadding: EdgeInsets.zero,
-                  dense: true,
-                  leading: const Icon(Icons.sports_football, size: 20),
-                  title: Text(
-                    g.opponent,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  subtitle: Text(
-                    '$fecha · ${g.venue ?? 'Por definir'}',
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  onTap: () => controller.onTapGame(g),
+        GestureDetector(
+          onTap: () {
+            controller.tabController.index = 1;
+          },
+          child: MiniCard(
+            title: 'Próximos juegos',
+            child: Obx(() {
+              final list = controller.upcomingGames.take(3).toList();
+              if (list.isEmpty) {
+                return Text(
+                  'Sin juegos próximos',
+                  style: theme.textTheme.bodySmall,
                 );
-              }).toList(),
-            );
-          }),
+              }
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: list.map((g) {
+                  final fecha = g.startsAt != null
+                      ? _fmtDate(g.startsAt!)
+                      : 'Fecha por definir';
+
+                  return ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    dense: true,
+                    leading: const Icon(Icons.sports_football, size: 20),
+                    title: Text(
+                      g.opponent,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    subtitle: Text(
+                      '$fecha · ${g.venue ?? 'Por definir'}',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    onTap: () => controller.onTapGame(g),
+                  );
+                }).toList(),
+              );
+            }),
+          ),
         ),
 
         const SizedBox(height: 12),
 
         // -------- Avisos --------
-        MiniCard(
-          title: 'Avisos',
-          child: Obx(() {
-            final list = controller.notices.take(2).toList();
-            if (list.isEmpty) {
-              return Text('Sin avisos', style: theme.textTheme.bodySmall);
-            }
-            return Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: list.map((n) {
-                return ListTile(
-                  contentPadding: EdgeInsets.zero,
-                  dense: true,
-                  leading: const Icon(Icons.campaign, size: 20),
-                  title: Text(
-                    n.title,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  subtitle: Text(_fmtDate(n.date)),
-                  onTap: () => controller.onTapNotice(n),
-                );
-              }).toList(),
-            );
-          }),
+        GestureDetector(
+          onTap: () {
+            controller.tabController.index = 3;
+          },
+          child: MiniCard(
+            title: 'Avisos',
+            child: Obx(() {
+              final list = controller.notices.take(2).toList();
+              if (list.isEmpty) {
+                return Text('Sin avisos', style: theme.textTheme.bodySmall);
+              }
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: list.map((n) {
+                  return ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    dense: true,
+                    leading: const Icon(Icons.campaign, size: 20),
+                    title: Text(
+                      n.title,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    subtitle: Text(_fmtDate(n.date)),
+                    onTap: () => controller.onTapNotice(n),
+                  );
+                }).toList(),
+              );
+            }),
+          ),
         ),
       ],
     );
@@ -476,50 +486,6 @@ class _GamesAndNotices extends StatelessWidget {
 String _fmtDate(DateTime d) =>
     '${d.day.toString().padLeft(2, '0')}/${d.month.toString().padLeft(2, '0')} '
     '${d.hour.toString().padLeft(2, '0')}:${d.minute.toString().padLeft(2, '0')}';
-
-// ================= Tabs =================
-
-class _DashboardTab extends StatelessWidget {
-  const _DashboardTab({required this.controller});
-  final HomeController controller;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Obx(() {
-      if (controller.upcomingGames.isEmpty) {
-        return Center(
-          child: Text('Sin juegos próximos', style: theme.textTheme.bodyMedium),
-        );
-      }
-      return ListView.separated(
-        padding: const EdgeInsets.fromLTRB(16, 8, 16, 80),
-        itemCount: controller.upcomingGames.length,
-        separatorBuilder: (_, __) => const SizedBox(height: 8),
-        itemBuilder: (_, i) {
-          final g = controller.upcomingGames[i];
-          return ListTile(
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(14),
-            ),
-            tileColor: theme.colorScheme.surface,
-            leading: CircleAvatar(
-              backgroundColor: theme.colorScheme.primary.withOpacity(.12),
-              child: const Icon(Icons.sports_soccer),
-            ),
-            title: Text(
-              g.opponent,
-              style: const TextStyle(fontWeight: FontWeight.w600),
-            ),
-            subtitle: Text('${_fmtDate(g.startsAt!)} · ${g.venue}'),
-            trailing: const Icon(Icons.chevron_right),
-            onTap: () => controller.onTapGame(g),
-          );
-        },
-      );
-    });
-  }
-}
 
 // ============== Selectores AppBar ==============
 

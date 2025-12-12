@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:stopandgo/core/models/games.dart';
 import 'package:stopandgo/core/network/api_repository.dart';
 
 class NewGameController extends GetxController {
@@ -11,8 +12,18 @@ class NewGameController extends GetxController {
   // Form
   final formKey = GlobalKey<FormState>();
   final opponentCtrl = TextEditingController();
-  final venueCtrl = TextEditingController();
   final notesCtrl = TextEditingController();
+
+  // Venues
+  final isLoadingVenues = false.obs;
+  final venues = <Venue>[].obs;
+  final selectedVenue = Rxn<Venue>();
+  final venueSearchCtrl = TextEditingController(); // opcional (filtrar)
+  List<Venue> get filteredVenues {
+    final q = venueSearchCtrl.text.trim().toLowerCase();
+    if (q.isEmpty) return venues;
+    return venues.where((v) => v.name.toLowerCase().contains(q)).toList();
+  }
 
   // Estado
   final isHome = true.obs;
@@ -27,14 +38,40 @@ class NewGameController extends GetxController {
     categoryId =
         (args?['categoryId'] as int?) ??
         (throw ArgumentError('categoryId es requerido en arguments'));
+
+    fetchVenues();
+    venueSearchCtrl.addListener(() {
+      // fuerza rebuild del dropdown cuando se filtra
+      venues.refresh();
+    });
   }
 
   @override
   void onClose() {
     opponentCtrl.dispose();
-    venueCtrl.dispose();
     notesCtrl.dispose();
+    venueSearchCtrl.dispose();
     super.onClose();
+  }
+
+  Future<void> fetchVenues() async {
+    isLoadingVenues.value = true;
+    try {
+      final list = await _api.getVenues();
+      venues.assignAll(list);
+
+      // Si solo hay 1, autoselecciona
+      if (venues.length == 1) selectedVenue.value = venues.first;
+    } catch (e) {
+      Get.snackbar(
+        'Error',
+        'No se pudieron cargar las sedes: $e',
+        snackPosition: SnackPosition.BOTTOM,
+        duration: const Duration(seconds: 4),
+      );
+    } finally {
+      isLoadingVenues.value = false;
+    }
   }
 
   Future<void> pickDateTime(BuildContext context) async {
@@ -57,14 +94,13 @@ class NewGameController extends GetxController {
 
     if (time == null) return;
 
-    final dt = DateTime(
+    scheduledAt.value = DateTime(
       date.year,
       date.month,
       date.day,
       time.hour,
       time.minute,
     );
-    scheduledAt.value = dt;
   }
 
   String _formatForApi(DateTime dt) {
@@ -74,6 +110,16 @@ class NewGameController extends GetxController {
 
   Future<void> submit() async {
     if (!(formKey.currentState?.validate() ?? false)) return;
+
+    if (selectedVenue.value == null) {
+      Get.snackbar(
+        'Falta sede',
+        'Selecciona la sede/campo',
+        snackPosition: SnackPosition.BOTTOM,
+      );
+      return;
+    }
+
     if (scheduledAt.value == null) {
       Get.snackbar(
         'Falta fecha/hora',
@@ -88,9 +134,15 @@ class NewGameController extends GetxController {
       final body = {
         "opponent_name": opponentCtrl.text.trim(),
         "scheduled_at": _formatForApi(scheduledAt.value!),
-        "venue": venueCtrl.text.trim(),
+
+        // ✅ Enviar ID de venue
+        "venue_id": selectedVenue.value!.id,
+
+        // (opcional) por compatibilidad o display
+        "venue_name": selectedVenue.value!.name,
+
         "is_home": isHome.value,
-        "status": "scheduled", // default fijo
+        "status": "scheduled",
         "notes": notesCtrl.text.trim().isEmpty ? null : notesCtrl.text.trim(),
       };
 
