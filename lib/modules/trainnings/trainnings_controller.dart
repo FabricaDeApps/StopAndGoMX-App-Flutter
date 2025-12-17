@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:stopandgo/core/models/training.dart';
 import 'package:stopandgo/core/network/api_repository.dart';
@@ -11,12 +12,26 @@ class TrainingsController extends GetxController {
   final trainings = <Training>[].obs;
   final error = RxnString();
 
+  // ✅ filtros
+  final selectedStatus = RxnString(); // null = todos
+  final fromDate = Rxn<DateTime>();
+  final toDate = Rxn<DateTime>();
+
   late final int categoryId;
 
   @override
   void onInit() {
     super.onInit();
     categoryId = AppStorage.getSelectedCategoryId() ?? 0;
+
+    // default: últimos 30 días (opcional)
+    final now = DateTime.now();
+    fromDate.value = DateTime(
+      now.year,
+      now.month,
+      now.day,
+    ).subtract(const Duration(days: 30));
+    toDate.value = DateTime(now.year, now.month, now.day);
 
     loadTrainings();
   }
@@ -26,7 +41,12 @@ class TrainingsController extends GetxController {
     error.value = null;
 
     try {
-      final list = await _api.managerCategoryTrainings(categoryId: categoryId);
+      final list = await _api.managerCategoryTrainings(
+        categoryId: categoryId,
+        status: selectedStatus.value,
+        from: fromDate.value,
+        to: toDate.value,
+      );
       trainings.assignAll(list);
     } catch (e) {
       error.value = 'Error al cargar entrenamientos: $e';
@@ -35,10 +55,67 @@ class TrainingsController extends GetxController {
     }
   }
 
+  // ✅ cambia status (chips)
+  Future<void> setStatus(String? status) async {
+    if (selectedStatus.value == status) return;
+    selectedStatus.value = status;
+    await loadTrainings();
+  }
+
+  // ✅ pickers
+  Future<void> pickFromDate(BuildContext context) async {
+    final initial = fromDate.value ?? DateTime.now();
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: initial,
+      firstDate: DateTime(2020),
+      lastDate: DateTime(2100),
+      locale: const Locale('es', 'MX'),
+    );
+    if (picked == null) return;
+
+    fromDate.value = picked;
+
+    // si from > to, ajusta to
+    final to = toDate.value;
+    if (to != null && picked.isAfter(to)) {
+      toDate.value = picked;
+    }
+
+    await loadTrainings();
+  }
+
+  Future<void> pickToDate(BuildContext context) async {
+    final initial = toDate.value ?? DateTime.now();
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: initial,
+      firstDate: DateTime(2020),
+      lastDate: DateTime(2100),
+      locale: const Locale('es', 'MX'),
+    );
+    if (picked == null) return;
+
+    toDate.value = picked;
+
+    // si to < from, ajusta from
+    final from = fromDate.value;
+    if (from != null && picked.isBefore(from)) {
+      fromDate.value = picked;
+    }
+
+    await loadTrainings();
+  }
+
+  Future<void> clearDates() async {
+    fromDate.value = null;
+    toDate.value = null;
+    await loadTrainings();
+  }
+
   /// 👉 Navega a CreateTraining, espera resultado y recarga si fue success.
   Future<void> goToCreateTraining() async {
     final result = await Get.toNamed(Routes.createTrainnig);
-
     if (result == true) {
       await loadTrainings();
     }
@@ -48,7 +125,6 @@ class TrainingsController extends GetxController {
     try {
       await _api.completeTraining(t.id, categoryId);
 
-      // refrescar lista
       await loadTrainings();
       Get.snackbar(
         'Entrenamiento completado',

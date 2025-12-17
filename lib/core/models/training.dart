@@ -9,6 +9,10 @@ class Training {
   final String? city;
   final String status;
   final String? notes;
+  final int? markedPlayers;
+  final int? presentPlayers;
+  final int? expectedPlayers;
+  final double? attendancePct;
 
   Training({
     required this.id,
@@ -21,20 +25,30 @@ class Training {
     this.city,
     required this.status,
     this.notes,
+    this.markedPlayers,
+    this.presentPlayers,
+    this.expectedPlayers,
+    this.attendancePct,
   });
 
   factory Training.fromJson(Map<String, dynamic> json) {
     return Training(
-      id: json['id'],
-      organizationId: json['organization_id'],
-      categoryId: json['category_id'],
-      startsAt: DateTime.parse(json['starts_at']),
-      durationMinutes: json['duration_minutes'],
-      venue: json['venue'],
-      address: json['address'],
-      city: json['city'],
-      status: json['status'],
-      notes: json['notes'],
+      id: (json['id'] ?? 0) as int,
+      organizationId: (json['organization_id'] ?? 0) as int,
+      categoryId: (json['category_id'] ?? 0) as int,
+      startsAt: DateTime.parse(json['starts_at'] as String),
+      durationMinutes: json['duration_minutes'] as int?,
+      venue: json['venue'] as String?,
+      address: json['address'] as String?,
+      city: json['city'] as String?,
+      status: (json['status'] ?? '') as String,
+      notes: json['notes'] as String?,
+      markedPlayers: json['marked_players'] as int?,
+      presentPlayers: json['present_players'] as int?,
+      expectedPlayers: json['expected_players'] as int?,
+      attendancePct: (json['attendance_pct'] is num)
+          ? (json['attendance_pct'] as num).toDouble()
+          : null,
     );
   }
 }

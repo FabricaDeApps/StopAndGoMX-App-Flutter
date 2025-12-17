@@ -633,9 +633,17 @@ class ApiRepository {
 
   Future<List<Training>> managerCategoryTrainings({
     required int categoryId,
+    DateTime? from,
+    DateTime? to,
+    String? status,
   }) async {
     final res = await _dio.get(
       '/manager/$categoryId/trainings',
+      queryParameters: {
+        if (status != null && status.isNotEmpty) 'status': status,
+        if (from != null) 'from': _dateOnly(from), // yyyy-MM-dd
+        if (to != null) 'to': _dateOnly(to), // yyyy-MM-dd
+      },
       options: Options(headers: _headers()),
     );
 
@@ -644,6 +652,13 @@ class ApiRepository {
     return data
         .map((e) => Training.fromJson(Map<String, dynamic>.from(e)))
         .toList();
+  }
+
+  String _dateOnly(DateTime d) {
+    final y = d.year.toString().padLeft(4, '0');
+    final m = d.month.toString().padLeft(2, '0');
+    final day = d.day.toString().padLeft(2, '0');
+    return '$y-$m-$day';
   }
 
   Future<Map<String, dynamic>> createTraining({
