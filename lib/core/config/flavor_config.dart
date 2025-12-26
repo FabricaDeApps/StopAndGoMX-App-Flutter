@@ -5,6 +5,7 @@ class FlavorConfig {
   final String appName;
   final String bundleId;
   int? organizationId;
+  final String? paymentProvider;
 
   static FlavorConfig? _instance;
   static FlavorConfig get I => _instance!;
@@ -14,6 +15,7 @@ class FlavorConfig {
     required this.appName,
     required this.bundleId,
     this.organizationId,
+    this.paymentProvider,
   });
 
   static void init({
@@ -21,12 +23,14 @@ class FlavorConfig {
     required String appName,
     required String bundleId,
     int? organizationId,
+    String? paymentProvider,
   }) {
     _instance = FlavorConfig._(
       flavor: flavor,
       appName: appName,
       bundleId: bundleId,
       organizationId: organizationId,
+      paymentProvider: paymentProvider?.toLowerCase().trim(),
     );
   }
 
@@ -38,6 +42,11 @@ class FlavorConfig {
   void updateOrganizationId(int newOrgId) {
     organizationId = newOrgId;
   }
+
+  bool get hasPaymentProvider => paymentProvider != null;
+
+  bool isPaymentProvider(String provider) =>
+      paymentProvider == provider.toLowerCase().trim();
 
   // ------------------------------------------------------------
   // NUEVO: Permisos de tabs por flavor y rol

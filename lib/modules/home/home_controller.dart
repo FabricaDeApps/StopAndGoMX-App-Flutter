@@ -5,11 +5,13 @@ import 'package:stopandgo/core/config/flavor_config.dart';
 import 'package:stopandgo/core/models/category.dart';
 import 'package:stopandgo/core/models/dashboard_models.dart';
 import 'package:stopandgo/core/models/dto/payment_dto.dart';
+import 'package:stopandgo/core/models/dto/payment_provider_intent_dto.dart';
 import 'package:stopandgo/core/models/games.dart';
 import 'package:stopandgo/core/network/api_repository.dart';
 import 'package:stopandgo/core/network/token_storage.dart';
 import 'package:stopandgo/core/storage/app_storage.dart';
 import 'package:stopandgo/routes/app_routes.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class NoticeItem {
   final int id;
@@ -81,8 +83,9 @@ class HomeController extends GetxController with GetTickerProviderStateMixin {
   final payments = <PaymentDto>[].obs;
   final tabs = <String>[].obs;
 
-  // ✅ FIX: evita doble llamada al cambiar tabs
   int _lastLoadedTabIndex = -1;
+
+  final isPayingWithCard = false.obs;
 
   @override
   Future<void> onReady() async {
@@ -652,6 +655,27 @@ class HomeController extends GetxController with GetTickerProviderStateMixin {
   }
 
   void onTapNotice(NoticeItem n) {}
+
+  Future<void> payWithCard(int paymentId) async {
+    if (isPayingWithCard.value) return;
+
+    isPayingWithCard.value = true;
+
+    try {
+      final intent = await api.createMercadoPagoIntent(paymentId: paymentId);
+
+      final uri = Uri.parse(intent.initUrl);
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    } catch (e) {
+      Get.snackbar(
+        'Pago con tarjeta',
+        'No se pudo iniciar el pago: $e',
+        snackPosition: SnackPosition.BOTTOM,
+      );
+    } finally {
+      isPayingWithCard.value = false;
+    }
+  }
 
   @override
   void onClose() {

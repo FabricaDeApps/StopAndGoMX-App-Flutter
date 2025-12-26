@@ -27,6 +27,7 @@ Future<void> main() async {
     appName: 'StopAndGoMX',
     bundleId: 'app.stopandgomx.main',
     organizationId: 1,
+    paymentProvider: 'mercadopago',
   );
 
   firebaseAnalytics = FirebaseAnalytics.instance;

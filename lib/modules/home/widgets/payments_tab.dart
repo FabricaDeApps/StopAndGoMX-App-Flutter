@@ -3,6 +3,8 @@ import 'package:get/get.dart';
 import 'package:stopandgo/modules/home/home_controller.dart';
 import 'package:stopandgo/routes/app_routes.dart';
 
+import '../../../core/config/flavor_config.dart';
+
 class PaymentsTab extends StatelessWidget {
   const PaymentsTab({super.key, required this.controller});
   final HomeController controller;
@@ -28,6 +30,10 @@ class PaymentsTab extends StatelessWidget {
         itemCount: list.length,
         separatorBuilder: (_, __) => const SizedBox(height: 8),
         itemBuilder: (_, i) {
+          debugPrint('Flavor: ${FlavorConfig.I.flavor}');
+          debugPrint('Providers: ${FlavorConfig.I.paymentProvider}');
+
+          final canPayCard = FlavorConfig.I.isPaymentProvider('mercadopago');
           final p = list[i];
           final paid = p.status == 'paid';
           final partial = p.status == 'partial';
@@ -189,21 +195,46 @@ class PaymentsTab extends StatelessWidget {
                     );
                   }),
 
-                // 👇 Botón Pagar SOLO si no está pagado
                 if (!paid)
                   Align(
                     alignment: Alignment.centerRight,
                     child: Padding(
                       padding: const EdgeInsets.only(top: 8),
-                      child: FilledButton.icon(
-                        icon: const Icon(Icons.payments_outlined),
-                        label: const Text('Pagar'),
-                        onPressed: () {
-                          Get.toNamed(
-                            Routes.makePayment,
-                            arguments: {'paymentId': p.id},
-                          );
-                        },
+                      child: Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        alignment: WrapAlignment.end,
+                        children: [
+                          FilledButton.icon(
+                            icon: const Icon(Icons.payments_outlined),
+                            label: const Text('Pagar'),
+                            onPressed: () {
+                              Get.toNamed(
+                                Routes.makePayment,
+                                arguments: {'paymentId': p.id},
+                              );
+                            },
+                          ),
+
+                          if (canPayCard)
+                            Obx(
+                              () => FilledButton.icon(
+                                icon: controller.isPayingWithCard.value
+                                    ? const SizedBox(
+                                        width: 18,
+                                        height: 18,
+                                        child: CircularProgressIndicator(
+                                          strokeWidth: 2,
+                                        ),
+                                      )
+                                    : const Icon(Icons.credit_card),
+                                label: const Text('Pagar con tarjeta'),
+                                onPressed: controller.isPayingWithCard.value
+                                    ? null
+                                    : () => controller.payWithCard(p.id),
+                              ),
+                            ),
+                        ],
                       ),
                     ),
                   ),

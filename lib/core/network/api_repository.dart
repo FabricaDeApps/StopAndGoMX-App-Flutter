@@ -6,6 +6,7 @@ import 'package:stopandgo/core/constants/api_endpoints.dart';
 import 'package:stopandgo/core/models/category.dart';
 import 'package:stopandgo/core/models/dashboard_models.dart';
 import 'package:stopandgo/core/models/dto/payment_dto.dart';
+import 'package:stopandgo/core/models/dto/payment_provider_intent_dto.dart';
 import 'package:stopandgo/core/models/games.dart';
 import 'package:stopandgo/core/models/player_document.dart';
 import 'package:stopandgo/core/models/players.dart';
@@ -1042,5 +1043,21 @@ class ApiRepository {
         .whereType<Map>()
         .map((e) => Venue.fromJson(Map<String, dynamic>.from(e)))
         .toList();
+  }
+
+  Future<PaymentProviderIntentDto> createMercadoPagoIntent({
+    required int paymentId,
+  }) async {
+    final res = await _dio.post(
+      '/payments/$paymentId/providers/mercadopago/intent',
+      options: Options(headers: _headers()),
+    );
+
+    if (res.data is! Map) {
+      throw Exception('Respuesta inesperada creando intent de Mercado Pago');
+    }
+
+    final map = Map<String, dynamic>.from(res.data as Map);
+    return PaymentProviderIntentDto.fromJson(map);
   }
 }

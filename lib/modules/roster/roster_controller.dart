@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:get_storage/get_storage.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:stopandgo/core/models/players.dart';
@@ -12,7 +11,15 @@ class RosterController extends GetxController {
 
   final isLoading = false.obs;
   final error = RxnString();
+
+  /// Lista original desde API
   final players = <Player>[].obs;
+
+  /// Texto del buscador
+  final searchText = ''.obs;
+
+  /// Lista filtrada para UI
+  final filteredPlayers = <Player>[].obs;
 
   late final int categoryId;
   late final String categoryName;
@@ -22,6 +29,11 @@ class RosterController extends GetxController {
     super.onInit();
     categoryId = AppStorage.getSelectedCategoryId() ?? 0;
     categoryName = AppStorage.getSelectedCategoryName() ?? "";
+
+    // Recalcular filtro cuando cambie lista o texto
+    ever<List<Player>>(players, (_) => _applyFilter());
+    ever<String>(searchText, (_) => _applyFilter());
+
     _loadPlayers();
   }
 
@@ -31,7 +43,33 @@ class RosterController extends GetxController {
 
     try {
       final result = await _api.getGamePlayers(categoryId: categoryId);
+
+      // ✅ Orden por jersey (asc). Si no hay número, al final. Tie-breaker por nombre.
+      result.sort((a, b) {
+        final an = (a.number is int)
+            ? (a.number as int)
+            : int.tryParse('${a.number}') ?? 0;
+        final bn = (b.number is int)
+            ? (b.number as int)
+            : int.tryParse('${b.number}') ?? 0;
+
+        final aHas = an > 0;
+        final bHas = bn > 0;
+
+        if (aHas && bHas) {
+          final c = an.compareTo(bn);
+          if (c != 0) return c;
+          return a.name.toLowerCase().compareTo(b.name.toLowerCase());
+        }
+
+        if (aHas && !bHas) return -1;
+        if (!aHas && bHas) return 1;
+
+        return a.name.toLowerCase().compareTo(b.name.toLowerCase());
+      });
+
       players.assignAll(result);
+      // filteredPlayers se actualiza por el ever()
     } catch (e) {
       error.value = 'No se pudieron cargar los jugadores.';
       Get.snackbar(
@@ -45,6 +83,27 @@ class RosterController extends GetxController {
   }
 
   Future<void> refreshPlayers() => _loadPlayers();
+
+  void setSearch(String value) => searchText.value = value;
+
+  void clearSearch() => searchText.value = '';
+
+  void _applyFilter() {
+    final q = searchText.value.trim().toLowerCase();
+
+    if (q.isEmpty) {
+      filteredPlayers.assignAll(players);
+      return;
+    }
+
+    filteredPlayers.assignAll(
+      players.where((p) {
+        final name = p.name.toLowerCase();
+        final numStr = '${p.number}'.toLowerCase();
+        return name.contains(q) || numStr.contains(q);
+      }).toList(),
+    );
+  }
 
   Future<void> updatePlayerPhoto(Player player) async {
     try {
@@ -96,21 +155,14 @@ class RosterController extends GetxController {
 
   Future<bool> _ensureCameraPermission() async {
     var status = await Permission.camera.status;
-    print('Camera status BEFORE request: $status');
 
     if (status.isGranted) return true;
 
-    // Pedir permiso
     status = await Permission.camera.request();
-    print('Camera status AFTER request: $status');
 
-    if (status.isGranted) {
-      return true;
-    }
+    if (status.isGranted) return true;
 
     if (status.isPermanentlyDenied) {
-      // En este punto iOS ya debió haber mostrado el popup alguna vez
-      // y el usuario lo bloqueó desde settings
       await Get.dialog(
         AlertDialog(
           title: const Text('Permiso de cámara bloqueado'),
