@@ -24,14 +24,17 @@ class PlayerToken {
 class PlayRoute {
   final String id;
   final String playerId;
+
+  /// Puntos en coordenadas del campo cuando se dibujó
   final List<Offset> points;
+
+  /// Posición del token al momento de guardar/crear la ruta (ancla)
+  final Offset originTokenPos;
 
   const PlayRoute({
     required this.id,
     required this.playerId,
     required this.points,
+    required this.originTokenPos,
   });
-
-  PlayRoute copyWith({List<Offset>? points}) =>
-      PlayRoute(id: id, playerId: playerId, points: points ?? this.points);
 }

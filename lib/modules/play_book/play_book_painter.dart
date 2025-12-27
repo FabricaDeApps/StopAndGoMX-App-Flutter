@@ -7,9 +7,13 @@ class PlayBookPainter extends CustomPainter {
   final List<PlayerToken> players;
   final String? selectedPlayerId;
 
-  // ✅ nuevos
   final bool isDragging;
   final String? draggingPlayerId;
+
+  // NUEVO
+  final bool isDrawMode;
+  final Map<String, List<PlayRoute>> routesByPlayer;
+  final List<Offset> activeRoutePoints; // puntos absolutos (preview)
 
   PlayBookPainter({
     required this.fieldSize,
@@ -17,6 +21,9 @@ class PlayBookPainter extends CustomPainter {
     required this.selectedPlayerId,
     required this.isDragging,
     required this.draggingPlayerId,
+    required this.isDrawMode,
+    required this.routesByPlayer,
+    required this.activeRoutePoints,
   });
 
   @override
@@ -38,11 +45,60 @@ class PlayBookPainter extends CustomPainter {
       canvas.drawLine(Offset(x, 0), Offset(x, fieldSize.height), line);
     }
 
-    // Jugadores
+    // ----- RUTAS GUARDADAS -----
+    final routePaint = Paint()
+      ..color = Colors.amberAccent.withOpacity(0.9)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 4
+      ..strokeCap = StrokeCap.round
+      ..strokeJoin = StrokeJoin.round;
+
+    Offset? _playerPos(String playerId) {
+      final p = players.where((e) => e.id == playerId).toList();
+      if (p.isEmpty) return null;
+      return p.first.pos;
+    }
+
+    routesByPlayer.forEach((playerId, list) {
+      final currentPos = _playerPos(playerId);
+      if (currentPos == null) return;
+
+      for (final r in list) {
+        if (r.points.length < 2) continue;
+
+        // r.points son RELATIVOS al originTokenPos
+        // Para que “se mueva con el token”, dibujamos alrededor de currentPos:
+        final worldPoints = r.points.map((rel) => currentPos + rel).toList();
+
+        final path = Path()..moveTo(worldPoints.first.dx, worldPoints.first.dy);
+        for (final p in worldPoints.skip(1)) {
+          path.lineTo(p.dx, p.dy);
+        }
+        canvas.drawPath(path, routePaint);
+      }
+    });
+
+    // ----- RUTA ACTIVA (PREVIEW EN VIVO) -----
+    if (isDrawMode && activeRoutePoints.length >= 2) {
+      final activePaint = Paint()
+        ..color = Colors.cyanAccent.withOpacity(0.95)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 4
+        ..strokeCap = StrokeCap.round
+        ..strokeJoin = StrokeJoin.round;
+
+      final path = Path()
+        ..moveTo(activeRoutePoints.first.dx, activeRoutePoints.first.dy);
+      for (final p in activeRoutePoints.skip(1)) {
+        path.lineTo(p.dx, p.dy);
+      }
+      canvas.drawPath(path, activePaint);
+    }
+
+    // ----- JUGADORES -----
     for (final p in players) {
       final isSelected = p.id == selectedPlayerId;
 
-      // ✅ Si este jugador se está arrastrando, crece
       final bool isThisDragging = isDragging && (p.id == draggingPlayerId);
       final double r = isThisDragging ? 32.0 : 18.0;
 
@@ -78,6 +134,9 @@ class PlayBookPainter extends CustomPainter {
     return old.players != players ||
         old.selectedPlayerId != selectedPlayerId ||
         old.isDragging != isDragging ||
-        old.draggingPlayerId != draggingPlayerId;
+        old.draggingPlayerId != draggingPlayerId ||
+        old.isDrawMode != isDrawMode ||
+        old.routesByPlayer != routesByPlayer ||
+        old.activeRoutePoints != activeRoutePoints;
   }
 }
