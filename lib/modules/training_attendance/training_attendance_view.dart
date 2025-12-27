@@ -13,7 +13,9 @@ class TrainingAttendanceView extends GetView<TrainingAttendanceController> {
       appBar: AppBar(
         title: Text(
           controller.isEditMode
-              ? 'Editar asistencia'
+              ? controller.isReadOnly
+                    ? 'Ver asistencias'
+                    : 'Editar asistencia'
               : 'Asistencia a Entrenamiento',
         ),
         centerTitle: true,
@@ -136,6 +138,8 @@ class TrainingAttendanceView extends GetView<TrainingAttendanceController> {
                             padding: const EdgeInsets.only(top: 10),
                             child: TextField(
                               controller: row.notesController,
+                              readOnly: controller.isReadOnly,
+                              enabled: !controller.isReadOnly,
                               decoration: const InputDecoration(
                                 labelText: 'Notas (opcional)',
                                 border: OutlineInputBorder(),
@@ -190,6 +194,8 @@ class TrainingAttendanceView extends GetView<TrainingAttendanceController> {
 
     return Obx(() {
       final isUpdating = row.isUpdating.value;
+      final c = Get.find<TrainingAttendanceController>();
+      final readOnly = c.isReadOnly;
 
       return ChoiceChip(
         selected: isSelected,
@@ -199,7 +205,7 @@ class TrainingAttendanceView extends GetView<TrainingAttendanceController> {
           color: isSelected ? color : Colors.black,
           fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
         ),
-        onSelected: isUpdating
+        onSelected: (isUpdating || readOnly)
             ? null
             : (_) async {
                 row.status.value = value;

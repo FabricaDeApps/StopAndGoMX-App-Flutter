@@ -107,12 +107,23 @@ class HomeController extends GetxController with GetTickerProviderStateMixin {
 
       currentTab.value = idx;
 
-      if (idx == 1) {
-        await loadTabGameContent();
-      } else if (idx == 2) {
-        await loadPaymentsTab();
-      } else if (idx == 3) {
-        await loadNoticesTab();
+      final tabKey = tabs[idx];
+
+      switch (tabKey) {
+        case 'games':
+          await loadTabGameContent();
+          break;
+
+        case 'payments':
+          await loadPaymentsTab();
+          break;
+
+        case 'notices':
+          await loadNoticesTab();
+          break;
+
+        default:
+          break;
       }
     });
 
@@ -125,6 +136,9 @@ class HomeController extends GetxController with GetTickerProviderStateMixin {
         break;
       case 'player':
         await _bootstrapPlayer();
+        break;
+      case 'coach':
+        await _bootstrapCoach();
         break;
       default:
         await _loadDashboardForPlayerOrParent();
@@ -293,6 +307,75 @@ class HomeController extends GetxController with GetTickerProviderStateMixin {
     } finally {
       isLoadingCats.value = false;
     }
+  }
+
+  Future<void> _bootstrapCoach() async {
+    await _loadCoachCategories();
+
+    if (categories.isEmpty) {
+      Get.offAllNamed(Routes.noCategory);
+      return;
+    }
+
+    if (selectedCategoryId.value == null) {
+      selectedCategoryId.value = categories.first.id;
+      await AppStorage.setSelectedCategoryId(categories.first.id);
+      await AppStorage.setSelectedCategoryName(categories.first.name);
+    }
+
+    await _loadDashboardForCoach();
+  }
+
+  Future<void> _loadCoachCategories() async {
+    try {
+      isLoadingCats.value = true;
+      final cats = await api.getCoachCategories();
+      categories.assignAll(cats);
+    } catch (e) {
+      Get.snackbar(
+        'Categorías',
+        'No se pudieron cargar: $e',
+        snackPosition: SnackPosition.BOTTOM,
+      );
+    } finally {
+      isLoadingCats.value = false;
+    }
+  }
+
+  Future<void> _loadDashboardForCoach() async {
+    try {
+      isLoadingDash.value = true;
+
+      final categoryId =
+          selectedCategoryId.value ?? AppStorage.getSelectedCategoryId();
+      if (categoryId == null) return;
+
+      final dash = await api.getCoachDashboard();
+      _mapCoachDashboard(dash);
+    } catch (e) {
+      Get.snackbar(
+        'Dashboard',
+        'No se pudo cargar: $e',
+        snackPosition: SnackPosition.BOTTOM,
+      );
+    } finally {
+      isLoadingDash.value = false;
+    }
+  }
+
+  void _mapCoachDashboard(ParentDashboardResponse dash) {
+    saldoPendiente.value = 0.0;
+    pagosRealizados.value = 0.0;
+
+    final all = <Game>[];
+    for (final child in dash.children) {
+      all.addAll(child.upcomingGames);
+    }
+
+    final sorted = _sortedByStart(all);
+    upcomingGames.assignAll(sorted.take(3).toList());
+
+    _setSingleNotice(dash.lastNotice);
   }
 
   /// Usa dashboards nuevos para PARENT y PLAYER
@@ -477,6 +560,21 @@ class HomeController extends GetxController with GetTickerProviderStateMixin {
 
         final dtos = await api.playerMyGamesFromParent(playerId: playerId);
         upcomingGames.assignAll(_sortedByStart(dtos));
+      } else if (userRole.value == 'coach') {
+        final categoryId =
+            selectedCategoryId.value ?? AppStorage.getSelectedCategoryId();
+        if (categoryId == null) return;
+
+        final now = DateTime.now();
+        final from = DateTime(now.year, now.month, 1);
+        final to = DateTime(now.year, now.month + 1, 0);
+
+        final dtos = await api.getCoachCategoryGames(
+          categoryId: categoryId,
+          from: _ymd(from),
+          to: _ymd(to),
+        );
+        upcomingGames.assignAll(_sortedByStart(dtos));
       } else {
         final dtos = await api.playerMyGames();
         upcomingGames.assignAll(_sortedByStart(dtos));
@@ -552,7 +650,7 @@ class HomeController extends GetxController with GetTickerProviderStateMixin {
     try {
       notices.clear();
 
-      if (userRole.value == 'manager') {
+      if (userRole.value == 'manager' || userRole.value == 'coach') {
         final list = await api.managerNotices();
         final mapped = list.map((m) {
           return NoticeItem(

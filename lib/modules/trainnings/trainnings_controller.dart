@@ -19,9 +19,13 @@ class TrainingsController extends GetxController {
 
   late final int categoryId;
 
+  final userRole = 'player'.obs;
+
   @override
   void onInit() {
     super.onInit();
+    _loadSession();
+
     categoryId = AppStorage.getSelectedCategoryId() ?? 0;
 
     // default: últimos 30 días (opcional)
@@ -34,6 +38,11 @@ class TrainingsController extends GetxController {
     toDate.value = DateTime(now.year, now.month, now.day);
 
     loadTrainings();
+  }
+
+  void _loadSession() {
+    final user = AppStorage.getUser();
+    userRole.value = user?.role ?? 'player';
   }
 
   Future<void> loadTrainings() async {

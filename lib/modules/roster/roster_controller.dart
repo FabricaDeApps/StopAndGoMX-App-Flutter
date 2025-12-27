@@ -24,9 +24,13 @@ class RosterController extends GetxController {
   late final int categoryId;
   late final String categoryName;
 
+  final userRole = 'player'.obs;
+
   @override
   void onInit() {
     super.onInit();
+    _loadSession();
+
     categoryId = AppStorage.getSelectedCategoryId() ?? 0;
     categoryName = AppStorage.getSelectedCategoryName() ?? "";
 
@@ -35,6 +39,11 @@ class RosterController extends GetxController {
     ever<String>(searchText, (_) => _applyFilter());
 
     _loadPlayers();
+  }
+
+  void _loadSession() {
+    final user = AppStorage.getUser();
+    userRole.value = user?.role ?? 'player';
   }
 
   Future<void> _loadPlayers() async {

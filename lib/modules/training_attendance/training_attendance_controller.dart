@@ -46,9 +46,15 @@ class TrainingAttendanceController extends GetxController {
   /// Texto de búsqueda
   final searchQuery = ''.obs;
 
+  final userRole = 'player'.obs;
+
+  bool get isReadOnly => userRole.value == 'coach';
+  bool get canEdit => !isReadOnly;
+
   @override
   void onInit() {
     super.onInit();
+    _loadSession();
 
     categoryId = AppStorage.getSelectedCategoryId() ?? 0;
     trainingId = Get.arguments['trainingId'];
@@ -59,6 +65,11 @@ class TrainingAttendanceController extends GetxController {
     } else {
       loadForNew();
     }
+  }
+
+  void _loadSession() {
+    final user = AppStorage.getUser();
+    userRole.value = user?.role ?? 'player';
   }
 
   /// 🆕 Modo NUEVO

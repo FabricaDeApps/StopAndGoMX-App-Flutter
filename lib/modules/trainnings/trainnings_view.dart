@@ -145,11 +145,13 @@ class TrainingsView extends GetView<TrainingsController> {
     return Scaffold(
       appBar: AppBar(title: const Text('Entrenamientos'), centerTitle: true),
 
-      floatingActionButton: FloatingActionButton.extended(
-        icon: const Icon(Icons.add),
-        label: const Text('Nuevo entrenamiento'),
-        onPressed: controller.goToCreateTraining,
-      ),
+      floatingActionButton: controller.userRole.value == "manager"
+          ? FloatingActionButton.extended(
+              icon: const Icon(Icons.add),
+              label: const Text('Nuevo entrenamiento'),
+              onPressed: controller.goToCreateTraining,
+            )
+          : null,
 
       body: Obx(() {
         if (controller.isLoading.value) {
@@ -384,7 +386,7 @@ class TrainingsView extends GetView<TrainingsController> {
                                           label: Text(
                                             isScheduled
                                                 ? 'Pasar lista'
-                                                : 'Ver / editar lista',
+                                                : 'Ver lista',
                                           ),
                                         ),
                                       ),

@@ -95,11 +95,13 @@ class RosterView extends GetView<RosterController> {
                                 subtitle: Text(
                                   "#${player.number.toString()} - ${player.position} ",
                                 ),
-                                trailing: IconButton(
-                                  icon: const Icon(Icons.camera_alt),
-                                  onPressed: () =>
-                                      controller.updatePlayerPhoto(player),
-                                ),
+                                trailing: controller.userRole.value == "manager"
+                                    ? IconButton(
+                                        icon: const Icon(Icons.camera_alt),
+                                        onPressed: () => controller
+                                            .updatePlayerPhoto(player),
+                                      )
+                                    : SizedBox(),
                               ),
                             );
                           },

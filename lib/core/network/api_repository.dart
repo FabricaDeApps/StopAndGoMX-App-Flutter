@@ -231,6 +231,33 @@ class ApiRepository {
     return data.map((e) => Category.fromJson(e)).toList();
   }
 
+  Future<List<Category>> getCoachCategories() async {
+    final res = await _dio.get(
+      '/coach/categories',
+      options: Options(headers: _headers()),
+    );
+
+    final body = res.data as Map<String, dynamic>;
+    final list = (body['data'] as List).cast<Map<String, dynamic>>();
+
+    return list.map((e) => Category.fromJson(e)).toList();
+  }
+
+  Future<List<Game>> getCoachCategoryGames({
+    required int categoryId,
+    required String from,
+    required String to,
+  }) async {
+    final res = await _dio.get(
+      '/coach/categories/$categoryId/games',
+      queryParameters: {'from': from, 'to': to},
+      options: Options(headers: _headers()),
+    );
+
+    final data = res.data['data'];
+    return gameDtoListFromData(data);
+  }
+
   // player: /player/my-payments?player_id=X  (usa res.data['data'])
   Future<List<PaymentDto>> playerMyPayments({required int playerId}) async {
     final res = await _dio.get(
@@ -1015,6 +1042,21 @@ class ApiRepository {
   Future<ParentDashboardResponse> getParentDashboard() async {
     final res = await _dio.get(
       '/dashboards/parent',
+      options: Options(headers: _headers()),
+    );
+
+    if (res.data is! Map) {
+      throw Exception('Respuesta inesperada en dashboard parent');
+    }
+
+    final map = Map<String, dynamic>.from(res.data as Map);
+    return ParentDashboardResponse.fromJson(map);
+  }
+
+  /// GET /dashboards/coach
+  Future<ParentDashboardResponse> getCoachDashboard() async {
+    final res = await _dio.get(
+      '/dashboards/coach',
       options: Options(headers: _headers()),
     );
 

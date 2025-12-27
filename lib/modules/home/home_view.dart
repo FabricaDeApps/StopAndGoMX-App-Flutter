@@ -23,6 +23,7 @@ class HomeView extends GetView<HomeController> {
       final isManager = role == 'manager';
       final isParent = role == 'parent';
       final isPlayer = role == 'player';
+      final isCoach = role == 'coach';
 
       return DefaultTabController(
         length: 3,
@@ -70,6 +71,19 @@ class HomeView extends GetView<HomeController> {
                       onChanged: controller.onChangePlayerCategory,
                     ),
                   ),
+                ] else if (isCoach) ...[
+                  const Text(
+                    'Categoría: ',
+                    style: TextStyle(fontWeight: FontWeight.w600),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: _PlayerCategoryDropdown(
+                      items: controller.categories,
+                      value: controller.selectedCategoryId.value,
+                      onChanged: controller.onChangeCategory,
+                    ),
+                  ),
                 ] else ...[
                   Expanded(
                     child: Text(
@@ -93,16 +107,29 @@ class HomeView extends GetView<HomeController> {
             children: [
               // ====== DASHBOARD ======
               Obx(() {
-                if (controller.currentTab.value == 0) {
-                  return Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
-                    child: role == 'manager'
-                        ? _ManagerDashboard(controller: controller)
-                        : _PlayerDashboard(controller: controller),
-                  );
-                } else {
-                  return const SizedBox.shrink(); // no mostrar nada en otros tabs
+                if (controller.currentTab.value != 0) {
+                  return const SizedBox.shrink();
                 }
+
+                return Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+                  child: () {
+                    switch (role) {
+                      case 'manager':
+                        return _ManagerDashboard(controller: controller);
+
+                      case 'coach':
+                        return _CoachDashboard(controller: controller);
+
+                      case 'parent':
+                      case 'player':
+                        return _PlayerDashboard(controller: controller);
+
+                      default:
+                        return const SizedBox.shrink();
+                    }
+                  }(),
+                );
               }),
 
               // ====== CONTENIDO DE TABS ======
@@ -180,6 +207,7 @@ class HomeView extends GetView<HomeController> {
           final isManager = role == 'manager';
           final isParent = role == 'parent';
           final isPlayer = role == 'player';
+          final isCoach = role == 'coach';
 
           return Column(
             children: [
@@ -219,20 +247,23 @@ class HomeView extends GetView<HomeController> {
                     Get.toNamed(Routes.assignPlayer);
                   },
                 ),
-                ListTile(
-                  leading: const Icon(Icons.list_alt_outlined),
-                  title: const Text('Entrenamientos'),
-                  onTap: () {
-                    Get.back();
-                    Get.toNamed(Routes.trainnings);
-                  },
-                ),
+              ],
+
+              if (isManager || isCoach) ...[
                 ListTile(
                   leading: const Icon(Icons.supervised_user_circle),
                   title: const Text('Roster'),
                   onTap: () {
                     Get.back();
                     Get.toNamed(Routes.roster);
+                  },
+                ),
+                ListTile(
+                  leading: const Icon(Icons.list_alt_outlined),
+                  title: const Text('Entrenamientos'),
+                  onTap: () {
+                    Get.back();
+                    Get.toNamed(Routes.trainnings);
                   },
                 ),
               ],
@@ -339,6 +370,37 @@ class _ManagerDashboard extends StatelessWidget {
   }
 }
 
+class _CoachDashboard extends StatelessWidget {
+  const _CoachDashboard({required this.controller});
+  final HomeController controller;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Container(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            theme.colorScheme.primary.withOpacity(.10),
+            theme.colorScheme.secondary.withOpacity(.10),
+          ],
+        ),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: theme.colorScheme.outlineVariant.withOpacity(.4),
+        ),
+      ),
+      padding: const EdgeInsets.all(14),
+      child: Column(
+        children: [
+          // Aquí podríamos poner métricas de categorías en un futuro
+          _GamesAndNotices(controller: controller),
+        ],
+      ),
+    );
+  }
+}
+
 class _PlayerDashboard extends StatelessWidget {
   const _PlayerDashboard({required this.controller});
   final HomeController controller;
@@ -373,7 +435,7 @@ class _PlayerDashboard extends StatelessWidget {
                 Expanded(
                   child: MetricCard(
                     icon: Icons.account_balance_wallet_outlined,
-                    label: "ddsadsa",
+                    label: "Pagos pendientes:",
                     value:
                         '\$${controller.saldoPendiente.value.toStringAsFixed(2)}',
                     onTap: controller.onTapPay,
