@@ -21,4 +21,5 @@ abstract class Routes {
   static const noCategory = '/noCategory';
   static const roster = '/roster';
   static const documents = '/documents';
+  static const playbook = '/playbook';
 }

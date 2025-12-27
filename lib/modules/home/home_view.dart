@@ -268,6 +268,15 @@ class HomeView extends GetView<HomeController> {
                 ),
               ],
 
+              ListTile(
+                leading: const Icon(Icons.list_alt_outlined),
+                title: const Text('Playbook'),
+                onTap: () {
+                  Get.back();
+                  Get.toNamed(Routes.playbook);
+                },
+              ),
+
               if (isParent) ...[
                 ListTile(
                   leading: const Icon(Icons.person_outline),
