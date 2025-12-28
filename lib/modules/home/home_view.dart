@@ -268,7 +268,7 @@ class HomeView extends GetView<HomeController> {
                 ),
               ],
 
-              if (isCoach) ...[
+              if (isCoach || isPlayer) ...[
                 ListTile(
                   leading: const Icon(Icons.route),
                   title: const Text('Playbook'),
