@@ -15,8 +15,10 @@ import 'package:stopandgo/core/models/responses/login_response.dart';
 import 'package:stopandgo/core/models/responses/organization_response.dart';
 import 'package:stopandgo/core/models/training.dart';
 import 'package:stopandgo/core/models/trainning_attendance.dart';
+import 'package:stopandgo/core/network/paginated_response.dart';
 import 'package:stopandgo/core/storage/app_storage.dart';
 import 'package:stopandgo/core/utils/device_info.dart';
+import 'package:stopandgo/modules/play_book/play_book_model.dart';
 import 'api_client.dart';
 import 'token_storage.dart';
 import 'package:get/get.dart' hide FormData, MultipartFile;
@@ -1101,5 +1103,60 @@ class ApiRepository {
 
     final map = Map<String, dynamic>.from(res.data as Map);
     return PaymentProviderIntentDto.fromJson(map);
+  }
+
+  Future<PaginatedResponse<PlaybookPlay>> getPlaybookPlays({
+    required int categoryId,
+    int page = 1,
+    String? type, // Pase / Corrida / Defensa
+  }) async {
+    final res = await _dio.get(
+      '/playbook/plays',
+      queryParameters: {
+        'page': page,
+        'category_id': categoryId,
+        if (type != null && type.trim().isNotEmpty) 'type': type.trim(),
+      },
+      options: Options(headers: _headers()),
+    );
+
+    if (res.data is! Map) {
+      throw Exception('Respuesta inesperada en playbook/plays');
+    }
+
+    final map = Map<String, dynamic>.from(res.data as Map);
+    return PaginatedResponse<PlaybookPlay>.fromJson(
+      map,
+      (j) => PlaybookPlay.fromJson(j),
+    );
+  }
+
+  Future<Map<String, dynamic>> playbookCreatePlay({
+    required Map<String, dynamic> payload,
+  }) async {
+    final res = await _dio.post(
+      '/playbook/plays',
+      data: payload,
+      options: Options(headers: _headers()),
+    );
+
+    if (res.data is! Map) {
+      throw Exception('Respuesta inesperada al guardar jugada');
+    }
+    return Map<String, dynamic>.from(res.data as Map);
+  }
+
+  Future<PlaybookPlay> getPlaybookPlay({required String playId}) async {
+    final res = await _dio.get(
+      '/playbook/plays/$playId',
+      options: Options(headers: _headers()),
+    );
+
+    if (res.data is! Map) {
+      throw Exception('Respuesta inesperada en playbook/plays/{id}');
+    }
+
+    final map = Map<String, dynamic>.from(res.data as Map);
+    return PlaybookPlay.fromJson(map);
   }
 }

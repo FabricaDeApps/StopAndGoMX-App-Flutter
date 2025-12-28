@@ -9,25 +9,138 @@ class PlayBookView extends GetView<PlayBookController> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    Widget bottomBarForRoute() {
+      return Container(
+        padding: const EdgeInsets.fromLTRB(12, 10, 12, 14),
+        decoration: BoxDecoration(
+          color: theme.colorScheme.surface,
+          boxShadow: [
+            BoxShadow(
+              blurRadius: 12,
+              offset: const Offset(0, -2),
+              color: Colors.black.withOpacity(0.08),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            Expanded(
+              child: OutlinedButton.icon(
+                onPressed: controller.deleteRouteButton,
+                icon: const Icon(Icons.delete_outline),
+                label: const Text('Borrar ruta'),
+              ),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: OutlinedButton.icon(
+                onPressed: controller.stepBackActive,
+                icon: const Icon(Icons.undo),
+                label: const Text('Step back'),
+              ),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: FilledButton.icon(
+                onPressed: controller.saveActiveRoute,
+                icon: const Icon(Icons.save_outlined),
+                label: const Text('Guardar'),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    Widget bottomBarForPlay() {
+      return Container(
+        padding: const EdgeInsets.fromLTRB(12, 10, 12, 14),
+        decoration: BoxDecoration(
+          color: theme.colorScheme.surface,
+          boxShadow: [
+            BoxShadow(
+              blurRadius: 12,
+              offset: const Offset(0, -2),
+              color: Colors.black.withOpacity(0.08),
+            ),
+          ],
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Row(
+              children: [
+                // Alias
+                Expanded(
+                  child: TextField(
+                    controller: controller.playAliasCtrl,
+                    textInputAction: TextInputAction.done,
+                    decoration: const InputDecoration(
+                      labelText: 'Alias de la jugada',
+                      hintText: 'Ej: Trips Right - Slant',
+                      isDense: true,
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 10),
+
+                // Tipo
+                SizedBox(
+                  width: 150,
+                  child: DropdownButtonFormField<String>(
+                    value: controller.playType.value,
+                    decoration: const InputDecoration(
+                      labelText: 'Tipo de jugada',
+                      border: OutlineInputBorder(),
+                      isDense: true,
+                    ),
+                    items: controller.playTypes
+                        .map(
+                          (type) => DropdownMenuItem<String>(
+                            value: type,
+                            child: Text(type),
+                          ),
+                        )
+                        .toList(),
+                    onChanged: (value) {
+                      controller.playType.value = value;
+                    },
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 10),
+
+            // Guardar
+            SizedBox(
+              width: double.infinity,
+              child: Obx(() {
+                final saving = controller.isSavingPlay.value;
+                return FilledButton.icon(
+                  onPressed: saving ? null : controller.savePlayToBackend,
+                  icon: saving
+                      ? const SizedBox(
+                          width: 18,
+                          height: 18,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Icon(Icons.save_outlined),
+                  label: Text(saving ? 'Guardando...' : 'Guardar jugada'),
+                );
+              }),
+            ),
+          ],
+        ),
+      );
+    }
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text('PlayBook (Mover tokens)'),
+        title: const Text('PlayBook'),
         actions: [
-          Obx(() {
-            final draw = controller.isDrawMode.value;
-            return IconButton(
-              tooltip: draw ? 'Modo: Dibujar' : 'Modo: Mover',
-              onPressed: () {
-                controller.isDrawMode.toggle();
-                // al cambiar modo, limpia flags de drag para UX
-                controller.onPanEnd();
-                if (!controller.isDrawMode.value) {
-                  controller.clearActiveRoute();
-                }
-              },
-              icon: Icon(draw ? Icons.edit : Icons.open_with),
-            );
-          }),
           IconButton(
             tooltip: 'Reset formación',
             onPressed: controller.resetFormation,
@@ -37,9 +150,51 @@ class PlayBookView extends GetView<PlayBookController> {
       ),
       body: Column(
         children: [
-          // Label superior
+          const SizedBox(height: 10),
+
+          // ✅ SegmentedButton (3 modos)
+          Center(
+            child: Obx(() {
+              final current = controller.mode.value;
+
+              return SegmentedButton<PlayBookMode>(
+                showSelectedIcon: false,
+                style: ButtonStyle(
+                  visualDensity: VisualDensity.compact,
+                  padding: WidgetStateProperty.all(
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                  ),
+                ),
+                segments: const [
+                  ButtonSegment(
+                    value: PlayBookMode.play,
+                    label: Text('Jugada'),
+                    icon: Icon(Icons.edit),
+                  ),
+                  ButtonSegment(
+                    value: PlayBookMode.move,
+                    label: Text('Mover'),
+                    icon: Icon(Icons.open_with),
+                  ),
+                  ButtonSegment(
+                    value: PlayBookMode.route,
+                    label: Text('Ruta'),
+                    icon: Icon(Icons.alt_route),
+                  ),
+                ],
+                selected: {current},
+                onSelectionChanged: (set) {
+                  controller.setMode(set.first);
+                },
+              );
+            }),
+          ),
+
+          const SizedBox(height: 8),
+
+          // ✅ Label superior (jugador + estado)
           Padding(
-            padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
             child: Obx(() {
               final selectedId = controller.selectedPlayerId.value;
               final selected = selectedId == null
@@ -57,7 +212,11 @@ class PlayBookView extends GetView<PlayBookController> {
                   ? 'Jugador: $name • moviendo...'
                   : 'Jugador: $name';
 
-              final mode = controller.isDrawMode.value ? 'DIBUJAR' : 'MOVER';
+              final modeTxt = switch (controller.mode.value) {
+                PlayBookMode.move => 'Mover',
+                PlayBookMode.route => 'Ruta',
+                PlayBookMode.play => 'Jugada',
+              };
 
               return Row(
                 children: [
@@ -72,7 +231,7 @@ class PlayBookView extends GetView<PlayBookController> {
                     ),
                   ),
                   const SizedBox(width: 8),
-                  Text('Modo: $mode', style: const TextStyle(fontSize: 12)),
+                  Text('Modo: $modeTxt', style: const TextStyle(fontSize: 12)),
                 ],
               );
             }),
@@ -92,7 +251,11 @@ class PlayBookView extends GetView<PlayBookController> {
                       behavior: HitTestBehavior.opaque,
                       dragStartBehavior: DragStartBehavior.down,
 
-                      onPanDown: (d) => controller.onPanDown(d.localPosition),
+                      onPanDown: (d) {
+                        if (controller.mode.value == PlayBookMode.move) {
+                          controller.onPanDown(d.localPosition);
+                        }
+                      },
 
                       onTapDown: (d) {
                         final hit = controller.hitTestPlayer(d.localPosition);
@@ -100,40 +263,41 @@ class PlayBookView extends GetView<PlayBookController> {
                           controller.selectPlayer(hit);
                           return;
                         }
-                        // ✅ si no tocaste jugador y estás en draw: agregas punto a la ruta
-                        if (controller.isDrawMode.value) {
+
+                        if (controller.mode.value == PlayBookMode.route) {
                           controller.addRoutePointFromTap(d.localPosition);
                         }
                       },
 
-                      // Drag tokens (solo mover)
-                      onPanStart: (d) => controller.onPanStart(d.localPosition),
-                      onPanUpdate: (d) =>
-                          controller.onPanUpdate(d.localPosition),
+                      onPanStart: (d) {
+                        if (controller.mode.value == PlayBookMode.move) {
+                          controller.onPanStart(d.localPosition);
+                        }
+                      },
+                      onPanUpdate: (d) {
+                        if (controller.mode.value == PlayBookMode.move) {
+                          controller.onPanUpdate(d.localPosition);
+                        }
+                      },
                       onPanEnd: (_) => controller.onPanEnd(),
                       onPanCancel: controller.onPanEnd,
 
                       child: Obx(() {
                         final _ = controller.players.length;
-
-                        // 👇 IMPORTANTE: forzar escucha de cambios
                         final __ = controller.activeRoutePoints.length;
                         final ___ = controller.routesByPlayer.length;
 
                         final selected = controller.selectedPlayerId.value;
-                        final isDragging = controller.isDragging.value;
-                        final draggingId = controller.draggingPlayerId.value;
 
                         return CustomPaint(
                           painter: PlayBookPainter(
                             fieldSize: controller.fieldSize,
                             players: controller.players.toList(),
                             selectedPlayerId: selected,
-                            isDragging: isDragging,
-                            draggingPlayerId: draggingId,
-
-                            // 👇 NUEVO
-                            isDrawMode: controller.isDrawMode.value,
+                            isDragging: controller.isDragging.value,
+                            draggingPlayerId: controller.draggingPlayerId.value,
+                            isDrawMode:
+                                controller.mode.value == PlayBookMode.route,
                             routesByPlayer: controller.routesByPlayer,
                             activeRoutePoints: controller.activeRoutePoints
                                 .toList(),
@@ -147,50 +311,13 @@ class PlayBookView extends GetView<PlayBookController> {
             ),
           ),
 
-          // ✅ Barra inferior SOLO en modo DIBUJAR
+          // ✅ Barra inferior por modo
           Obx(() {
-            if (!controller.isDrawMode.value) return const SizedBox.shrink();
-
-            return Container(
-              padding: const EdgeInsets.fromLTRB(12, 10, 12, 14),
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.surface,
-                boxShadow: [
-                  BoxShadow(
-                    blurRadius: 12,
-                    offset: const Offset(0, -2),
-                    color: Colors.black.withOpacity(0.08),
-                  ),
-                ],
-              ),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: OutlinedButton.icon(
-                      onPressed: controller.deleteRouteButton,
-                      icon: const Icon(Icons.delete_outline),
-                      label: const Text('Borrar ruta'),
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: OutlinedButton.icon(
-                      onPressed: controller.stepBackActive,
-                      icon: const Icon(Icons.undo),
-                      label: const Text('Step back'),
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: FilledButton.icon(
-                      onPressed: controller.saveActiveRoute,
-                      icon: const Icon(Icons.save_outlined),
-                      label: const Text('Guardar'),
-                    ),
-                  ),
-                ],
-              ),
-            );
+            return switch (controller.mode.value) {
+              PlayBookMode.route => bottomBarForRoute(),
+              PlayBookMode.play => bottomBarForPlay(),
+              PlayBookMode.move => const SizedBox.shrink(),
+            };
           }),
         ],
       ),

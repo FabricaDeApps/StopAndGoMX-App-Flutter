@@ -16,7 +16,7 @@ For help getting started with Flutter development, view the
 samples, guidance on mobile development, and a full API reference.
 
 
-./scripts/make_module.sh home    
+./scripts/make_module.sh home_pattern
 
 
 
