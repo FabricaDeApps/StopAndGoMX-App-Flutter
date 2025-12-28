@@ -1159,4 +1159,38 @@ class ApiRepository {
     final map = Map<String, dynamic>.from(res.data as Map);
     return PlaybookPlay.fromJson(map);
   }
+
+  // UPDATE  PUT /playbook/plays/{playId}
+  Future<Map<String, dynamic>> playbookUpdatePlay({
+    required String playId,
+    required Map<String, dynamic> payload,
+  }) async {
+    final res = await _dio.put(
+      '/playbook/plays/$playId',
+      data: payload,
+      options: Options(headers: _headers()),
+    );
+
+    if (res.data is! Map) {
+      throw Exception('Respuesta inesperada al actualizar jugada');
+    }
+    return Map<String, dynamic>.from(res.data as Map);
+  }
+
+  // DELETE  DELETE /playbook/plays/{playId}
+  Future<bool> playbookDeletePlay({required String playId}) async {
+    final res = await _dio.delete(
+      '/playbook/plays/$playId',
+      options: Options(headers: _headers()),
+    );
+
+    // backend: { ok: true }
+    if (res.data is Map) {
+      final map = Map<String, dynamic>.from(res.data as Map);
+      return map['ok'] == true;
+    }
+
+    // por si algún día regresa vacío pero 200
+    return (res.statusCode ?? 0) >= 200 && (res.statusCode ?? 0) < 300;
+  }
 }

@@ -104,11 +104,12 @@ class PlayBookListController extends GetxController {
     Get.toNamed(Routes.playbook);
   }
 
-  void goToDetail(PlaybookPlay play) {
+  void goToDetail(PlaybookPlay play) async {
     if (userRole.value == "coach") {
-      Get.toNamed(Routes.playbookRead, arguments: {'playId': play.id});
+      await Get.toNamed(Routes.playbook, arguments: {'playId': play.id});
     } else {
-      Get.toNamed(Routes.playbookRead, arguments: {'playId': play.id});
+      await Get.toNamed(Routes.playbookRead, arguments: {'playId': play.id});
     }
+    load(reset: true);
   }
 }

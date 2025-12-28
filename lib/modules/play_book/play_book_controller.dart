@@ -16,9 +16,13 @@ class PlayBookController extends GetxController {
   final isLoading = false.obs;
   final error = RxnString();
 
-  // Si viene playId -> estamos viendo detalle
+  // Si viene playId -> estamos viendo/EDITANDO detalle
   final playId = RxnString();
-  bool get isEditingExisting => playId.value != null;
+  bool get isEditingExisting =>
+      (playId.value != null && playId.value!.isNotEmpty);
+
+  // Texto del botón principal
+  String get primaryCtaLabel => isEditingExisting ? 'Actualizar' : 'Guardar';
 
   // ---------------- PLAYERS ----------------
   final players = <PlayerToken>[].obs;
@@ -58,13 +62,13 @@ class PlayBookController extends GetxController {
   final playType = RxnString();
 
   final isSavingPlay = false.obs;
+  final isDeletingPlay = false.obs;
   final playError = RxnString();
 
   @override
   void onInit() {
     super.onInit();
 
-    // ✅ Lee argumentos (playId)
     final args = Get.arguments as Map<String, dynamic>?;
     final argPlayId = args?['playId']?.toString();
 
@@ -79,11 +83,9 @@ class PlayBookController extends GetxController {
   void onReady() {
     super.onReady();
 
-    // ✅ Si viene playId: cargar desde backend
-    if (playId.value != null) {
+    if (isEditingExisting) {
       loadPlayFromBackend(playId.value!);
     } else {
-      // ✅ Nuevo play (demo)
       _seedDemoFormation();
     }
   }
@@ -100,7 +102,6 @@ class PlayBookController extends GetxController {
     error.value = null;
 
     try {
-      // Implementa este método en ApiRepository (abajo te pongo cómo)
       final PlaybookPlay play = await _api.getPlaybookPlay(playId: id);
 
       // Limpia todo antes de setear
@@ -121,11 +122,7 @@ class PlayBookController extends GetxController {
       routesByPlayer.assignAll(play.routesByPlayer);
 
       // Selección por default: primero
-      if (players.isNotEmpty) {
-        selectedPlayerId.value = players.first.id;
-      } else {
-        selectedPlayerId.value = null;
-      }
+      selectedPlayerId.value = players.isNotEmpty ? players.first.id : null;
 
       // Modo inicial
       mode.value = PlayBookMode.play;
@@ -156,7 +153,6 @@ class PlayBookController extends GetxController {
   }
 
   void resetFormation() {
-    // En detalle normalmente NO reseteas demo; pero si quieres permitirlo, ok:
     players.clear();
     routesByPlayer.clear();
     activeRoutePoints.clear();
@@ -312,8 +308,8 @@ class PlayBookController extends GetxController {
 
   String _id() => DateTime.now().microsecondsSinceEpoch.toString();
 
-  // ---------------- SAVE PLAY TO BACKEND ----------------
-  Map<String, dynamic> _toCreatePayload() {
+  // ---------------- PAYLOAD (CREATE / UPDATE) ----------------
+  Map<String, dynamic> _toPayload() {
     final alias = playAliasCtrl.text.trim();
     final type = playType.value ?? playTypes.first;
 
@@ -354,6 +350,7 @@ class PlayBookController extends GetxController {
     };
   }
 
+  // ---------------- SAVE (CREATE OR UPDATE) ----------------
   Future<void> savePlayToBackend() async {
     playError.value = null;
 
@@ -369,18 +366,72 @@ class PlayBookController extends GetxController {
 
     isSavingPlay.value = true;
     try {
-      final payload = _toCreatePayload();
+      final payload = _toPayload();
 
-      // Si estás en detalle y quieres "update" en vez de create:
-      // if (playId.value != null) await _api.playbookUpdatePlay(playId: playId.value!, payload: payload);
-      // else await _api.playbookCreatePlay(payload: payload);
+      if (isEditingExisting) {
+        // ✅ UPDATE
+        final updated = await _api.playbookUpdatePlay(
+          playId: playId.value!,
+          payload: payload,
+        );
 
-      final created = await _api.playbookCreatePlay(payload: payload);
-      Get.back(result: created);
+        // Si quieres quedarte en pantalla y refrescar con backend:
+        // (si updated es el play completo)
+        // final play = PlaybookPlay.fromJson(updated);
+        // players.assignAll(play.players);
+        // routesByPlayer.assignAll(play.routesByPlayer);
+
+        Get.back(result: updated);
+      } else {
+        // ✅ CREATE
+        final created = await _api.playbookCreatePlay(payload: payload);
+        Get.back(result: created);
+      }
     } catch (e) {
       playError.value = e.toString();
     } finally {
       isSavingPlay.value = false;
+    }
+  }
+
+  // ---------------- DELETE (OPCIONAL) ----------------
+  Future<void> deletePlayFromBackend() async {
+    if (!isEditingExisting) return;
+
+    final ok = await Get.dialog<bool>(
+      AlertDialog(
+        title: const Text('Eliminar jugada'),
+        content: const Text(
+          '¿Seguro que quieres eliminar esta jugada? Esta acción no se puede deshacer.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Get.back(result: false),
+            child: const Text('Cancelar'),
+          ),
+          ElevatedButton(
+            onPressed: () => Get.back(result: true),
+            child: const Text('Eliminar'),
+          ),
+        ],
+      ),
+    );
+
+    if (ok != true) return;
+
+    isDeletingPlay.value = true;
+    playError.value = null;
+
+    try {
+      final deleted = await _api.playbookDeletePlay(playId: playId.value!);
+      if (!deleted) {
+        throw Exception('No se pudo eliminar (ok != true)');
+      }
+      Get.back(result: {'deleted': true, 'playId': playId.value});
+    } catch (e) {
+      playError.value = e.toString();
+    } finally {
+      isDeletingPlay.value = false;
     }
   }
 }

@@ -87,38 +87,75 @@ class PlayBookView extends GetView<PlayBookController> {
                 ),
                 const SizedBox(width: 10),
 
-                // Tipo
+                // Tipo (reactivo)
                 SizedBox(
                   width: 150,
-                  child: DropdownButtonFormField<String>(
-                    value: controller.playType.value,
-                    decoration: const InputDecoration(
-                      labelText: 'Tipo de jugada',
-                      border: OutlineInputBorder(),
-                      isDense: true,
-                    ),
-                    items: controller.playTypes
-                        .map(
-                          (type) => DropdownMenuItem<String>(
-                            value: type,
-                            child: Text(type),
-                          ),
-                        )
-                        .toList(),
-                    onChanged: (value) {
-                      controller.playType.value = value;
-                    },
-                  ),
+                  child: Obx(() {
+                    final value = controller.playType.value;
+                    return DropdownButtonFormField<String>(
+                      value: value ?? controller.playTypes.first,
+                      decoration: const InputDecoration(
+                        labelText: 'Tipo de jugada',
+                        border: OutlineInputBorder(),
+                        isDense: true,
+                      ),
+                      items: controller.playTypes
+                          .map(
+                            (type) => DropdownMenuItem<String>(
+                              value: type,
+                              child: Text(type),
+                            ),
+                          )
+                          .toList(),
+                      onChanged: (v) => controller.playType.value = v,
+                    );
+                  }),
                 ),
               ],
             ),
+
             const SizedBox(height: 10),
 
-            // Guardar
+            // Error (si existe)
+            Obx(() {
+              final msg = controller.playError.value;
+              if (msg == null || msg.isEmpty) return const SizedBox.shrink();
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.error_outline,
+                      size: 18,
+                      color: Colors.red.shade700,
+                    ),
+                    const SizedBox(width: 6),
+                    Expanded(
+                      child: Text(
+                        msg,
+                        style: TextStyle(
+                          color: Colors.red.shade700,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            }),
+
+            // Guardar / Actualizar
             SizedBox(
               width: double.infinity,
               child: Obx(() {
                 final saving = controller.isSavingPlay.value;
+                final editing = controller.isEditingExisting;
+
+                final label = saving
+                    ? (editing ? 'Actualizando...' : 'Guardando...')
+                    : (editing ? 'Actualizar jugada' : 'Guardar jugada');
+
                 return FilledButton.icon(
                   onPressed: saving ? null : controller.savePlayToBackend,
                   icon: saving
@@ -127,8 +164,12 @@ class PlayBookView extends GetView<PlayBookController> {
                           height: 18,
                           child: CircularProgressIndicator(strokeWidth: 2),
                         )
-                      : const Icon(Icons.save_outlined),
-                  label: Text(saving ? 'Guardando...' : 'Guardar jugada'),
+                      : Icon(
+                          editing
+                              ? Icons.system_update_alt
+                              : Icons.save_outlined,
+                        ),
+                  label: Text(label),
                 );
               }),
             ),
@@ -139,13 +180,46 @@ class PlayBookView extends GetView<PlayBookController> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('PlayBook'),
-        actions: [
-          IconButton(
-            tooltip: 'Reset formación',
-            onPressed: controller.resetFormation,
-            icon: const Icon(Icons.refresh),
+        title: Obx(
+          () => Text(
+            controller.isEditingExisting ? 'Editar PlayBook' : 'Nuevo PlayBook',
           ),
+        ),
+        actions: [
+          // Eliminar solo en edit mode
+          Obx(() {
+            if (!controller.isEditingExisting) return const SizedBox.shrink();
+            final deleting = controller.isDeletingPlay.value;
+            return IconButton(
+              tooltip: 'Eliminar jugada',
+              onPressed:
+                  (deleting ||
+                      controller.isSavingPlay.value ||
+                      controller.isLoading.value)
+                  ? null
+                  : controller.deletePlayFromBackend,
+              icon: deleting
+                  ? const SizedBox(
+                      width: 18,
+                      height: 18,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : const Icon(Icons.delete_outline),
+            );
+          }),
+
+          // Reset formación (evita reset mientras carga/guarda/borra)
+          Obx(() {
+            final disabled =
+                controller.isLoading.value ||
+                controller.isSavingPlay.value ||
+                controller.isDeletingPlay.value;
+            return IconButton(
+              tooltip: 'Reset formación',
+              onPressed: disabled ? null : controller.resetFormation,
+              icon: const Icon(Icons.refresh),
+            );
+          }),
         ],
       ),
       body: Column(
@@ -283,6 +357,7 @@ class PlayBookView extends GetView<PlayBookController> {
                       onPanCancel: controller.onPanEnd,
 
                       child: Obx(() {
+                        // forzar repaint cuando cambian colecciones
                         final _ = controller.players.length;
                         final __ = controller.activeRoutePoints.length;
                         final ___ = controller.routesByPlayer.length;
