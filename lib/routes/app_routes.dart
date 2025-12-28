@@ -16,6 +16,12 @@ import 'package:stopandgo/modules/my_profile/my_profile_view.dart';
 import 'package:stopandgo/modules/new_game/index.dart';
 import 'package:stopandgo/modules/no_category/index.dart';
 import 'package:stopandgo/modules/no_category/no_category_view.dart';
+import 'package:stopandgo/modules/play_book/index.dart';
+import 'package:stopandgo/modules/play_book/play_book_view.dart';
+import 'package:stopandgo/modules/play_book_list/index.dart';
+import 'package:stopandgo/modules/play_book_list/play_book_list_view.dart';
+import 'package:stopandgo/modules/play_book_read/index.dart';
+import 'package:stopandgo/modules/play_book_read/play_book_read_view.dart';
 import 'package:stopandgo/modules/player_documents/player_documents_binding.dart';
 import 'package:stopandgo/modules/player_documents/player_documents_view.dart';
 import 'package:stopandgo/modules/roster/roster_binding.dart';
@@ -123,6 +129,21 @@ class AppPages {
       name: Routes.documents,
       page: () => const PlayerDocumentsView(),
       binding: PlayerDocumentsBinding(),
+    ),
+    GetPage(
+      name: Routes.playbook,
+      page: () => const PlayBookView(),
+      binding: PlayBookBinding(),
+    ),
+    GetPage(
+      name: Routes.playbookList,
+      page: () => const PlayBookListView(),
+      binding: PlayBookListBinding(),
+    ),
+    GetPage(
+      name: Routes.playbookRead,
+      page: () => const PlayBookReadView(),
+      binding: PlayBookReadBinding(),
     ),
   ];
 }

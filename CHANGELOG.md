@@ -4,7 +4,10 @@ Todos los cambios importantes del proyecto **StopAndGoMX** se documentan en este
 El formato sigue las recomendaciones de **Keep a Changelog**  
 y el versionado está basado en **Semantic Versioning (SemVer)**.
 
-## [1.0.17] - 2025-12-16
+## [1.0.18] - 2025-12-28
+- Modulo Go-Playbook
+
+## [1.0.17] - 2025-12-27
 - Modulo Coach
 - Payment Card MercadoPago
 
