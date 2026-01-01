@@ -1,4 +1,3 @@
-// lib/core/network/api_client.dart
 import 'package:dio/dio.dart';
 import 'package:get/get.dart';
 import 'interceptors/auth_interceptor.dart';
@@ -10,7 +9,7 @@ class ApiClient {
   static late Dio dio;
 
   static Future<void> init() async {
-    // Registra TokenStorage una sola vez
+    // Inicializa storage de tokens UNA sola vez
     if (!Get.isRegistered<TokenStorage>()) {
       await Get.putAsync<TokenStorage>(() async => TokenStorage().init());
     }
@@ -23,17 +22,24 @@ class ApiClient {
         connectTimeout: const Duration(seconds: 15),
         receiveTimeout: const Duration(seconds: 20),
         sendTimeout: const Duration(seconds: 20),
-        headers: {'Accept': 'application/json'},
+        headers: const {'Accept': 'application/json'},
       ),
     );
 
+    // Orden IMPORTANTE:
     dio.interceptors.addAll([
       OrgInterceptor(),
       AuthInterceptor(),
-      PrettyDioLogger(requestHeader: true, requestBody: true, compact: true),
+      PrettyDioLogger(
+        requestHeader: true,
+        requestBody: true,
+        responseHeader: false,
+        responseBody: true,
+        compact: true,
+      ),
     ]);
 
-    // expón dio para Get.find<Dio>()
+    // Exponer Dio globalmente
     if (!Get.isRegistered<Dio>()) {
       Get.put<Dio>(dio, permanent: true);
     }

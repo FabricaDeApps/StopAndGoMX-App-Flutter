@@ -109,33 +109,6 @@ class ApiRepository {
     }
   }
 
-  /// Refresh con refresh_token persistido
-  Future<void> refreshAccessToken() async {
-    final rt = _tokenStorage.refreshToken;
-    if (rt == null || rt.isEmpty) throw Exception('No hay refresh_token');
-
-    final res = await _dio.post(
-      ApiEndpoints.authRefresh,
-      data: {'refresh_token': rt},
-      options: Options(headers: {'Accept': 'application/json'}),
-    );
-
-    // Respuesta tipo login (solo access token + ttl; algunos backends regresan todo)
-    final data = res.data as Map<String, dynamic>;
-
-    final newAccess = data['access_token'] as String;
-    final ttl = (data['access_expires_in_minutes'] as num).toInt();
-
-    // Si el backend también devuelve un nuevo refresh_token, puedes actualizarlo aquí.
-    // final newRefresh   = data['refresh_token'] as String? ?? _tokenStorage.refreshToken;
-    // final refreshExpAt = data['refresh_expires_at'] as String? ?? _tokenStorage.refreshExpAt?.toIso8601String();
-
-    await _tokenStorage.updateAccess(
-      accessToken: newAccess,
-      accessTtlMinutes: ttl,
-    );
-  }
-
   Future<void> logout() async {
     final rt = _tokenStorage.refreshToken;
     try {
