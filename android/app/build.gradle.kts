@@ -77,6 +77,13 @@ android {
             applicationId = "app.stopandgomx.wolverinesqro"
             resValue("string", "app_name", "Wolverines Querétaro")
         }
+
+        // Bears Qro
+        create("bearsqro") {
+            dimension = "default"
+            applicationId = "app.stopandgomx.bearsqro"
+            resValue("string", "app_name", "Bears Querétaro")
+        }
     }
 
     signingConfigs {

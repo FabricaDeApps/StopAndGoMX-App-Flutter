@@ -36,6 +36,15 @@
       "program": "lib/main_wolverinesqro.dart",
       "args": ["--flavor", "wolverinesqro"],
       "preLaunchTask": "prepare-wolverinesqro-assets"
+    },
+    {
+      "name": "Run BearsQro",
+      "request": "launch",
+      "type": "dart",
+      "flutterMode": "debug",
+      "program": "lib/main_bearsqro.dart",
+      "args": ["--flavor", "bearsqro"],
+      "preLaunchTask": "prepare-bearsqro-assets"
     }
   ]
 }

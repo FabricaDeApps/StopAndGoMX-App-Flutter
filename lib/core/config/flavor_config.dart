@@ -1,4 +1,4 @@
-enum AppFlavor { main, zorros, raidersqro, wolverinesqro }
+enum AppFlavor { main, zorros, raidersqro, wolverinesqro, bearsqro }
 
 class FlavorConfig {
   final AppFlavor flavor;
@@ -38,6 +38,7 @@ class FlavorConfig {
   bool get isMain => flavor == AppFlavor.main;
   bool get isRaiders => flavor == AppFlavor.raidersqro;
   bool get isWolverines => flavor == AppFlavor.wolverinesqro;
+  bool get isBears => flavor == AppFlavor.bearsqro;
 
   void updateOrganizationId(int newOrgId) {
     organizationId = newOrgId;
@@ -75,6 +76,12 @@ class FlavorConfig {
       "player": ["dashboard", "games", "payments", "notices"],
       "coach": ["dashboard", "games", "notices"],
       "manager": ["dashboard", "games", "notices"],
+    },
+    AppFlavor.bearsqro: {
+      "parent": ["dashboard", "games", "payments", "notices"],
+      "player": ["dashboard", "games", "payments", "notices"],
+      "coach": ["dashboard", "games", "notices"],
+      "manager": ["dashboard", "games", "payments", "notices"],
     },
   };
 

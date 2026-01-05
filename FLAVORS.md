@@ -2,8 +2,9 @@
 
 - crear assets en https://makeappicon.com/ 
 - agregar logo a branding
-- .vscode launcher agregar tarea y el comando de assets
+- .vscode launch.json y task.json agregar tarea y el comando de assets
 - crear el main de dart y configurar el flavor en flutter
+
 - en android 
   - carpeta de iconos en app/src/_flavor_
   - agregar en build.gradle
@@ -22,11 +23,12 @@
   - export PATH="$PATH:$HOME/.pub-cache/bin"
   - correr el comando FIREBASE CONFIGURE
   - mover el plist que crea google a la carpeta de los demas flavors
-  - ajustar lo de los pods y flavors
+  - ajustar lo de los pods en el podfile y flavors
+  - agregar en build phases
   - revisar build phases
   - revisar lo de plist en build settings
   - flutter build ios --config-only --debug --flavor <flavor> --target=lib/main_<flavor>.dart
-  - compilar
+  - compilar desde run launcher
   - crear tienda
 
 - LANES
@@ -105,7 +107,14 @@ flutterfire configure \
   --platforms=ios \
   --out=lib/firebase_options_wolverinesqro.dart
 
-Copiar el json a su carpeta en src
+flutterfire configure \
+  --project=stopandgomx-4ab82 \
+  --android-app-id=app.stopandgomx.bearsqro \
+  --ios-bundle-id=app.stopandgomx.bearsqro \
+  --platforms=android,ios \
+  --out=lib/firebase_options_bearsqro.dart
+
+Copiar el json de android a su carpeta en src
 
 # KEY ID IOS:
 CLT625F29B

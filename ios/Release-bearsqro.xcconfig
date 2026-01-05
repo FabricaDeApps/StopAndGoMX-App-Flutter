@@ -1,0 +1,9 @@
+#include "Flutter/Generated.xcconfig"
+#include "Pods/Target Support Files/Pods-Runner/Pods-Runner.release.xcconfig"
+#include "Flutter/Release.xcconfig"
+
+ASSETCATALOG_COMPILER_APPICON_NAME = AppIconBearsqro
+PRODUCT_BUNDLE_IDENTIFIER=app.stopandgomx.bearsqro
+APP_DISPLAY_NAME=Bears Qro
+APP_SUFFIX=
+PRODUCT_NAME=$(APP_DISPLAY_NAME)

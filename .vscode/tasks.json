@@ -24,6 +24,12 @@
       "type": "shell",
       "command": "./scripts/use_logo.sh wolverinesqro",
       "problemMatcher": []
+    },
+    {
+      "label": "prepare-bearsqro-assets",
+      "type": "shell",
+      "command": "./scripts/use_logo.sh bearsqro",
+      "problemMatcher": []
     }
   ]
 }
