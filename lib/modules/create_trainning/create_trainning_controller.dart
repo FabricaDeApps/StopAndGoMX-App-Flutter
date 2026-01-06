@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
+import 'package:stopandgo/core/models/games.dart';
 import 'package:stopandgo/core/network/api_repository.dart';
 import 'package:stopandgo/core/storage/app_storage.dart';
 
@@ -18,6 +19,11 @@ class CreateTrainningController extends GetxController {
   final addressController = TextEditingController();
   final cityController = TextEditingController();
   final notesController = TextEditingController();
+
+  final isLoadingVenues = false.obs;
+  final venues = <Venue>[].obs;
+  final venuesError = RxnString();
+  final selectedVenueId = RxnInt();
 
   final status = 'scheduled'.obs; // scheduled | completed | canceled
   DateTime? _startsAt;
@@ -39,6 +45,21 @@ class CreateTrainningController extends GetxController {
     // valor por defecto: ahora + 1h
     final now = DateTime.now().add(const Duration(hours: 1));
     _setStartsAt(now);
+    loadVenues();
+  }
+
+  Future<void> loadVenues() async {
+    isLoadingVenues.value = true;
+    venuesError.value = null;
+
+    try {
+      final list = await _api.getVenues();
+      venues.assignAll(list);
+    } catch (e) {
+      venuesError.value = 'Error al cargar sedes: $e';
+    } finally {
+      isLoadingVenues.value = false;
+    }
   }
 
   void _setStartsAt(DateTime dt) {
@@ -118,15 +139,7 @@ class CreateTrainningController extends GetxController {
     final body = <String, dynamic>{
       'starts_at': DateFormat('yyyy-MM-dd HH:mm:ss').format(_startsAt!),
       if (durationMinutes != null) 'duration_minutes': durationMinutes,
-      'venue': venueController.text.trim().isNotEmpty
-          ? venueController.text.trim()
-          : null,
-      'address': addressController.text.trim().isNotEmpty
-          ? addressController.text.trim()
-          : null,
-      'city': cityController.text.trim().isNotEmpty
-          ? cityController.text.trim()
-          : null,
+      'venue_id': selectedVenueId.value,
       'status': status.value,
       'notes': notesController.text.trim().isNotEmpty
           ? notesController.text.trim()

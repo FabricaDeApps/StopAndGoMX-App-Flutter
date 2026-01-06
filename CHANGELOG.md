@@ -4,6 +4,10 @@ Todos los cambios importantes del proyecto **StopAndGoMX** se documentan en este
 El formato sigue las recomendaciones de **Keep a Changelog**  
 y el versionado está basado en **Semantic Versioning (SemVer)**.
 
+## [1.0.20] - 2026-1-6
+- Fix Entrenamientos
+- Refrescar Pagos
+
 ## [1.0.18] - 2025-12-28
 - Modulo Go-Playbook
 

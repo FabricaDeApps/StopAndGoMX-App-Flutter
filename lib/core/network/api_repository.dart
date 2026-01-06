@@ -266,9 +266,13 @@ class ApiRepository {
       options: Options(headers: _headers()),
     );
     final data = (res.data['data'] as List?) ?? const [];
-    return data
+    final list = data
         .map((e) => PaymentDto.fromJson(Map<String, dynamic>.from(e as Map)))
         .toList();
+
+    list.sort((a, b) => b.id.compareTo(a.id));
+
+    return list;
   }
 
   // PLAYER/PARENT: /player/home  -> tomar last_notice (si existe)

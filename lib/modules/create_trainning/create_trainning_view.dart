@@ -93,48 +93,66 @@ class CreateTrainningView extends GetView<CreateTrainningController> {
 
                     const SizedBox(height: 16),
 
-                    // SEDE
-                    Text('Campo / sede', style: theme.textTheme.titleMedium),
+                    // SEDE (Dropdown)
+                    Text('Sede', style: theme.textTheme.titleMedium),
                     const SizedBox(height: 8),
-                    TextFormField(
-                      controller: controller.venueController,
-                      decoration: InputDecoration(
-                        hintText: 'Ej. Campo B',
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
+                    Obx(() {
+                      if (controller.isLoadingVenues.value) {
+                        return const Padding(
+                          padding: EdgeInsets.symmetric(vertical: 8),
+                          child: LinearProgressIndicator(),
+                        );
+                      }
+
+                      if (controller.venuesError.value != null) {
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              controller.venuesError.value!,
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                color: Colors.red,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            // fallback a texto manual
+                            TextFormField(
+                              controller: controller.venueController,
+                              decoration: InputDecoration(
+                                hintText: 'Ej. Campo B',
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                              ),
+                            ),
+                          ],
+                        );
+                      }
+
+                      return DropdownButtonFormField<int?>(
+                        value: controller.selectedVenueId.value,
+                        items: [
+                          const DropdownMenuItem<int?>(
+                            value: null,
+                            child: Text('Sin sede'),
+                          ),
+                          ...controller.venues.map(
+                            (v) => DropdownMenuItem<int?>(
+                              value: v.id,
+                              child: Text(v.name),
+                            ),
+                          ),
+                        ],
+                        onChanged: (val) =>
+                            controller.selectedVenueId.value = val,
+                        decoration: InputDecoration(
+                          hintText: 'Selecciona una sede',
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
                         ),
-                      ),
-                    ),
-
-                    const SizedBox(height: 16),
-
-                    // DIRECCIÓN
-                    Text('Dirección', style: theme.textTheme.titleMedium),
-                    const SizedBox(height: 8),
-                    TextFormField(
-                      controller: controller.addressController,
-                      decoration: InputDecoration(
-                        hintText: 'Ej. Av. Deportiva 123',
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                    ),
-
-                    const SizedBox(height: 16),
-
-                    // CIUDAD
-                    Text('Ciudad', style: theme.textTheme.titleMedium),
-                    const SizedBox(height: 8),
-                    TextFormField(
-                      controller: controller.cityController,
-                      decoration: InputDecoration(
-                        hintText: 'Ej. Querétaro',
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                    ),
+                      );
+                    }),
 
                     const SizedBox(height: 16),
 

@@ -208,11 +208,12 @@ class PaymentsTab extends StatelessWidget {
                           FilledButton.icon(
                             icon: const Icon(Icons.payments_outlined),
                             label: const Text('Pagar'),
-                            onPressed: () {
-                              Get.toNamed(
+                            onPressed: () async {
+                              await Get.toNamed(
                                 Routes.makePayment,
                                 arguments: {'paymentId': p.id},
                               );
+                              controller.loadPaymentsTab();
                             },
                           ),
 

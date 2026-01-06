@@ -28,13 +28,8 @@ class TrainingsController extends GetxController {
 
     categoryId = AppStorage.getSelectedCategoryId() ?? 0;
 
-    // default: últimos 30 días (opcional)
     final now = DateTime.now();
-    fromDate.value = DateTime(
-      now.year,
-      now.month,
-      now.day,
-    ).subtract(const Duration(days: 30));
+    fromDate.value = DateTime(now.year, now.month, 1);
     toDate.value = DateTime(now.year, now.month, now.day);
 
     loadTrainings();
