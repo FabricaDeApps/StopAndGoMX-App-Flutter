@@ -70,26 +70,45 @@ class RosterView extends GetView<RosterController> {
                             return Card(
                               margin: const EdgeInsets.symmetric(vertical: 6),
                               child: ListTile(
-                                leading: CircleAvatar(
-                                  backgroundImage:
-                                      (player.photoUrl != null &&
-                                          player.photoUrl!.isNotEmpty)
-                                      ? NetworkImage(player.photoUrl!)
-                                      : null,
-                                  child:
-                                      (player.photoUrl == null ||
-                                          player.photoUrl!.isEmpty)
-                                      ? Text(
-                                          (player.name)
-                                              .trim()
-                                              .split(' ')
-                                              .map(
-                                                (p) => p.isNotEmpty ? p[0] : '',
+                                leading: SizedBox(
+                                  width: 79, // ancho fijo para que no brinque
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        '${index + 1}',
+                                        style: const TextStyle(
+                                          fontWeight: FontWeight.w600,
+                                          fontSize: 14,
+                                          color: Colors.black54,
+                                        ),
+                                      ),
+                                      const SizedBox(width: 4),
+                                      CircleAvatar(
+                                        backgroundImage:
+                                            (player.photoUrl != null &&
+                                                player.photoUrl!.isNotEmpty)
+                                            ? NetworkImage(player.photoUrl!)
+                                            : null,
+                                        child:
+                                            (player.photoUrl == null ||
+                                                player.photoUrl!.isEmpty)
+                                            ? Text(
+                                                (player.name)
+                                                    .trim()
+                                                    .split(' ')
+                                                    .map(
+                                                      (p) => p.isNotEmpty
+                                                          ? p[0]
+                                                          : '',
+                                                    )
+                                                    .take(2)
+                                                    .join(),
                                               )
-                                              .take(2)
-                                              .join(),
-                                        )
-                                      : null,
+                                            : null,
+                                      ),
+                                    ],
+                                  ),
                                 ),
                                 title: Text(player.name),
                                 subtitle: Text(

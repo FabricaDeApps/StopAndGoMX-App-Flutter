@@ -3,6 +3,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:stopandgo/core/models/category.dart';
+import 'package:stopandgo/core/services/ecommerce_cart_service.dart';
 import 'package:stopandgo/core/storage/app_storage.dart';
 import 'package:stopandgo/core/widgets/cards.dart';
 import 'package:stopandgo/modules/home/widgets/games_tab.dart';
@@ -95,11 +96,16 @@ class HomeView extends GetView<HomeController> {
               ],
             ),
             actions: [
+              /*
               IconButton(
-                onPressed: () {},
-                icon: const Icon(Icons.notifications_outlined),
+                onPressed: () {
+                  final cartService = Get.find<EcommerceCartService>();
+                  cartService.refreshCart();
+                  Get.toNamed(Routes.ecommerceHome);
+                },
+                icon: const Icon(Icons.shopping_cart),
                 tooltip: 'Notificaciones',
-              ),
+              ),*/
             ],
           ),
 
@@ -308,6 +314,15 @@ class HomeView extends GetView<HomeController> {
                 leading: const Icon(Icons.settings_outlined),
                 title: const Text('Configuración'),
                 onTap: () {},
+              ),
+              
+              ListTile(
+                leading: const Icon(Icons.list),
+                title: const Text('Mis Pedidos'),
+                onTap: () {
+                  Get.back();
+                  Get.toNamed(Routes.ecommerceOrders);
+                },
               ),
               */
               const Spacer(),

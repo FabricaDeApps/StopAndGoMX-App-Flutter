@@ -158,4 +158,15 @@ platform :android do
       track: "production"
     )
   end
+
+  # BEARS CORREGIDORA - PRODUCTION
+  desc "Deploy Android BEARS CORREGIDORA a track PRODUCTION"
+  lane :deploy_bearsqro_production do
+    deploy(
+      flavor: "bearsqro",
+      target: "lib/main_bearsqro.dart",
+      package_name: "app.stopandgomx.bearsqro",
+      track: "production"
+    )
+  end
 end

@@ -39,7 +39,7 @@ class PlayBookListView extends GetView<PlayBookListController> {
                 children: [
                   chip('Todos', null),
                   chip('Pase', 'Pase'),
-                  chip('Corrida', 'Corrida'),
+                  chip('Carrera', 'Carrera'),
                   chip('Defensa', 'Defensa'),
                 ],
               );

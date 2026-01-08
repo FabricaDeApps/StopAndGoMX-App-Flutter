@@ -214,4 +214,16 @@ platform :ios do
     )
   end
 
+
+   desc "Deploy iOS Bears Corregidora"
+  lane :deploy_bearsqro do
+    deploy(
+      flavor: "bearsqro",
+      scheme: "bearsqro",
+      bundle_id: "app.stopandgomx.bearsqro",
+      ipa_name: "stopandgo-bearsqro.ipa",
+      groups: ["internal"]
+    )
+  end
+
 end

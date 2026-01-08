@@ -1,0 +1,190 @@
+import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'package:stopandgo/core/widgets/ecommerce_checkout_bar.dart';
+import 'ecommerce_product_detail_controller.dart';
+
+class EcommerceProductDetailView
+    extends GetView<EcommerceProductDetailController> {
+  const EcommerceProductDetailView({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Producto'),
+        actions: [
+          Obx(() {
+            final count = controller.cartService.cartCount.value;
+
+            return IconButton(
+              onPressed: controller.openCart,
+              icon: Badge(
+                label: Text('$count'),
+                isLabelVisible: true,
+                child: const Icon(Icons.shopping_cart_outlined),
+              ),
+            );
+          }),
+        ],
+      ),
+      bottomNavigationBar: EcommerceCheckoutBar(),
+      body: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Obx(() {
+          if (controller.isLoading.value) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          final err = controller.error.value;
+          if (err != null) {
+            return Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(err, style: const TextStyle(color: Colors.red)),
+                  const SizedBox(height: 12),
+                  ElevatedButton(
+                    onPressed: controller.load,
+                    child: const Text('Reintentar'),
+                  ),
+                ],
+              ),
+            );
+          }
+
+          final p = controller.product.value;
+          if (p == null)
+            return const Center(child: Text('Producto no disponible.'));
+
+          return ListView(
+            children: [
+              ClipRRect(
+                borderRadius: BorderRadius.circular(14),
+                child: SizedBox(
+                  height: 230,
+                  child: (p.imageUrl == null)
+                      ? Container(
+                          color: Colors.black12,
+                          alignment: Alignment.center,
+                          child: const Icon(
+                            Icons.image_not_supported_outlined,
+                            size: 48,
+                          ),
+                        )
+                      : Image.network(
+                          p.imageUrl!,
+                          fit: BoxFit.cover,
+                          errorBuilder: (_, __, ___) => Container(
+                            color: Colors.black12,
+                            alignment: Alignment.center,
+                            child: const Icon(
+                              Icons.broken_image_outlined,
+                              size: 48,
+                            ),
+                          ),
+                        ),
+                ),
+              ),
+              const SizedBox(height: 14),
+              Text(
+                p.name,
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+              if (p.description != null &&
+                  p.description!.trim().isNotEmpty) ...[
+                const SizedBox(height: 8),
+                Text(
+                  p.description!,
+                  style: const TextStyle(color: Colors.black54),
+                ),
+              ],
+              const SizedBox(height: 18),
+
+              const Text(
+                'Selecciona una variante',
+                style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
+              ),
+              const SizedBox(height: 10),
+
+              Obx(() {
+                final selected = controller.selectedVariantId.value;
+
+                return Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: p.variants.map((v) {
+                    final isSelected = selected == v.id;
+                    final label = v.title.isNotEmpty
+                        ? v.title
+                        : v.values.join(' / ');
+                    final price = (v.priceCents / 100.0).toStringAsFixed(2);
+
+                    return ChoiceChip(
+                      selected: isSelected,
+                      onSelected: (_) => controller.selectVariant(v.id),
+                      label: Text('$label  •  \$$price'),
+                    );
+                  }).toList(),
+                );
+              }),
+
+              const SizedBox(height: 18),
+
+              const Text(
+                'Cantidad',
+                style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
+              ),
+              const SizedBox(height: 10),
+
+              Row(
+                children: [
+                  IconButton(
+                    onPressed: controller.decQty,
+                    icon: const Icon(Icons.remove_circle_outline),
+                  ),
+                  Obx(
+                    () => Text(
+                      '${controller.qty.value}',
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                  ),
+                  IconButton(
+                    onPressed: controller.incQty,
+                    icon: const Icon(Icons.add_circle_outline),
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: 18),
+
+              Obx(() {
+                final adding = controller.isAdding.value;
+                return SizedBox(
+                  width: double.infinity,
+                  height: 48,
+                  child: ElevatedButton.icon(
+                    onPressed: adding ? null : controller.addToCart,
+                    icon: adding
+                        ? const SizedBox(
+                            width: 18,
+                            height: 18,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : const Icon(Icons.shopping_cart_checkout),
+                    label: Text(adding ? 'Agregando...' : 'Agregar al carrito'),
+                  ),
+                );
+              }),
+            ],
+          );
+        }),
+      ),
+    );
+  }
+}

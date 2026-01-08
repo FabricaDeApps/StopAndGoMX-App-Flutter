@@ -58,7 +58,7 @@ class PlayBookController extends GetxController {
 
   // ---------------- PLAY META ----------------
   final playAliasCtrl = TextEditingController();
-  final playTypes = <String>['Pase', 'Corrida', 'Defensa'];
+  final playTypes = <String>['Pase', 'Carrera', 'Defensa'];
   final playType = RxnString();
 
   final isSavingPlay = false.obs;

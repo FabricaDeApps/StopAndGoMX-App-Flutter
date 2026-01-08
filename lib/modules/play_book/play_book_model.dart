@@ -116,8 +116,8 @@ class PlayRoute {
 /// ------------------------------
 class PlaybookPlay {
   final String id;
-  final String alias; // "Trips Right - Slant"
-  final String type; // "Pase" | "Corrida" | "Defensa" (catálogo de strings)
+  final String alias;
+  final String type;
 
   /// Formación completa
   final List<PlayerToken> players;

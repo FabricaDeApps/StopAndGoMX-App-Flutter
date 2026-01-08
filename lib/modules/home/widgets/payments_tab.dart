@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:stopandgo/core/utils/money.dart';
 import 'package:stopandgo/modules/home/home_controller.dart';
 import 'package:stopandgo/routes/app_routes.dart';
 
@@ -96,13 +97,13 @@ class PaymentsTab extends StatelessWidget {
                   Text(
                     // Monto original + neto si hay descuento
                     p.hasDiscount
-                        ? 'Monto: \$${p.amount.toStringAsFixed(2)} '
-                              '· Neto: \$${effectiveAmount.toStringAsFixed(2)} '
-                              '· Pagado: \$${totalRecibido.toStringAsFixed(2)} '
-                              '· Saldo: \$${balance.toStringAsFixed(2)}'
-                        : 'Monto: \$${p.amount.toStringAsFixed(2)} '
-                              '· Pagado: \$${totalRecibido.toStringAsFixed(2)} '
-                              '· Saldo: \$${balance.toStringAsFixed(2)}',
+                        ? 'Monto: \$${p.amount.toStringAsFixed(2)}\n'
+                              'Neto: ${effectiveAmount.toStringAsFixed(2)} \n'
+                              'Pagado: ${totalRecibido.toStringAsFixed(2)} \n'
+                              'Saldo: ${balance.toStringAsFixed(2)}'
+                        : 'Monto: ${money(p.amount)} \n'
+                              'Pagado: ${money(totalRecibido)} \n'
+                              'Saldo: ${money(double.parse(balance.toString()))}',
                     style: theme.textTheme.bodySmall,
                   ),
 

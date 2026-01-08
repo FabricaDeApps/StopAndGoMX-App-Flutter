@@ -7,6 +7,9 @@ import 'package:stopandgo/core/models/category.dart';
 import 'package:stopandgo/core/models/dashboard_models.dart';
 import 'package:stopandgo/core/models/dto/payment_dto.dart';
 import 'package:stopandgo/core/models/dto/payment_provider_intent_dto.dart';
+import 'package:stopandgo/core/models/ecommerce/checkout_result_model.dart';
+import 'package:stopandgo/core/models/ecommerce/ecommerce_order_detail_model.dart';
+import 'package:stopandgo/core/models/ecommerce/ecommerce_order_list_item_model.dart';
 import 'package:stopandgo/core/models/games.dart';
 import 'package:stopandgo/core/models/player_document.dart';
 import 'package:stopandgo/core/models/players.dart';
@@ -22,6 +25,10 @@ import 'package:stopandgo/modules/play_book/play_book_model.dart';
 import 'api_client.dart';
 import 'token_storage.dart';
 import 'package:get/get.dart' hide FormData, MultipartFile;
+import '../models/ecommerce/product_category_model.dart';
+import '../models/ecommerce/product_model.dart';
+import '../models/ecommerce/product_detail_model.dart';
+import '../models/ecommerce/cart_model.dart';
 
 class ApiRepository {
   final Dio _dio = ApiClient.dio;
@@ -1085,7 +1092,7 @@ class ApiRepository {
   Future<PaginatedResponse<PlaybookPlay>> getPlaybookPlays({
     required int categoryId,
     int page = 1,
-    String? type, // Pase / Corrida / Defensa
+    String? type,
   }) async {
     final res = await _dio.get(
       '/playbook/plays',
@@ -1169,5 +1176,169 @@ class ApiRepository {
 
     // por si algún día regresa vacío pero 200
     return (res.statusCode ?? 0) >= 200 && (res.statusCode ?? 0) < 300;
+  }
+
+  Future<List<ProductCategoryModel>> ecommerceCategories() async {
+    final res = await _dio.get(
+      '/ecommerce/categories',
+      options: Options(headers: _headers()),
+    );
+
+    final data = (res.data['data'] as List?) ?? const [];
+    return data
+        .map(
+          (e) => ProductCategoryModel.fromJson(
+            Map<String, dynamic>.from(e as Map),
+          ),
+        )
+        .toList();
+  }
+
+  Future<List<ProductModel>> ecommerceProducts({
+    int? categoryId,
+    String? q,
+  }) async {
+    final query = <String, dynamic>{};
+    if (categoryId != null) query['category_id'] = categoryId;
+    if (q != null && q.trim().isNotEmpty) query['q'] = q.trim();
+
+    final res = await _dio.get(
+      '/ecommerce/products',
+      queryParameters: query.isEmpty ? null : query,
+      options: Options(headers: _headers()),
+    );
+
+    final data = (res.data['data'] as List?) ?? const [];
+    return data
+        .map((e) => ProductModel.fromJson(Map<String, dynamic>.from(e as Map)))
+        .toList();
+  }
+
+  Future<ProductDetailModel> ecommerceProductDetail({
+    required int productId,
+  }) async {
+    final res = await _dio.get(
+      '/ecommerce/products/$productId',
+      options: Options(headers: _headers()),
+    );
+
+    final data = Map<String, dynamic>.from(res.data['data'] as Map);
+    return ProductDetailModel.fromJson(data);
+  }
+
+  // =========================
+  // CARRITO
+  // =========================
+
+  Future<CartModel> ecommerceCart() async {
+    final res = await _dio.get(
+      '/ecommerce/cart',
+      options: Options(headers: _headers()),
+    );
+
+    final data = Map<String, dynamic>.from(res.data['data'] as Map);
+    return CartModel.fromJson(data);
+  }
+
+  Future<CartModel> ecommerceCartAddItem({
+    required int variantId,
+    required int qty,
+  }) async {
+    await _dio.post(
+      '/ecommerce/cart/items',
+      data: {'variant_id': variantId, 'qty': qty},
+      options: Options(headers: _headers()),
+    );
+    return ecommerceCart();
+  }
+
+  Future<CartModel> ecommerceCartUpdateItem({
+    required int cartItemId,
+    required int qty,
+  }) async {
+    final res = await _dio.patch(
+      '/ecommerce/cart/items/$cartItemId',
+      data: {'qty': qty},
+      options: Options(headers: _headers()),
+    );
+
+    final data = Map<String, dynamic>.from(res.data['data'] as Map);
+    return CartModel.fromJson(data);
+  }
+
+  Future<CartModel> ecommerceCartRemoveItem({required int cartItemId}) async {
+    final res = await _dio.delete(
+      '/ecommerce/cart/items/$cartItemId',
+      options: Options(headers: _headers()),
+    );
+
+    final data = Map<String, dynamic>.from(res.data['data'] as Map);
+    return CartModel.fromJson(data);
+  }
+
+  Future<CartModel> ecommerceCartClear() async {
+    final res = await _dio.delete(
+      '/ecommerce/cart',
+      options: Options(headers: _headers()),
+    );
+
+    final data = Map<String, dynamic>.from(res.data['data'] as Map);
+    return CartModel.fromJson(data);
+  }
+
+  // =========================
+  // CHECKOUT + ÓRDENES
+  // =========================
+  Future<CheckoutResultModel> ecommerceCheckout({
+    String fulfillmentType = "pickup",
+  }) async {
+    final res = await _dio.post(
+      '/ecommerce/checkout',
+      data: {
+        'fulfillment_type': fulfillmentType,
+        'provider': FlavorConfig.I.paymentProvider ?? 'mercadopago',
+      },
+      options: Options(headers: _headers()),
+    );
+
+    return CheckoutResultModel.fromJson(
+      Map<String, dynamic>.from(res.data as Map),
+    );
+  }
+
+  Future<Map<String, dynamic>> createPaymentIntentByUrl(String url) async {
+    final res = await _dio.post(url, options: Options(headers: _headers()));
+
+    return Map<String, dynamic>.from(res.data as Map);
+  }
+
+  Future<List<EcommerceOrderListItemModel>> ecommerceOrders() async {
+    final res = await _dio.get(
+      '/ecommerce/orders',
+      options: Options(headers: _headers()),
+    );
+    final root = Map<String, dynamic>.from(res.data as Map);
+    dynamic data = root['data'];
+    if (data is Map && data['data'] is List) data = data['data'];
+    if (data is! List) data = const [];
+
+    return (data)
+        .map(
+          (e) => EcommerceOrderListItemModel.fromJson(
+            Map<String, dynamic>.from(e as Map),
+          ),
+        )
+        .toList();
+  }
+
+  Future<EcommerceOrderDetailModel> ecommerceOrderShow(int orderId) async {
+    final res = await _dio.get(
+      '/ecommerce/orders/$orderId',
+      options: Options(headers: _headers()),
+    );
+
+    return EcommerceOrderDetailModel.fromJson(
+      Map<String, dynamic>.from(res.data as Map),
+    );
   }
 }

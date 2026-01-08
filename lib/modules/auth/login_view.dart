@@ -206,13 +206,10 @@ class LoginView extends GetView<LoginController> {
 
                         const SizedBox(height: 12),
 
-                        // ⬇️ Botón "Crear cuenta"
                         SizedBox(
                           width: double.infinity,
                           child: OutlinedButton.icon(
                             onPressed: () {
-                              // Si quieres pasar un orgId específico:
-                              // Get.toNamed(Routes.signIn, arguments: {'orgId': 2});
                               Get.toNamed(Routes.signIn);
                             },
                             icon: const Icon(Icons.person_add_alt_1),

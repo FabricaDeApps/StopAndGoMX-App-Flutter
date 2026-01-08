@@ -48,10 +48,13 @@ flutter build aab --flavor zorros -t lib/main_zorros.dart
 flutter build aab --flavor mainapp -t lib/main_stopandgo.dart
 flutter build aab --flavor raidersqro -t lib/main_raidersqro.dart
 flutter build aab --flavor wolverinesqro -t lib/main_wolverinesqro.dart
+flutter build aab --flavor bearsqro -t lib/main_bearsqro.dart
 
 
 Flavors iOS
 flutter build ios --config-only --debug --flavor mainapp --target=lib/main_mainapp.dart
+flutter build ios --config-only --release --flavor bearsqro --target=lib/main_bearsqro.dart
+flutter build ios --config-only --release
 
 flutter build ios --flavor zorros -t lib/main_zorros.dart
 flutter build ios --flavor mainapp -t lib/main_stopandgo.dart

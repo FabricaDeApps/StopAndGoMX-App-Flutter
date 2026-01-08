@@ -7,6 +7,24 @@ import 'package:stopandgo/modules/auth/login_view.dart';
 import 'package:stopandgo/modules/complete_game/complete_game_binding.dart';
 import 'package:stopandgo/modules/complete_game/complete_game_view.dart';
 import 'package:stopandgo/modules/create_trainning/index.dart';
+import 'package:stopandgo/modules/ecommerce_cart/ecommerce_cart_binding.dart';
+import 'package:stopandgo/modules/ecommerce_cart/ecommerce_cart_view.dart';
+import 'package:stopandgo/modules/ecommerce_checkout/ecommerce_checkout_binding.dart';
+import 'package:stopandgo/modules/ecommerce_checkout/ecommerce_checkout_view.dart';
+import 'package:stopandgo/modules/ecommerce_home/ecommerce_home_view.dart';
+import 'package:stopandgo/modules/ecommerce_home/index.dart';
+import 'package:stopandgo/modules/ecommerce_order_detail/ecommerce_order_detail_binding.dart';
+import 'package:stopandgo/modules/ecommerce_order_detail/ecommerce_order_detail_view.dart';
+import 'package:stopandgo/modules/ecommerce_order_result/ecommerce_order_result_view.dart';
+import 'package:stopandgo/modules/ecommerce_order_result/index.dart';
+import 'package:stopandgo/modules/ecommerce_orders/ecommerce_orders_view.dart';
+import 'package:stopandgo/modules/ecommerce_orders/index.dart';
+import 'package:stopandgo/modules/ecommerce_payment/ecommerce_payment_view.dart';
+import 'package:stopandgo/modules/ecommerce_payment/index.dart';
+import 'package:stopandgo/modules/ecommerce_product_detail/ecommerce_product_detail_view.dart';
+import 'package:stopandgo/modules/ecommerce_product_detail/index.dart';
+import 'package:stopandgo/modules/ecommerce_products/ecommerce_products_view.dart';
+import 'package:stopandgo/modules/ecommerce_products/index.dart';
 import 'package:stopandgo/modules/home/index.dart';
 import 'package:stopandgo/modules/image_view/image_binding.dart';
 import 'package:stopandgo/modules/image_view/image_view.dart';
@@ -144,6 +162,56 @@ class AppPages {
       name: Routes.playbookRead,
       page: () => const PlayBookReadView(),
       binding: PlayBookReadBinding(),
+    ),
+    GetPage(
+      name: Routes.ecommerceHome,
+      page: () => const EcommerceHomeView(),
+      binding: EcommerceHomeBinding(),
+    ),
+    GetPage(
+      name: Routes.ecommerceProductList,
+      page: () => const EcommerceProductsView(),
+      binding: EcommerceProductsBinding(),
+    ),
+    GetPage(
+      name: Routes.ecommerceProductDetail,
+      page: () => const EcommerceProductDetailView(),
+      binding: EcommerceProductDetailBinding(),
+    ),
+    GetPage(
+      name: Routes.ecommerceCart,
+      page: () => const EcommerceCartView(),
+      binding: EcommerceCartBinding(),
+    ),
+    GetPage(
+      name: Routes.ecommerceCheckout,
+      page: () => const EcommerceCheckoutView(),
+      binding: EcommerceCheckoutBinding(),
+    ),
+    GetPage(
+      name: Routes.ecommercePayment,
+      page: () => const EcommercePaymentView(),
+      binding: EcommercePaymentBinding(),
+    ),
+    GetPage(
+      name: Routes.ecommercePayment,
+      page: () => const EcommercePaymentView(),
+      binding: EcommercePaymentBinding(),
+    ),
+    GetPage(
+      name: Routes.ecommerceOrderResult,
+      page: () => const EcommerceOrderResultView(),
+      binding: EcommerceOrderResultBinding(),
+    ),
+    GetPage(
+      name: Routes.ecommerceOrders,
+      page: () => const EcommerceOrdersView(),
+      binding: EcommerceOrdersBinding(),
+    ),
+    GetPage(
+      name: Routes.ecommerceOrderDetail,
+      page: () => const EcommerceOrderDetailView(),
+      binding: EcommerceOrderDetailBinding(),
     ),
   ];
 }

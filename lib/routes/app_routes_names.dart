@@ -24,4 +24,13 @@ abstract class Routes {
   static const playbook = '/playbook';
   static const playbookList = '/playbookList';
   static const playbookRead = '/playbookRead';
+  static const ecommerceHome = '/ecommerceHome';
+  static const ecommerceProductList = '/ecommerceProductList';
+  static const ecommerceProductDetail = '/ecommerceProductDetail';
+  static const ecommerceCart = '/ecommerceCart';
+  static const ecommerceCheckout = '/ecommerceCheckout';
+  static const ecommercePayment = '/ecommercePayment';
+  static const ecommerceOrderResult = '/ecommerceOrderResult';
+  static const ecommerceOrders = '/ecommerceOrders';
+  static const ecommerceOrderDetail = '/ecommerceOrderDetail';
 }

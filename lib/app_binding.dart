@@ -1,10 +1,8 @@
 import 'package:get/get.dart';
+import 'package:stopandgo/core/services/ecommerce_cart_service.dart';
 import '../core/network/api_repository.dart';
 import '../core/network/token_storage.dart';
 
-/// AppBinding: se ejecuta al inicio de la app y registra los servicios globales.
-///
-/// De esta forma no necesitas inicializarlos manualmente en cada controlador.
 class AppBinding extends Bindings {
   @override
   void dependencies() {
@@ -16,6 +14,10 @@ class AppBinding extends Bindings {
     // Registra el repositorio principal para toda la app
     if (!Get.isRegistered<ApiRepository>()) {
       Get.put(ApiRepository(), permanent: true);
+    }
+
+    if (!Get.isRegistered<EcommerceCartService>()) {
+      Get.put<EcommerceCartService>(EcommerceCartService(), permanent: true);
     }
   }
 }
