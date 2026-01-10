@@ -22,6 +22,7 @@ abstract class Routes {
   static const roster = '/roster';
   static const documents = '/documents';
   static const playbook = '/playbook';
+  static const playbookCreate = '/playbookCreate';
   static const playbookList = '/playbookList';
   static const playbookRead = '/playbookRead';
   static const ecommerceHome = '/ecommerceHome';

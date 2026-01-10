@@ -21,7 +21,7 @@ import 'package:stopandgo/core/models/trainning_attendance.dart';
 import 'package:stopandgo/core/network/paginated_response.dart';
 import 'package:stopandgo/core/storage/app_storage.dart';
 import 'package:stopandgo/core/utils/device_info.dart';
-import 'package:stopandgo/modules/play_book/play_book_model.dart';
+import 'package:stopandgo/core/models/play_book_model.dart';
 import 'api_client.dart';
 import 'token_storage.dart';
 import 'package:get/get.dart' hide FormData, MultipartFile;
@@ -1115,18 +1115,66 @@ class ApiRepository {
     );
   }
 
-  Future<Map<String, dynamic>> playbookCreatePlay({
+  Future<Map<String, dynamic>> playbookCreatePlayGo({
     required Map<String, dynamic> payload,
   }) async {
     final res = await _dio.post(
-      '/playbook/plays',
+      '/playbook/plays/go',
       data: payload,
       options: Options(headers: _headers()),
     );
 
     if (res.data is! Map) {
-      throw Exception('Respuesta inesperada al guardar jugada');
+      throw Exception('Respuesta inesperada al guardar jugada (GO)');
     }
+    return Map<String, dynamic>.from(res.data as Map);
+  }
+
+  /// POST /api/playbook/plays/attachment
+  ///
+  /// Required:
+  /// - categoryId, alias, type, side, playersCount, filePath
+  /// Optional:
+  /// - notes
+
+  Future<Map<String, dynamic>> playbookCreatePlayAttachment({
+    required int categoryId,
+    required String alias,
+    required String type,
+    required String side,
+    required int playersCount,
+    required String filePath,
+    String? notes,
+  }) async {
+    final file = File(filePath);
+    if (!file.existsSync()) {
+      throw Exception('El archivo no existe: $filePath');
+    }
+
+    final fileName = file.uri.pathSegments.isNotEmpty
+        ? file.uri.pathSegments.last
+        : 'attachment';
+
+    final form = FormData.fromMap({
+      'category_id': categoryId,
+      'alias': alias,
+      'type': type,
+      'side': side,
+      'players_count': playersCount,
+      if (notes != null && notes.trim().isNotEmpty) 'notes': notes.trim(),
+      'file': await MultipartFile.fromFile(filePath, filename: fileName),
+    });
+
+    final res = await _dio.post(
+      '/playbook/plays/attachment',
+      data: form,
+      options: Options(headers: _headers(), contentType: 'multipart/form-data'),
+    );
+
+    if (res.data is! Map) {
+      throw Exception('Respuesta inesperada al guardar jugada (Adjunto)');
+    }
+
     return Map<String, dynamic>.from(res.data as Map);
   }
 
@@ -1168,14 +1216,10 @@ class ApiRepository {
       options: Options(headers: _headers()),
     );
 
-    // backend: { ok: true }
-    if (res.data is Map) {
-      final map = Map<String, dynamic>.from(res.data as Map);
-      return map['ok'] == true;
-    }
-
-    // por si algún día regresa vacío pero 200
-    return (res.statusCode ?? 0) >= 200 && (res.statusCode ?? 0) < 300;
+    // si tu backend regresa {ok:true} puedes validar eso aquí
+    return res.statusCode != null &&
+        res.statusCode! >= 200 &&
+        res.statusCode! < 300;
   }
 
   Future<List<ProductCategoryModel>> ecommerceCategories() async {

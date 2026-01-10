@@ -2,7 +2,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:stopandgo/core/network/api_repository.dart';
-import 'package:stopandgo/modules/play_book/play_book_model.dart';
+import 'package:stopandgo/core/models/play_book_model.dart';
 
 class PlayBookReadController extends GetxController {
   final _api = Get.find<ApiRepository>();

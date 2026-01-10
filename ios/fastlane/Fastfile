@@ -120,6 +120,8 @@ platform :ios do
                    "lib/main_raidersqro.dart"
                 when "wolverinesqro"
                    "lib/main_wolverinesqro.dart"
+                when "bearsqro"
+                   "lib/main_bearsqro.dart"
                  else
                    UI.user_error!("No conozco el entrypoint para flavor=#{flavor}")
                  end

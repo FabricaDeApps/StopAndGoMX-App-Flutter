@@ -96,16 +96,20 @@ class HomeView extends GetView<HomeController> {
               ],
             ),
             actions: [
-              /*
-              IconButton(
-                onPressed: () {
-                  final cartService = Get.find<EcommerceCartService>();
-                  cartService.refreshCart();
-                  Get.toNamed(Routes.ecommerceHome);
-                },
-                icon: const Icon(Icons.shopping_cart),
-                tooltip: 'Notificaciones',
-              ),*/
+              Obx(() {
+                if (!controller.canShowEcommerce)
+                  return const SizedBox.shrink();
+
+                return IconButton(
+                  onPressed: () {
+                    final cartService = Get.find<EcommerceCartService>();
+                    cartService.refreshCart();
+                    Get.toNamed(Routes.ecommerceHome);
+                  },
+                  icon: const Icon(Icons.shopping_cart),
+                  tooltip: 'Carrito',
+                );
+              }),
             ],
           ),
 
@@ -275,13 +279,39 @@ class HomeView extends GetView<HomeController> {
               ],
 
               if (isCoach || isPlayer) ...[
-                ListTile(
-                  leading: const Icon(Icons.route),
-                  title: const Text('Playbook'),
-                  onTap: () {
-                    Get.back();
-                    Get.toNamed(Routes.playbookList);
-                  },
+                Stack(
+                  children: [
+                    ListTile(
+                      leading: const Icon(Icons.route),
+                      title: const Text('Playbook'),
+                      onTap: () {
+                        Get.back();
+                        Get.toNamed(Routes.playbookList);
+                      },
+                    ),
+                    Positioned(
+                      right: 12,
+                      top: 8,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 2,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.orange,
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: const Text(
+                          'BETA',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ],
 

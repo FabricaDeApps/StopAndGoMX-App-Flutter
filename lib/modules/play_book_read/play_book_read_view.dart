@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:stopandgo/modules/play_book/play_book_painter.dart';
+import 'package:stopandgo/modules/play_book_go/play_book_painter.dart';
 import 'play_book_read_controller.dart';
 
 class PlayBookReadView extends GetView<PlayBookReadController> {

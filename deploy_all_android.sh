@@ -20,4 +20,7 @@ fastlane deploy_zorros_production
 echo "🚀 Deploy WOLVERINESQRO (Producción)"
 fastlane deploy_wolverinesqro_production
 
+echo "🚀 Deploy BEARSQRO (Producción)"
+fastlane deploy_bearsqro_production
+
 echo "🎉 Todos los deploys finalizados correctamente."

@@ -1,7 +1,5 @@
-import 'dart:math' as math;
-import 'dart:ui';
 import 'package:flutter/material.dart';
-import 'play_book_model.dart';
+import '../../core/models/play_book_model.dart';
 
 class PlayBookPainter extends CustomPainter {
   final Size fieldSize;
@@ -41,8 +39,8 @@ class PlayBookPainter extends CustomPainter {
     canvas.drawRect(Offset.zero & fieldSize, line);
 
     for (int i = 1; i <= 4; i++) {
-      final x = fieldSize.width * (i / 5);
-      canvas.drawLine(Offset(x, 0), Offset(x, fieldSize.height), line);
+      final y = fieldSize.height * (i / 5);
+      canvas.drawLine(Offset(0, y), Offset(fieldSize.width, y), line);
     }
 
     // Helpers
@@ -128,7 +126,11 @@ class PlayBookPainter extends CustomPainter {
         // flecha en el último segmento
         final a = worldPoints[worldPoints.length - 2];
         final b = worldPoints.last;
-        _drawArrow(canvas, a, b, routePaint);
+        if (r.endType == RouteEndType.arrow) {
+          _drawArrow(canvas, a, b, routePaint);
+        } else {
+          _drawBlockEnd(canvas, b, routePaint);
+        }
       }
     });
 
@@ -196,5 +198,25 @@ class PlayBookPainter extends CustomPainter {
         old.isDrawMode != isDrawMode ||
         old.routesByPlayer != routesByPlayer ||
         old.activeRoutePoints != activeRoutePoints;
+  }
+
+  void _drawBlockEnd(Canvas canvas, Offset center, Paint paint) {
+    final p = Paint()
+      ..color = paint.color
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 4;
+
+    const size = 10.0;
+
+    canvas.drawLine(
+      center + Offset(-size, -size),
+      center + Offset(size, size),
+      p,
+    );
+    canvas.drawLine(
+      center + Offset(-size, size),
+      center + Offset(size, -size),
+      p,
+    );
   }
 }

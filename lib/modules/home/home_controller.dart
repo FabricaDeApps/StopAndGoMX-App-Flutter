@@ -7,6 +7,7 @@ import 'package:stopandgo/core/models/dashboard_models.dart';
 import 'package:stopandgo/core/models/dto/payment_dto.dart';
 import 'package:stopandgo/core/models/dto/payment_provider_intent_dto.dart';
 import 'package:stopandgo/core/models/games.dart';
+import 'package:stopandgo/core/models/responses/organization_response.dart';
 import 'package:stopandgo/core/network/api_repository.dart';
 import 'package:stopandgo/core/network/token_storage.dart';
 import 'package:stopandgo/core/storage/app_storage.dart';
@@ -87,9 +88,18 @@ class HomeController extends GetxController with GetTickerProviderStateMixin {
 
   final isPayingWithCard = false.obs;
 
+  final org = Rxn<OrganizationResponse>();
+
+  bool get canShowEcommerce {
+    final o = org.value;
+    if (o == null) return false;
+    return o.isActive && o.isEcommerceAvailable && o.ecommerce.enabled;
+  }
+
   @override
   Future<void> onReady() async {
     super.onReady();
+    org.value = AppStorage.getOrganization();
     _loadSession();
 
     tabs.value = FlavorConfig.I.getTabsForRole(userRole.value);

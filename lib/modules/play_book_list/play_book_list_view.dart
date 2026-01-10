@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:stopandgo/core/storage/app_storage.dart';
 import 'play_book_list_controller.dart';
 
 class PlayBookListView extends GetView<PlayBookListController> {
@@ -7,8 +8,15 @@ class PlayBookListView extends GetView<PlayBookListController> {
 
   @override
   Widget build(BuildContext context) {
+    final categoryName = AppStorage.getSelectedCategoryName() ?? '';
+
     return Scaffold(
-      appBar: AppBar(title: const Text('PlayBook')),
+      appBar: AppBar(
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [Text('PlayBook - $categoryName')],
+        ),
+      ),
 
       floatingActionButton: FloatingActionButton.extended(
         onPressed: controller.goToCreate,
@@ -85,22 +93,111 @@ class PlayBookListView extends GetView<PlayBookListController> {
                         );
                       });
                     }
-
                     final play = controller.items[i];
 
-                    return ListTile(
-                      onTap: () => controller.goToDetail(play),
-                      title: Text(
-                        play.alias.isEmpty ? '(Sin alias)' : play.alias,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
+                    final isGo = play.isGo;
+                    final modeLabel = isGo ? 'GO' : 'ARCHIVO';
+                    final modeIcon = isGo ? Icons.gesture : Icons.attach_file;
+
+                    final sideLabel = (play.side == 'defense')
+                        ? 'Defensa'
+                        : 'Ofensiva';
+
+                    return Dismissible(
+                      key: ValueKey('play_${play.id}'),
+                      direction: controller.userRole.value == "coach"
+                          ? DismissDirection.endToStart
+                          : DismissDirection.none,
+                      background: Container(
+                        alignment: Alignment.centerRight,
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        color: Colors.red,
+                        child: const Row(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: [
+                            Icon(Icons.delete, color: Colors.white),
+                            SizedBox(width: 8),
+                            Text(
+                              'Eliminar',
+                              style: TextStyle(color: Colors.white),
+                            ),
+                          ],
+                        ),
                       ),
-                      subtitle: Text(
-                        play.type.isEmpty ? '-' : play.type,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
+                      confirmDismiss: (_) async {
+                        final ok = await Get.dialog<bool>(
+                          AlertDialog(
+                            title: const Text('Eliminar jugada'),
+                            content: Text(
+                              '¿Seguro que quieres eliminar "${play.alias}"?',
+                            ),
+                            actions: [
+                              TextButton(
+                                onPressed: () => Get.back(result: false),
+                                child: const Text('Cancelar'),
+                              ),
+                              ElevatedButton(
+                                onPressed: () => Get.back(result: true),
+                                child: const Text('Eliminar'),
+                              ),
+                            ],
+                          ),
+                        );
+
+                        if (ok != true) return false;
+
+                        final deleted = await controller.deletePlayOnBackend(
+                          play.id,
+                        );
+                        if (!deleted) {
+                          Get.snackbar(
+                            'Jugada',
+                            'No se pudo eliminar',
+                            snackPosition: SnackPosition.BOTTOM,
+                          );
+                          return false;
+                        }
+                        return true;
+                      },
+                      onDismissed: (_) {
+                        controller.items.removeWhere((e) => e.id == play.id);
+                        controller.items.refresh();
+                        Get.snackbar(
+                          'Jugada',
+                          'Eliminada',
+                          snackPosition: SnackPosition.BOTTOM,
+                        );
+                      },
+                      child: ListTile(
+                        onTap: () => controller.goToDetail(play),
+                        title: Text(
+                          play.alias.isEmpty ? '(Sin alias)' : play.alias,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        subtitle: Text(
+                          '${play.type.isEmpty ? '-' : play.type} • $sideLabel',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        trailing: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Chip(
+                              visualDensity: VisualDensity.compact,
+                              materialTapTargetSize:
+                                  MaterialTapTargetSize.shrinkWrap,
+                              avatar: Icon(modeIcon, size: 16),
+                              label: Text(
+                                modeLabel,
+                                style: const TextStyle(fontSize: 12),
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            const Icon(Icons.chevron_right),
+                          ],
+                        ),
                       ),
-                      trailing: const Icon(Icons.chevron_right),
                     );
                   },
                   separatorBuilder: (_, __) => const Divider(height: 1),

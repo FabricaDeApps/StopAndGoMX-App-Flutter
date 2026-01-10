@@ -1,9 +1,9 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:stopandgo/core/network/api_repository.dart';
 import 'package:stopandgo/core/storage/app_storage.dart';
-import 'package:stopandgo/modules/play_book/play_book_model.dart';
+import 'package:stopandgo/core/models/play_book_model.dart';
+import 'package:stopandgo/modules/play_book_create/play_book_create_controller.dart';
 
 enum PlayBookMode { play, move, route }
 
@@ -21,7 +21,6 @@ class PlayBookController extends GetxController {
   bool get isEditingExisting =>
       (playId.value != null && playId.value!.isNotEmpty);
 
-  // Texto del botón principal
   String get primaryCtaLabel => isEditingExisting ? 'Actualizar' : 'Guardar';
 
   // ---------------- PLAYERS ----------------
@@ -58,25 +57,52 @@ class PlayBookController extends GetxController {
 
   // ---------------- PLAY META ----------------
   final playAliasCtrl = TextEditingController();
-  final playTypes = <String>['Pase', 'Carrera', 'Defensa'];
-  final playType = RxnString();
+
+  // ✅ Enum PlayType
+  final playTypes = PlayType.values;
+  final playType = Rx<PlayType?>(null);
+
+  // ✅ Nuevos campos (vienen del wizard o default)
+  final playSide = RxnString(); // 'offense' | 'defense'
+  final playersCount = 0.obs;
+  final categoryId = RxnInt();
 
   final isSavingPlay = false.obs;
   final isDeletingPlay = false.obs;
   final playError = RxnString();
+
+  final routeEndType = RouteEndType.arrow.obs;
 
   @override
   void onInit() {
     super.onInit();
 
     final args = Get.arguments as Map<String, dynamic>?;
-    final argPlayId = args?['playId']?.toString();
 
+    // 1) EDITAR: playId
+    final argPlayId = args?['playId']?.toString();
     if (argPlayId != null && argPlayId.isNotEmpty) {
       playId.value = argPlayId;
     }
 
-    playType.value = playTypes.first;
+    // 2) CREAR DESDE WIZARD: side/type/players_count/category_id
+    final argSide = args?['side']?.toString(); // 'offense' | 'defense'
+    playSide.value = (argSide == 'defense' || argSide == 'offense')
+        ? argSide
+        : 'offense';
+
+    final argPlayersCount = args?['players_count'];
+    if (argPlayersCount != null) {
+      playersCount.value = int.tryParse(argPlayersCount.toString()) ?? 0;
+    }
+
+    final argCategoryId = args?['category_id'];
+    if (argCategoryId != null) {
+      categoryId.value = int.tryParse(argCategoryId.toString());
+    }
+
+    final argType = args?['type']?.toString(); // pass/run/...
+    playType.value = _mapWizardTypeToEnum(argType ?? '') ?? PlayType.run;
   }
 
   @override
@@ -86,7 +112,7 @@ class PlayBookController extends GetxController {
     if (isEditingExisting) {
       loadPlayFromBackend(playId.value!);
     } else {
-      _seedDemoFormation();
+      _seedFormationFromArgs();
     }
   }
 
@@ -94,6 +120,64 @@ class PlayBookController extends GetxController {
   void onClose() {
     playAliasCtrl.dispose();
     super.onClose();
+  }
+
+  // ---------------- LABEL ----------------
+  String typeLabel(PlayType t) {
+    switch (t) {
+      case PlayType.run:
+        return 'Carrera';
+      case PlayType.pass:
+        return 'Pase';
+      case PlayType.rpo:
+        return 'RPO';
+      case PlayType.playAction:
+        return 'Play Action';
+      case PlayType.screen:
+        return 'Screen';
+      case PlayType.trick:
+        return 'Trick / Engaño';
+      case PlayType.blitz:
+        return 'Blitz';
+      case PlayType.coverage:
+        return 'Cobertura';
+    }
+  }
+
+  // ---------------- TYPE MAPPING (wizard/backend) ----------------
+  PlayType? _mapWizardTypeToEnum(String raw) {
+    final v = raw.trim().toLowerCase();
+    if (v.isEmpty) return null;
+
+    // 1) si viene enum name directo: "pass", "run", ...
+    for (final t in PlayType.values) {
+      if (t.name.toLowerCase() == v) return t;
+    }
+
+    // 2) si viene label en español o variantes
+    switch (v) {
+      case 'pase':
+        return PlayType.pass;
+      case 'carrera':
+        return PlayType.run;
+      case 'rpo':
+        return PlayType.rpo;
+      case 'play action':
+      case 'playaction':
+        return PlayType.playAction;
+      case 'screen':
+        return PlayType.screen;
+      case 'trick':
+      case 'engaño':
+      case 'trick / engaño':
+        return PlayType.trick;
+      case 'blitz':
+        return PlayType.blitz;
+      case 'cobertura':
+        return PlayType.coverage;
+    }
+
+    return null;
   }
 
   // ---------------- LOAD PLAY ----------------
@@ -111,9 +195,19 @@ class PlayBookController extends GetxController {
 
       // Meta
       playAliasCtrl.text = play.alias;
-      playType.value = (playTypes.contains(play.type))
-          ? play.type
-          : playTypes.first;
+
+      // type: backend puede mandar "pass" o "Pase"
+      playType.value = _mapWizardTypeToEnum(play.type) ?? PlayType.run;
+
+      // side (si tu backend lo manda, úsalo; si no, default)
+      final side = (play.side).toString();
+      playSide.value = (side == 'defense' || side == 'offense')
+          ? side
+          : 'offense';
+
+      // playersCount (si tu backend lo manda)
+      final pc = play.playersCount;
+      playersCount.value = pc;
 
       // Players
       players.assignAll(play.players);
@@ -124,6 +218,12 @@ class PlayBookController extends GetxController {
       // Selección por default: primero
       selectedPlayerId.value = players.isNotEmpty ? players.first.id : null;
 
+      // Asegurar keys en routesByPlayer
+      for (final p in players) {
+        routesByPlayer.putIfAbsent(p.id, () => <PlayRoute>[]);
+      }
+      routesByPlayer.refresh();
+
       // Modo inicial
       mode.value = PlayBookMode.play;
     } catch (e) {
@@ -133,31 +233,206 @@ class PlayBookController extends GetxController {
     }
   }
 
-  // ---------------- INIT DEMO ----------------
-  void _seedDemoFormation() {
-    if (players.isNotEmpty) return;
+  // ---------------- INIT FORMATION (FROM WIZARD) ----------------
+  void _seedFormationFromArgs() {
+    players.clear();
+    routesByPlayer.clear();
+    activeRoutePoints.clear();
 
-    players.assignAll(const [
-      PlayerToken(id: 'qb', name: 'QB', pos: Offset(250, 260)),
-      PlayerToken(id: 'rb', name: 'RB', pos: Offset(200, 310)),
-      PlayerToken(id: 'wr1', name: 'WR1', pos: Offset(140, 180)),
-      PlayerToken(id: 'wr2', name: 'WR2', pos: Offset(140, 340)),
-      PlayerToken(id: 'c', name: 'C', pos: Offset(280, 260)),
-    ]);
+    final count = playersCount.value > 0 ? playersCount.value : 5;
+    final side = playSide.value ?? 'offense';
+    final isOffense = side == 'offense';
 
-    selectedPlayerId.value = 'qb';
+    final list = <PlayerToken>[];
+
+    if (isOffense) {
+      // Ofensiva: QB + C + RB + WRs/TE
+      if (count >= 1) {
+        list.add(
+          const PlayerToken(
+            id: 'qb',
+            name: 'QB',
+            pos: Offset(250, 260),
+            isOffense: true,
+          ),
+        );
+      }
+      if (count >= 2) {
+        list.add(
+          const PlayerToken(
+            id: 'c',
+            name: 'C',
+            pos: Offset(290, 260),
+            isOffense: true,
+          ),
+        );
+      }
+      if (count >= 3) {
+        list.add(
+          const PlayerToken(
+            id: 'rb',
+            name: 'RB',
+            pos: Offset(200, 310),
+            isOffense: true,
+          ),
+        );
+      }
+
+      // WR/TE extra
+      final slots = <PlayerToken>[
+        const PlayerToken(
+          id: 'wr1',
+          name: 'WR1',
+          pos: Offset(140, 170),
+          isOffense: true,
+        ),
+        const PlayerToken(
+          id: 'wr2',
+          name: 'WR2',
+          pos: Offset(140, 350),
+          isOffense: true,
+        ),
+        const PlayerToken(
+          id: 'te',
+          name: 'TE',
+          pos: Offset(220, 210),
+          isOffense: true,
+        ),
+        const PlayerToken(
+          id: 'wr3',
+          name: 'WR3',
+          pos: Offset(160, 260),
+          isOffense: true,
+        ),
+        const PlayerToken(
+          id: 'wr4',
+          name: 'WR4',
+          pos: Offset(160, 440),
+          isOffense: true,
+        ),
+        const PlayerToken(
+          id: 'ol1',
+          name: 'OL1',
+          pos: Offset(320, 220),
+          isOffense: true,
+        ),
+        const PlayerToken(
+          id: 'ol2',
+          name: 'OL2',
+          pos: Offset(320, 300),
+          isOffense: true,
+        ),
+      ];
+
+      for (final p in slots) {
+        if (list.length >= count) break;
+        list.add(p);
+      }
+
+      // Relleno genérico
+      int i = 1;
+      while (list.length < count) {
+        final idx = list.length + 1;
+        final id = 'p$idx';
+        final y = 120.0 + (i % 5) * 80.0;
+        list.add(
+          PlayerToken(
+            id: id,
+            name: 'P$idx',
+            pos: Offset(170, y),
+            isOffense: true,
+          ),
+        );
+        i++;
+      }
+    } else {
+      // Defensa
+      final slots = <PlayerToken>[
+        const PlayerToken(
+          id: 'dl1',
+          name: 'DL1',
+          pos: Offset(520, 220),
+          isOffense: false,
+        ),
+        const PlayerToken(
+          id: 'dl2',
+          name: 'DL2',
+          pos: Offset(520, 300),
+          isOffense: false,
+        ),
+        const PlayerToken(
+          id: 'lb1',
+          name: 'LB1',
+          pos: Offset(600, 220),
+          isOffense: false,
+        ),
+        const PlayerToken(
+          id: 'lb2',
+          name: 'LB2',
+          pos: Offset(600, 300),
+          isOffense: false,
+        ),
+        const PlayerToken(
+          id: 'cb1',
+          name: 'CB1',
+          pos: Offset(700, 160),
+          isOffense: false,
+        ),
+        const PlayerToken(
+          id: 'cb2',
+          name: 'CB2',
+          pos: Offset(700, 360),
+          isOffense: false,
+        ),
+        const PlayerToken(
+          id: 's',
+          name: 'S',
+          pos: Offset(760, 260),
+          isOffense: false,
+        ),
+        const PlayerToken(
+          id: 'nb',
+          name: 'NB',
+          pos: Offset(680, 260),
+          isOffense: false,
+        ),
+      ];
+
+      for (final p in slots) {
+        if (list.length >= count) break;
+        list.add(p);
+      }
+
+      int i = 1;
+      while (list.length < count) {
+        final idx = list.length + 1;
+        final id = 'd$idx';
+        final y = 120.0 + (i % 5) * 80.0;
+        list.add(
+          PlayerToken(
+            id: id,
+            name: 'D$idx',
+            pos: Offset(650, y),
+            isOffense: false,
+          ),
+        );
+        i++;
+      }
+    }
+
+    players.assignAll(list);
+
+    selectedPlayerId.value = players.isNotEmpty ? players.first.id : null;
 
     for (final p in players) {
       routesByPlayer.putIfAbsent(p.id, () => <PlayRoute>[]);
     }
+    routesByPlayer.refresh();
+
+    mode.value = PlayBookMode.play;
   }
 
-  void resetFormation() {
-    players.clear();
-    routesByPlayer.clear();
-    activeRoutePoints.clear();
-    _seedDemoFormation();
-  }
+  void resetFormation() => _seedFormationFromArgs();
 
   // ---------------- SELECTION ----------------
   void selectPlayer(String id) {
@@ -278,6 +553,7 @@ class PlayBookController extends GetxController {
       playerId: pid,
       points: rel,
       origin: origin,
+      endType: routeEndType.value,
     );
 
     final list = routesByPlayer[pid] ?? <PlayRoute>[];
@@ -311,7 +587,7 @@ class PlayBookController extends GetxController {
   // ---------------- PAYLOAD (CREATE / UPDATE) ----------------
   Map<String, dynamic> _toPayload() {
     final alias = playAliasCtrl.text.trim();
-    final type = playType.value ?? playTypes.first;
+    final type = playType.value ?? PlayType.run;
 
     final playersJson = players
         .map(
@@ -338,12 +614,14 @@ class PlayBookController extends GetxController {
           .toList();
     });
 
-    final categoryId = AppStorage.getSelectedCategoryId();
+    final catId = categoryId.value ?? AppStorage.getSelectedCategoryId();
 
     return {
-      "category_id": categoryId,
+      "category_id": catId,
       "alias": alias,
-      "type": type,
+      // ✅ manda string al backend
+      "type": type.name,
+      "side": playSide.value ?? 'offense',
       "notes": null,
       "players": playersJson,
       "routesByPlayer": routesJson,
@@ -369,23 +647,14 @@ class PlayBookController extends GetxController {
       final payload = _toPayload();
 
       if (isEditingExisting) {
-        // ✅ UPDATE
         final updated = await _api.playbookUpdatePlay(
           playId: playId.value!,
           payload: payload,
         );
-
-        // Si quieres quedarte en pantalla y refrescar con backend:
-        // (si updated es el play completo)
-        // final play = PlaybookPlay.fromJson(updated);
-        // players.assignAll(play.players);
-        // routesByPlayer.assignAll(play.routesByPlayer);
-
         Get.back(result: updated);
       } else {
-        // ✅ CREATE
-        final created = await _api.playbookCreatePlay(payload: payload);
-        Get.back(result: created);
+        final created = await _api.playbookCreatePlayGo(payload: payload);
+        Get.back(result: {'refresh': true, 'play': created});
       }
     } catch (e) {
       playError.value = e.toString();
@@ -433,5 +702,22 @@ class PlayBookController extends GetxController {
     } finally {
       isDeletingPlay.value = false;
     }
+  }
+
+  void renameSelectedPlayer(String newName) {
+    final id = selectedPlayerId.value;
+    if (id == null) return;
+
+    final name = newName.trim();
+    if (name.isEmpty) return;
+
+    final idx = players.indexWhere((p) => p.id == id);
+    if (idx == -1) return;
+
+    // 3 chars máx (por si llega más)
+    final fixed = name.length > 3 ? name.substring(0, 3) : name;
+
+    players[idx] = players[idx].copyWith(name: fixed.toUpperCase());
+    players.refresh();
   }
 }

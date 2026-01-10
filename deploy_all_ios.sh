@@ -43,4 +43,12 @@ fastlane deploy_wolverinesqro
 echo "✅ WOLVERINESQRO completado"
 echo ""
 
+########################################
+# BEARSQRO
+########################################
+echo "🐺💛 Deploy iOS: BEARSQRO"
+fastlane deploy_bearsqro
+echo "✅ BEARSQRO completado"
+echo ""
+
 echo "🎉🚀 TODOS LOS DEPLOYS iOS TERMINADOS EXITOSAMENTE"

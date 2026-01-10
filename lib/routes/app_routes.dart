@@ -34,8 +34,10 @@ import 'package:stopandgo/modules/my_profile/my_profile_view.dart';
 import 'package:stopandgo/modules/new_game/index.dart';
 import 'package:stopandgo/modules/no_category/index.dart';
 import 'package:stopandgo/modules/no_category/no_category_view.dart';
-import 'package:stopandgo/modules/play_book/index.dart';
-import 'package:stopandgo/modules/play_book/play_book_view.dart';
+import 'package:stopandgo/modules/play_book_go/index.dart';
+import 'package:stopandgo/modules/play_book_go/play_book_view.dart';
+import 'package:stopandgo/modules/play_book_create/play_book_create_binding.dart';
+import 'package:stopandgo/modules/play_book_create/play_book_create_view.dart';
 import 'package:stopandgo/modules/play_book_list/index.dart';
 import 'package:stopandgo/modules/play_book_list/play_book_list_view.dart';
 import 'package:stopandgo/modules/play_book_read/index.dart';
@@ -152,6 +154,11 @@ class AppPages {
       name: Routes.playbook,
       page: () => const PlayBookView(),
       binding: PlayBookBinding(),
+    ),
+    GetPage(
+      name: Routes.playbookCreate,
+      page: () => const PlayBookCreateView(),
+      binding: PlayBookCreateBinding(),
     ),
     GetPage(
       name: Routes.playbookList,

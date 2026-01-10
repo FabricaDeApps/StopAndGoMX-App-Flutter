@@ -1,6 +1,8 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:stopandgo/core/models/play_book_model.dart';
+import 'package:stopandgo/modules/play_book_create/play_book_create_controller.dart';
 import 'play_book_controller.dart';
 import 'play_book_painter.dart';
 
@@ -10,6 +12,47 @@ class PlayBookView extends GetView<PlayBookController> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+
+    Widget _metaBar() {
+      return Container(
+        margin: const EdgeInsets.fromLTRB(16, 10, 16, 0),
+        padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 5),
+        decoration: BoxDecoration(
+          color: theme.colorScheme.surface,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: theme.dividerColor),
+        ),
+        child: Obx(() {
+          final side = controller.playSide.value ?? 'offense';
+          final sideLabel = side == 'defense' ? 'Defensiva' : 'Ofensiva';
+          final count = controller.playersCount.value > 0
+              ? controller.playersCount.value
+              : controller.players.length;
+
+          final type = controller.playType.value ?? PlayType.run;
+
+          return Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              _pill(
+                theme,
+                icon: side == 'defense' ? Icons.shield : Icons.sports_football,
+                label: sideLabel,
+              ),
+              const SizedBox(width: 8),
+              _pill(theme, icon: Icons.group, label: '$count jugadores'),
+              const SizedBox(width: 8),
+              // ✅ ahora label correcto del enum
+              _pill(
+                theme,
+                icon: Icons.category,
+                label: controller.typeLabel(type),
+              ),
+            ],
+          );
+        }),
+      );
+    }
 
     Widget bottomBarForRoute() {
       return Container(
@@ -24,30 +67,57 @@ class PlayBookView extends GetView<PlayBookController> {
             ),
           ],
         ),
-        child: Row(
+        child: Column(
           children: [
-            Expanded(
-              child: OutlinedButton.icon(
-                onPressed: controller.deleteRouteButton,
-                icon: const Icon(Icons.delete_outline),
-                label: const Text('Borrar ruta'),
-              ),
-            ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: OutlinedButton.icon(
-                onPressed: controller.stepBackActive,
-                icon: const Icon(Icons.undo),
-                label: const Text('Step back'),
-              ),
-            ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: FilledButton.icon(
-                onPressed: controller.saveActiveRoute,
-                icon: const Icon(Icons.save_outlined),
-                label: const Text('Guardar'),
-              ),
+            Obx(() {
+              final t = controller.routeEndType.value;
+
+              return Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  ChoiceChip(
+                    label: const Text('Flecha'),
+                    selected: t == RouteEndType.arrow,
+                    onSelected: (_) =>
+                        controller.routeEndType.value = RouteEndType.arrow,
+                  ),
+                  const SizedBox(width: 8),
+                  ChoiceChip(
+                    label: const Text('Bloqueo'),
+                    selected: t == RouteEndType.block,
+                    onSelected: (_) =>
+                        controller.routeEndType.value = RouteEndType.block,
+                  ),
+                ],
+              );
+            }),
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: controller.deleteRouteButton,
+                    icon: const Icon(Icons.delete_outline),
+                    label: const Text('Borrar ruta'),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: controller.stepBackActive,
+                    icon: const Icon(Icons.undo),
+                    label: const Text('Step back'),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: FilledButton.icon(
+                    onPressed: controller.saveActiveRoute,
+                    icon: const Icon(Icons.save_outlined),
+                    label: const Text('Guardar'),
+                  ),
+                ),
+              ],
             ),
           ],
         ),
@@ -87,13 +157,14 @@ class PlayBookView extends GetView<PlayBookController> {
                 ),
                 const SizedBox(width: 10),
 
-                // Tipo (reactivo)
+                // Tipo (enum PlayType)
                 SizedBox(
-                  width: 150,
+                  width: 170,
                   child: Obx(() {
-                    final value = controller.playType.value;
-                    return DropdownButtonFormField<String>(
-                      value: value ?? controller.playTypes.first,
+                    final safeValue = controller.playType.value ?? PlayType.run;
+
+                    return DropdownButtonFormField<PlayType>(
+                      value: safeValue,
                       decoration: const InputDecoration(
                         labelText: 'Tipo de jugada',
                         border: OutlineInputBorder(),
@@ -101,13 +172,16 @@ class PlayBookView extends GetView<PlayBookController> {
                       ),
                       items: controller.playTypes
                           .map(
-                            (type) => DropdownMenuItem<String>(
-                              value: type,
-                              child: Text(type),
+                            (t) => DropdownMenuItem<PlayType>(
+                              value: t,
+                              child: Text(controller.typeLabel(t)),
                             ),
                           )
                           .toList(),
-                      onChanged: (v) => controller.playType.value = v,
+                      onChanged: (val) {
+                        if (val == null) return;
+                        controller.playType.value = val;
+                      },
                     );
                   }),
                 ),
@@ -116,7 +190,7 @@ class PlayBookView extends GetView<PlayBookController> {
 
             const SizedBox(height: 10),
 
-            // Error (si existe)
+            // Error
             Obx(() {
               final msg = controller.playError.value;
               if (msg == null || msg.isEmpty) return const SizedBox.shrink();
@@ -208,7 +282,7 @@ class PlayBookView extends GetView<PlayBookController> {
             );
           }),
 
-          // Reset formación (evita reset mientras carga/guarda/borra)
+          // Reset formación
           Obx(() {
             final disabled =
                 controller.isLoading.value ||
@@ -224,9 +298,10 @@ class PlayBookView extends GetView<PlayBookController> {
       ),
       body: Column(
         children: [
+          _metaBar(),
           const SizedBox(height: 10),
 
-          // ✅ SegmentedButton (3 modos)
+          // SegmentedButton (3 modos)
           Center(
             child: Obx(() {
               final current = controller.mode.value;
@@ -257,16 +332,14 @@ class PlayBookView extends GetView<PlayBookController> {
                   ),
                 ],
                 selected: {current},
-                onSelectionChanged: (set) {
-                  controller.setMode(set.first);
-                },
+                onSelectionChanged: (set) => controller.setMode(set.first),
               );
             }),
           ),
 
           const SizedBox(height: 8),
 
-          // ✅ Label superior (jugador + estado)
+          // Label superior (jugador + estado)
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
             child: Obx(() {
@@ -286,26 +359,73 @@ class PlayBookView extends GetView<PlayBookController> {
                   ? 'Jugador: $name • moviendo...'
                   : 'Jugador: $name';
 
-              final modeTxt = switch (controller.mode.value) {
-                PlayBookMode.move => 'Mover',
-                PlayBookMode.route => 'Ruta',
-                PlayBookMode.play => 'Jugada',
-              };
-
               return Row(
                 children: [
                   Expanded(
-                    child: Text(
-                      txt,
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w700,
-                        color: moving ? Colors.orange.shade800 : null,
+                    child: InkWell(
+                      borderRadius: BorderRadius.circular(10),
+                      onTap: selected == null
+                          ? null
+                          : () async {
+                              final ctrl = TextEditingController(
+                                text: selected.name,
+                              );
+
+                              final result = await Get.dialog<String>(
+                                AlertDialog(
+                                  title: const Text('Renombrar jugador'),
+                                  content: TextField(
+                                    controller: ctrl,
+                                    maxLength: 3,
+                                    textCapitalization:
+                                        TextCapitalization.characters,
+                                    decoration: const InputDecoration(
+                                      hintText: 'Ej: WR2',
+                                      border: OutlineInputBorder(),
+                                      isDense: true,
+                                      counterText:
+                                          '', // oculta contador si quieres
+                                    ),
+                                  ),
+                                  actions: [
+                                    TextButton(
+                                      onPressed: () => Get.back(result: null),
+                                      child: const Text('Cancelar'),
+                                    ),
+                                    FilledButton(
+                                      onPressed: () =>
+                                          Get.back(result: ctrl.text),
+                                      child: const Text('Guardar'),
+                                    ),
+                                  ],
+                                ),
+                              );
+
+                              if (result != null) {
+                                controller.renameSelectedPlayer(result);
+                              }
+                            },
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              txt,
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w700,
+                                color: moving ? Colors.orange.shade800 : null,
+                              ),
+                            ),
+                          ),
+                          if (selected != null)
+                            const Padding(
+                              padding: EdgeInsets.only(left: 8),
+                              child: Icon(Icons.edit, size: 18),
+                            ),
+                        ],
                       ),
                     ),
                   ),
-                  const SizedBox(width: 8),
-                  Text('Modo: $modeTxt', style: const TextStyle(fontSize: 12)),
                 ],
               );
             }),
@@ -324,25 +444,21 @@ class PlayBookView extends GetView<PlayBookController> {
                     child: GestureDetector(
                       behavior: HitTestBehavior.opaque,
                       dragStartBehavior: DragStartBehavior.down,
-
                       onPanDown: (d) {
                         if (controller.mode.value == PlayBookMode.move) {
                           controller.onPanDown(d.localPosition);
                         }
                       },
-
                       onTapDown: (d) {
                         final hit = controller.hitTestPlayer(d.localPosition);
                         if (hit != null) {
                           controller.selectPlayer(hit);
                           return;
                         }
-
                         if (controller.mode.value == PlayBookMode.route) {
                           controller.addRoutePointFromTap(d.localPosition);
                         }
                       },
-
                       onPanStart: (d) {
                         if (controller.mode.value == PlayBookMode.move) {
                           controller.onPanStart(d.localPosition);
@@ -355,9 +471,8 @@ class PlayBookView extends GetView<PlayBookController> {
                       },
                       onPanEnd: (_) => controller.onPanEnd(),
                       onPanCancel: controller.onPanEnd,
-
                       child: Obx(() {
-                        // forzar repaint cuando cambian colecciones
+                        // forzar repaint
                         final _ = controller.players.length;
                         final __ = controller.activeRoutePoints.length;
                         final ___ = controller.routesByPlayer.length;
@@ -386,7 +501,7 @@ class PlayBookView extends GetView<PlayBookController> {
             ),
           ),
 
-          // ✅ Barra inferior por modo
+          // Barra inferior por modo
           Obx(() {
             return switch (controller.mode.value) {
               PlayBookMode.route => bottomBarForRoute(),
@@ -398,4 +513,52 @@ class PlayBookView extends GetView<PlayBookController> {
       ),
     );
   }
+
+  Widget _pill(
+    ThemeData theme, {
+    required IconData icon,
+    required String label,
+    _PillTone tone = _PillTone.neutral,
+  }) {
+    Color bg;
+    Color fg;
+
+    switch (tone) {
+      case _PillTone.warning:
+        bg = Colors.orange.withOpacity(0.15);
+        fg = Colors.orange.shade800;
+        break;
+      case _PillTone.neutral:
+      default:
+        bg = theme.colorScheme.primary.withOpacity(0.10);
+        fg = theme.colorScheme.primary;
+        break;
+    }
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: bg,
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: theme.dividerColor),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 16, color: fg),
+          const SizedBox(width: 6),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w700,
+              color: fg,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }
+
+enum _PillTone { neutral, warning }

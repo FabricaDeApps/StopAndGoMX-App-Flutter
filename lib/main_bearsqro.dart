@@ -29,6 +29,7 @@ Future<void> main() async {
     appName: 'Bears Querétaro',
     bundleId: 'app.stopandgomx.bearsqro',
     organizationId: 18,
+    paymentProvider: 'mercadopago',
   );
 
   firebaseAnalytics = FirebaseAnalytics.instance;
