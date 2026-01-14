@@ -150,6 +150,9 @@ class HomeController extends GetxController with GetTickerProviderStateMixin {
       case 'coach':
         await _bootstrapCoach();
         break;
+      case 'staff':
+        await _bootrapStaff();
+        break;
       default:
         await _loadDashboardForPlayerOrParent();
         break;
@@ -336,6 +339,38 @@ class HomeController extends GetxController with GetTickerProviderStateMixin {
     await _loadDashboardForCoach();
   }
 
+  Future<void> _bootrapStaff() async {
+    await _loadDashboardForStaff();
+  }
+
+  Future<void> _loadDashboardForStaff() async {
+    try {
+      isLoadingDash.value = true;
+      final dash = await api.getStaffDashboard();
+      _mapStaffDashboard(dash);
+    } catch (e) {
+      Get.snackbar(
+        'Dashboard',
+        'No se pudo cargar: $e',
+        snackPosition: SnackPosition.BOTTOM,
+      );
+    } finally {
+      isLoadingDash.value = false;
+    }
+  }
+
+  void _mapStaffDashboard(StaffDashboard dash) {
+    saldoPendiente.value = 0.0;
+    pagosRealizados.value = 0.0;
+
+    final all = List<Game>.from(dash.upcomingGames);
+
+    final sorted = _sortedByStart(all);
+    upcomingGames.assignAll(sorted.take(3).toList());
+
+    _setSingleNotice(dash.lastNotice);
+  }
+
   Future<void> _loadCoachCategories() async {
     try {
       isLoadingCats.value = true;
@@ -445,7 +480,6 @@ class HomeController extends GetxController with GetTickerProviderStateMixin {
     _setSingleNotice(dash.lastNotice);
   }
 
-  /// ✅ No dependemos de NoticeModel: acepta cualquier DTO con esos campos
   void _setSingleNotice(dynamic n) {
     notices.clear();
     if (n == null) return;
@@ -547,7 +581,14 @@ class HomeController extends GetxController with GetTickerProviderStateMixin {
     try {
       upcomingGames.clear();
 
-      if (userRole.value == 'manager') {
+      final now = DateTime.now();
+      final from = DateTime(now.year, now.month, 1);
+      final to = DateTime(now.year, now.month + 1, 0);
+
+      if (userRole.value == 'staff') {
+        final dtos = await api.getStaffGames(from: from, to: to, limit: 200);
+        upcomingGames.assignAll(dtos);
+      } else if (userRole.value == 'manager') {
         final categoryId =
             selectedCategoryId.value ?? AppStorage.getSelectedCategoryId();
         if (categoryId == null) return;
@@ -562,7 +603,7 @@ class HomeController extends GetxController with GetTickerProviderStateMixin {
           to: _ymd(to),
         );
 
-        upcomingGames.assignAll(_sortedByStart(dtos));
+        upcomingGames.assignAll(dtos);
       } else if (userRole.value == 'parent') {
         final playerId =
             selectedPlayerId.value ?? AppStorage.getSelectedPlayerId();
@@ -660,7 +701,22 @@ class HomeController extends GetxController with GetTickerProviderStateMixin {
     try {
       notices.clear();
 
-      if (userRole.value == 'manager' || userRole.value == 'coach') {
+      if (userRole.value == 'staff') {
+        final dtos = await api.getStaffNotices(); // List<Notice>
+
+        final mapped = dtos.map((n) {
+          return NoticeItem(
+            id: n.id,
+            title: n.title,
+            message: n.message,
+            image: n.image,
+            attachment: n.attachment,
+            date: n.publishedAt ?? DateTime.now(),
+          );
+        }).toList();
+
+        notices.assignAll(mapped);
+      } else if (userRole.value == 'manager' || userRole.value == 'coach') {
         final list = await api.managerNotices();
         final mapped = list.map((m) {
           return NoticeItem(

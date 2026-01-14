@@ -130,6 +130,8 @@ class HomeView extends GetView<HomeController> {
 
                       case 'coach':
                         return _CoachDashboard(controller: controller);
+                      case 'staff':
+                        return _CoachDashboard(controller: controller);
 
                       case 'parent':
                       case 'player':
@@ -154,7 +156,7 @@ class HomeView extends GetView<HomeController> {
                         case "games":
                           return GamesTab(controller: controller);
                         case "payments":
-                          return PaymentsTab(controller: controller);
+                          return PaymentsTab();
                         case "notices":
                           return NoticesTab(controller: controller);
                         default:

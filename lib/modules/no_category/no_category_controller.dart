@@ -1,4 +1,7 @@
 import 'package:get/get.dart';
+import 'package:stopandgo/core/network/token_storage.dart';
+import 'package:stopandgo/core/storage/app_storage.dart';
+import 'package:stopandgo/routes/app_routes.dart';
 import '../../../core/network/api_repository.dart';
 
 class NoCategoryController extends GetxController {
@@ -7,22 +10,16 @@ class NoCategoryController extends GetxController {
   final isLoading = false.obs;
   final error = RxnString();
 
-  @override
-  void onInit() {
-    super.onInit();
-    // TODO: init logic
-  }
-
-  Future<void> load() async {
+  Future<void> logout() async {
     try {
-      isLoading.value = true;
-      error.value = null;
-      // TODO: consume repo
-    } catch (e) {
-      error.value = e.toString();
+      final tokenStorage = Get.find<TokenStorage>();
+      tokenStorage.clear();
+      AppStorage.clearAll();
+      await _api.logout();
+    } catch (_) {
+      Get.offAllNamed(Routes.login);
     } finally {
-      isLoading.value = false;
+      Get.offAllNamed(Routes.login);
     }
   }
 }
-

@@ -5,6 +5,7 @@ import 'package:stopandgo/core/config/flavor_config.dart';
 import 'package:stopandgo/core/constants/api_endpoints.dart';
 import 'package:stopandgo/core/models/category.dart';
 import 'package:stopandgo/core/models/dashboard_models.dart';
+import 'package:stopandgo/core/models/dto/notice_model.dart';
 import 'package:stopandgo/core/models/dto/payment_dto.dart';
 import 'package:stopandgo/core/models/dto/payment_provider_intent_dto.dart';
 import 'package:stopandgo/core/models/ecommerce/checkout_result_model.dart';
@@ -1052,6 +1053,83 @@ class ApiRepository {
 
     final map = Map<String, dynamic>.from(res.data as Map);
     return ParentDashboardResponse.fromJson(map);
+  }
+
+  /// GET /dashboards/staff
+  Future<StaffDashboard> getStaffDashboard() async {
+    final res = await _dio.get(
+      '/dashboards/staff',
+      options: Options(headers: _headers()),
+    );
+
+    if (res.data is! Map) {
+      throw Exception('Respuesta inesperada en dashboard parent');
+    }
+
+    final map = Map<String, dynamic>.from(res.data as Map);
+    return StaffDashboard.fromJson(map);
+  }
+
+  Future<List<Game>> getStaffGames({
+    String? status, // opcional: scheduled|finished|canceled|...
+    DateTime? from, // opcional
+    DateTime? to, // opcional
+    int limit = 50, // opcional (backend max 200)
+  }) async {
+    final query = <String, dynamic>{
+      if (status != null && status.isNotEmpty) 'status': status,
+      if (from != null) 'from': _toYmd(from),
+      if (to != null) 'to': _toYmd(to),
+      'limit': limit,
+    };
+
+    final res = await _dio.get(
+      '/staff/games',
+      queryParameters: query,
+      options: Options(headers: _headers()),
+    );
+
+    if (res.data is! Map) {
+      throw Exception('Respuesta inesperada en staff games');
+    }
+
+    final map = Map<String, dynamic>.from(res.data as Map);
+    final list = (map['games'] as List?) ?? const [];
+
+    return list
+        .map((e) => Game.fromJson(Map<String, dynamic>.from(e as Map)))
+        .toList();
+  }
+
+  /// GET /staff/notices
+  Future<List<Notice>> getStaffNotices({
+    bool published = true, // backend default true
+    int limit = 20, // backend max 200
+  }) async {
+    final res = await _dio.get(
+      '/staff/notices',
+      queryParameters: {'published': published, 'limit': limit},
+      options: Options(headers: _headers()),
+    );
+
+    if (res.data is! Map) {
+      throw Exception('Respuesta inesperada en staff notices');
+    }
+
+    final map = Map<String, dynamic>.from(res.data as Map);
+    final list = (map['notices'] as List?) ?? const [];
+
+    return list
+        .map((e) => Notice.fromJson(Map<String, dynamic>.from(e as Map)))
+        .toList();
+  }
+
+  /// helper: DateTime -> YYYY-MM-DD
+  String _toYmd(DateTime d) {
+    final dt = DateTime(d.year, d.month, d.day);
+    final mm = dt.month.toString().padLeft(2, '0');
+    final dd = dt.day.toString().padLeft(2, '0');
+    return '${dt.year}-$mm-$dd';
   }
 
   /// GET /dashboards/parent

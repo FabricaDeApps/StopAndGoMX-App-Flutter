@@ -1,251 +1,406 @@
+// lib/modules/home/tabs/payments_tab.dart
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:stopandgo/core/utils/money.dart';
-import 'package:stopandgo/modules/home/home_controller.dart';
+import 'package:stopandgo/modules/home/controllers/payments_controller.dart';
 import 'package:stopandgo/routes/app_routes.dart';
-
 import '../../../core/config/flavor_config.dart';
 
 class PaymentsTab extends StatelessWidget {
-  const PaymentsTab({super.key, required this.controller});
-  final HomeController controller;
+  const PaymentsTab({super.key});
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return Obx(() {
-      if (controller.isLoadingPayments.value) {
-        return const Center(child: CircularProgressIndicator());
-      }
+    return GetX<PaymentsController>(
+      init: PaymentsController(), // ✅ se instancia SOLO aquí
+      builder: (c) {
+        if (c.isLoading.value) {
+          return const Center(child: CircularProgressIndicator());
+        }
 
-      final list = controller.payments;
-      if (list.isEmpty) {
-        return Center(
-          child: Text('Sin pagos', style: theme.textTheme.bodyMedium),
-        );
-      }
-
-      return ListView.separated(
-        padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
-        itemCount: list.length,
-        separatorBuilder: (_, __) => const SizedBox(height: 8),
-        itemBuilder: (_, i) {
-          debugPrint('Flavor: ${FlavorConfig.I.flavor}');
-          debugPrint('Providers: ${FlavorConfig.I.paymentProvider}');
-
-          final canPayCard = FlavorConfig.I.isPaymentProvider('mercadopago');
-          final p = list[i];
-          final paid = p.status == 'paid';
-          final partial = p.status == 'partial';
-
-          // 💰 Total recibido (suma de recibos)
-          final totalRecibido = p.receipts.fold<double>(
-            0.0,
-            (sum, r) => sum + r.amount,
-          );
-
-          // 💳 Monto efectivo después de descuentos
-          final effectiveAmount = p.netAmount; // <- ya viene del backend/DTO
-
-          // 🧮 Saldo = neto - pagado
-          final balance = (effectiveAmount - totalRecibido).clamp(
-            0,
-            double.infinity,
-          );
-
-          Color chipColor;
-          String chipText;
-          if (paid) {
-            chipColor = Colors.green;
-            chipText = 'Pagado';
-          } else if (partial) {
-            chipColor = Colors.orange;
-            chipText = 'Parcial';
-          } else {
-            chipColor = Colors.red;
-            chipText = 'Pendiente';
-          }
-
-          return Card(
-            elevation: 0,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: ExpansionTile(
-              tilePadding: const EdgeInsets.symmetric(
-                horizontal: 16,
-                vertical: 8,
-              ),
-              childrenPadding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
-              leading: CircleAvatar(
-                backgroundColor: theme.colorScheme.primary.withOpacity(.12),
-                child: const Icon(Icons.receipt_long),
-              ),
-              title: Text(
-                p.concept,
-                style: const TextStyle(fontWeight: FontWeight.w600),
-              ),
-              subtitle: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  if (p.playerName != null && p.playerName!.isNotEmpty)
-                    Text(p.playerName!, style: theme.textTheme.bodySmall),
-                  const SizedBox(height: 2),
-
-                  // Línea principal con Monto/Neto/Pagado/Saldo
-                  Text(
-                    // Monto original + neto si hay descuento
-                    p.hasDiscount
-                        ? 'Monto: \$${p.amount.toStringAsFixed(2)}\n'
-                              'Neto: ${effectiveAmount.toStringAsFixed(2)} \n'
-                              'Pagado: ${totalRecibido.toStringAsFixed(2)} \n'
-                              'Saldo: ${balance.toStringAsFixed(2)}'
-                        : 'Monto: ${money(p.amount)} \n'
-                              'Pagado: ${money(totalRecibido)} \n'
-                              'Saldo: ${money(double.parse(balance.toString()))}',
-                    style: theme.textTheme.bodySmall,
-                  ),
-
-                  // Línea corta con el total descontado
-                  if (p.hasDiscount) ...[
-                    const SizedBox(height: 2),
-                    Text(
-                      'Descuento aplicado: -\$${p.discountsSumAmount.toStringAsFixed(2)}',
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: theme.colorScheme.primary,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ],
-
-                  if (p.dueDate != null) ...[
-                    const SizedBox(height: 2),
-                    Text(
-                      'Vence: ${_fmtDateOnly(p.dueDate!)}',
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: theme.colorScheme.onSurfaceVariant,
-                      ),
-                    ),
-                  ],
-                ],
-              ),
-              trailing: Column(
+        if (c.error.value != null) {
+          return Center(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
                 mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
-                  Chip(
-                    label: Text(
-                      chipText,
-                      style: const TextStyle(color: Colors.white),
-                    ),
-                    backgroundColor: chipColor,
+                  Text(c.error.value!, textAlign: TextAlign.center),
+                  const SizedBox(height: 12),
+                  FilledButton.icon(
+                    onPressed: c.loadPayments,
+                    icon: const Icon(Icons.refresh),
+                    label: const Text('Reintentar'),
                   ),
                 ],
               ),
-              children: [
-                // 🔹 Detalle de DESCUENTOS (si hay)
-                if (p.hasDiscount && p.discounts.isNotEmpty) ...[
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: 4),
-                    child: Text(
-                      'Descuentos aplicados',
-                      style: theme.textTheme.titleSmall?.copyWith(
-                        fontWeight: FontWeight.w600,
+            ),
+          );
+        }
+
+        final list = c.filteredPayments;
+
+        return Column(
+          children: [
+            // ✅ Filtros
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+              child: Column(
+                children: [
+                  // Buscador
+                  TextField(
+                    onChanged: c.setQuery,
+                    decoration: InputDecoration(
+                      prefixIcon: const Icon(Icons.search),
+                      hintText: 'Buscar por jugador o concepto…',
+                      isDense: true,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(14),
                       ),
+                      suffixIcon: Obx(() {
+                        final hasText = c.query.value.trim().isNotEmpty;
+                        if (!hasText) return const SizedBox.shrink();
+                        return IconButton(
+                          icon: const Icon(Icons.clear),
+                          onPressed: () => c.setQuery(''),
+                        );
+                      }),
                     ),
                   ),
-                  ...p.discounts.map((d) {
-                    return ListTile(
-                      dense: true,
-                      contentPadding: EdgeInsets.zero,
-                      leading: const Icon(Icons.local_offer),
-                      title: Text('-\$${d.amount.toStringAsFixed(2)}'),
-                      subtitle: Text(
-                        d.createdAt != null
-                            ? 'Fecha: ${_fmtDateOnly(d.createdAt!)}'
-                            : 'Sin fecha',
-                      ),
-                    );
-                  }),
-                  const Divider(),
-                ],
+                  const SizedBox(height: 10),
 
-                // 🔹 Detalle de RECIBOS
-                if (p.receipts.isEmpty)
-                  Text('Sin recibos', style: theme.textTheme.bodySmall),
-                if (p.receipts.isNotEmpty)
-                  ...p.receipts.map((r) {
-                    return ListTile(
-                      contentPadding: EdgeInsets.zero,
-                      leading: const Icon(Icons.attach_money),
-                      title: Text(
-                        '\$${r.amount.toStringAsFixed(2)} • ${r.method}',
-                      ),
-                      subtitle: Text(
-                        '${_fmtDateTime(r.paidAt)}'
-                        '${r.reference != null ? ' · Ref: ${r.reference}' : ''}',
-                      ),
-                      trailing: r.url != null
-                          ? IconButton(
-                              icon: const Icon(Icons.open_in_new),
-                              tooltip: 'Ver comprobante',
-                              onPressed: () => _openReceipt(context, r.url!),
-                            )
-                          : null,
-                    );
-                  }),
-
-                if (!paid)
+                  // Chips: Status
                   Align(
-                    alignment: Alignment.centerRight,
-                    child: Padding(
-                      padding: const EdgeInsets.only(top: 8),
-                      child: Wrap(
+                    alignment: Alignment.centerLeft,
+                    child: Obx(() {
+                      final selected = c.statusFilter.value;
+                      return Wrap(
                         spacing: 8,
                         runSpacing: 8,
-                        alignment: WrapAlignment.end,
-                        children: [
-                          FilledButton.icon(
-                            icon: const Icon(Icons.payments_outlined),
-                            label: const Text('Pagar'),
-                            onPressed: () async {
-                              await Get.toNamed(
-                                Routes.makePayment,
-                                arguments: {'paymentId': p.id},
-                              );
-                              controller.loadPaymentsTab();
-                            },
-                          ),
+                        children: PaymentStatusFilter.values.map((f) {
+                          final isSel = f == selected;
+                          return ChoiceChip(
+                            label: Text(f.label),
+                            selected: isSel,
+                            onSelected: (_) => c.setStatusFilter(f),
+                          );
+                        }).toList(),
+                      );
+                    }),
+                  ),
+                  const SizedBox(height: 8),
 
-                          if (canPayCard)
-                            Obx(
-                              () => FilledButton.icon(
-                                icon: controller.isPayingWithCard.value
-                                    ? const SizedBox(
-                                        width: 18,
-                                        height: 18,
-                                        child: CircularProgressIndicator(
-                                          strokeWidth: 2,
-                                        ),
-                                      )
-                                    : const Icon(Icons.credit_card),
-                                label: const Text('Pagar con tarjeta'),
-                                onPressed: controller.isPayingWithCard.value
-                                    ? null
-                                    : () => controller.payWithCard(p.id),
+                  // Chips: Due + limpiar
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Obx(() {
+                          final selected = c.dueFilter.value;
+                          return Wrap(
+                            spacing: 8,
+                            runSpacing: 8,
+                            children: PaymentDueFilter.values.map((f) {
+                              final isSel = f == selected;
+                              return ChoiceChip(
+                                label: Text(f.label),
+                                selected: isSel,
+                                onSelected: (_) => c.setDueFilter(f),
+                              );
+                            }).toList(),
+                          );
+                        }),
+                      ),
+                      TextButton.icon(
+                        onPressed: c.clearFilters,
+                        icon: const Icon(Icons.filter_alt_off),
+                        label: const Text('Limpiar'),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+
+            const SizedBox(height: 8),
+            const Divider(height: 1),
+
+            // ✅ Lista
+            Expanded(
+              child: list.isEmpty
+                  ? Center(
+                      child: Text(
+                        'Sin pagos con esos filtros',
+                        style: theme.textTheme.bodyMedium,
+                      ),
+                    )
+                  : ListView.separated(
+                      padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+                      itemCount: list.length,
+                      separatorBuilder: (_, __) => const SizedBox(height: 8),
+                      itemBuilder: (_, i) {
+                        final canPayCard = FlavorConfig.I.isPaymentProvider(
+                          'mercadopago',
+                        );
+
+                        final p = list[i];
+                        final paid = p.status == 'paid';
+                        final partial = p.status == 'partial';
+
+                        final now = DateTime.now();
+                        final today = DateTime(now.year, now.month, now.day);
+
+                        final isOverdue =
+                            !paid &&
+                            p.dueDate != null &&
+                            p.dueDate!.isBefore(today);
+                        final overdueColor = Colors.amber.withOpacity(0.12);
+
+                        // 💰 Total recibido (suma de recibos)
+                        final totalRecibido = p.receipts.fold<double>(
+                          0.0,
+                          (sum, r) => sum + r.amount,
+                        );
+
+                        // 💳 Monto efectivo después de descuentos
+                        final effectiveAmount = p.netAmount;
+
+                        // 🧮 Saldo = neto - pagado
+                        final double balance = (effectiveAmount - totalRecibido)
+                            .clamp(0, double.infinity);
+
+                        Color chipColor;
+                        String chipText;
+                        if (paid) {
+                          chipColor = Colors.green;
+                          chipText = 'Pagado';
+                        } else if (partial) {
+                          chipColor = Colors.orange;
+                          chipText = 'Parcial';
+                        } else {
+                          chipColor = Colors.red;
+                          chipText = 'Pendiente';
+                        }
+
+                        return Card(
+                          elevation: 0,
+                          color: isOverdue ? overdueColor : null,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          child: ExpansionTile(
+                            tilePadding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 8,
+                            ),
+                            childrenPadding: const EdgeInsets.fromLTRB(
+                              16,
+                              0,
+                              16,
+                              12,
+                            ),
+                            leading: CircleAvatar(
+                              backgroundColor: theme.colorScheme.primary
+                                  .withOpacity(.12),
+                              child: const Icon(Icons.receipt_long),
+                            ),
+                            title: Text(
+                              p.concept,
+                              style: const TextStyle(
+                                fontWeight: FontWeight.w600,
                               ),
                             ),
-                        ],
-                      ),
+                            subtitle: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                if (p.playerName != null &&
+                                    p.playerName!.isNotEmpty)
+                                  Text(
+                                    p.playerName!,
+                                    style: theme.textTheme.bodySmall,
+                                  ),
+                                const SizedBox(height: 2),
+
+                                Text(
+                                  p.hasDiscount
+                                      ? 'Monto: \$${p.amount.toStringAsFixed(2)}\n'
+                                            'Neto: ${effectiveAmount.toStringAsFixed(2)} \n'
+                                            'Pagado: ${totalRecibido.toStringAsFixed(2)} \n'
+                                            'Saldo: ${balance.toStringAsFixed(2)}'
+                                      : 'Monto: ${money(p.amount)} \n'
+                                            'Pagado: ${money(totalRecibido)} \n'
+                                            'Saldo: ${money(balance)}',
+                                  style: theme.textTheme.bodySmall,
+                                ),
+
+                                if (p.hasDiscount) ...[
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    'Descuento aplicado: -\$${p.discountsSumAmount.toStringAsFixed(2)}',
+                                    style: theme.textTheme.bodySmall?.copyWith(
+                                      color: theme.colorScheme.primary,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ],
+
+                                if (p.dueDate != null) ...[
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    'Vence: ${_fmtDateOnly(p.dueDate!)}',
+                                    style: theme.textTheme.bodySmall?.copyWith(
+                                      color: theme.colorScheme.onSurfaceVariant,
+                                    ),
+                                  ),
+                                ],
+                              ],
+                            ),
+                            trailing: Chip(
+                              label: Text(
+                                chipText,
+                                style: const TextStyle(color: Colors.white),
+                              ),
+                              backgroundColor: chipColor,
+                            ),
+                            children: [
+                              // 🔹 Detalle de DESCUENTOS
+                              if (p.hasDiscount && p.discounts.isNotEmpty) ...[
+                                Padding(
+                                  padding: const EdgeInsets.only(bottom: 4),
+                                  child: Text(
+                                    'Descuentos aplicados',
+                                    style: theme.textTheme.titleSmall?.copyWith(
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ),
+                                ...p.discounts.map((d) {
+                                  return ListTile(
+                                    dense: true,
+                                    contentPadding: EdgeInsets.zero,
+                                    leading: const Icon(Icons.local_offer),
+                                    title: Text(
+                                      '-\$${d.amount.toStringAsFixed(2)}',
+                                    ),
+                                    subtitle: Text(
+                                      d.createdAt != null
+                                          ? 'Fecha: ${_fmtDateOnly(d.createdAt!)}'
+                                          : 'Sin fecha',
+                                    ),
+                                  );
+                                }),
+                                const Divider(),
+                              ],
+
+                              // 🔹 Detalle de RECIBOS
+                              if (p.receipts.isEmpty)
+                                Text(
+                                  'Sin recibos',
+                                  style: theme.textTheme.bodySmall,
+                                ),
+                              if (p.receipts.isNotEmpty)
+                                ...p.receipts.map((r) {
+                                  return ListTile(
+                                    contentPadding: EdgeInsets.zero,
+                                    leading: const Icon(Icons.attach_money),
+                                    title: Text(
+                                      '\$${r.amount.toStringAsFixed(2)} • ${r.method}',
+                                    ),
+                                    subtitle: Text(
+                                      '${_fmtDateTime(r.paidAt)}'
+                                      '${r.reference != null ? ' · Ref: ${r.reference}' : ''}',
+                                    ),
+                                    trailing: r.url != null
+                                        ? IconButton(
+                                            icon: const Icon(Icons.open_in_new),
+                                            tooltip: 'Ver comprobante',
+                                            onPressed: () =>
+                                                _openReceipt(context, r.url!),
+                                          )
+                                        : null,
+                                  );
+                                }),
+
+                              // ✅ Botones de pago
+                              if (!paid)
+                                Align(
+                                  alignment: Alignment.centerRight,
+                                  child: Padding(
+                                    padding: const EdgeInsets.only(top: 8),
+                                    child: Wrap(
+                                      spacing: 8,
+                                      runSpacing: 8,
+                                      alignment: WrapAlignment.end,
+                                      children: [
+                                        FilledButton.icon(
+                                          icon: const Icon(
+                                            Icons.payments_outlined,
+                                          ),
+                                          label: const Text('Pagar'),
+                                          onPressed: () async {
+                                            await Get.toNamed(
+                                              Routes.makePayment,
+                                              arguments: {'paymentId': p.id},
+                                            );
+                                            await c.loadPayments();
+                                          },
+                                        ),
+
+                                        if (canPayCard)
+                                          Obx(
+                                            () => FilledButton.icon(
+                                              icon: c.isPayingWithCard.value
+                                                  ? const SizedBox(
+                                                      width: 18,
+                                                      height: 18,
+                                                      child:
+                                                          CircularProgressIndicator(
+                                                            strokeWidth: 2,
+                                                          ),
+                                                    )
+                                                  : const Icon(
+                                                      Icons.credit_card,
+                                                    ),
+                                              label: const Text(
+                                                'Pagar con tarjeta',
+                                              ),
+                                              onPressed:
+                                                  c.isPayingWithCard.value
+                                                  ? null
+                                                  : () async {
+                                                      // Aquí conecta tu flujo real:
+                                                      // 1) mover payWithCard al PaymentsController
+                                                      // 2) o llamar un método del repo directo
+                                                      //
+                                                      // Por ahora solo te pongo un placeholder seguro:
+                                                      // await c.payWithCardReal(p.id);
+
+                                                      // Si aún no lo migras, no lo ejecuto para no romper.
+                                                      Get.snackbar(
+                                                        'Pendiente',
+                                                        'Migra el flujo de tarjeta al PaymentsController para habilitarlo aquí.',
+                                                        snackPosition:
+                                                            SnackPosition
+                                                                .BOTTOM,
+                                                      );
+                                                    },
+                                            ),
+                                          ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                            ],
+                          ),
+                        );
+                      },
                     ),
-                  ),
-              ],
             ),
-          );
-        },
-      );
-    });
+          ],
+        );
+      },
+    );
   }
 
   static String _fmtDateOnly(DateTime d) =>

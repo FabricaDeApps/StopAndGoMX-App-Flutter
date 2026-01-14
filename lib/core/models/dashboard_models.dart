@@ -235,3 +235,25 @@ class ParentDashboardResponse {
     );
   }
 }
+
+class StaffDashboard {
+  final List<Game> upcomingGames;
+  final DashboardNotice? lastNotice;
+
+  StaffDashboard({required this.upcomingGames, required this.lastNotice});
+
+  factory StaffDashboard.fromJson(Map<String, dynamic> json) {
+    final gamesJson = (json['upcomingGames'] as List<dynamic>? ?? []);
+
+    return StaffDashboard(
+      upcomingGames: gamesJson
+          .map((e) => Game.fromJson(e as Map<String, dynamic>))
+          .toList(),
+      lastNotice: json['last_notice'] != null
+          ? DashboardNotice.fromJson(
+              json['last_notice'] as Map<String, dynamic>,
+            )
+          : null,
+    );
+  }
+}
