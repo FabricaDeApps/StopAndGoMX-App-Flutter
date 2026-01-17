@@ -113,8 +113,14 @@ class Game {
   final int? opponentScore;
 
   final String? notes;
-  final String? evidence; // en payload viene como "evidece"
+  final String? evidence; // backend: "evidece"
   final String? evidenceUrl; // "evidece_url"
+
+  // ===== LIVE / STREAMING =====
+  final String? liveStatus; // 'live' | 'replay' | null
+  final bool? canWatchLive; // true | false | null
+  final int? liveEventId; // último live_event.id
+  final String? livePlayUrl; // HLS o WebRTC playback
 
   final DateTime? createdAt;
   final DateTime? updatedAt;
@@ -143,6 +149,13 @@ class Game {
     this.notes,
     this.evidence,
     this.evidenceUrl,
+
+    // 👇 nuevos
+    this.liveStatus,
+    this.canWatchLive,
+    this.liveEventId,
+    this.livePlayUrl,
+
     this.createdAt,
     this.updatedAt,
   });
@@ -181,7 +194,7 @@ class Game {
     // Si el backend también manda venue_id separado, lo respetamos
     venueId ??= (json['venue_id'] as num?)?.toInt();
 
-    // address/city/lat/lng: prioriza venueObj si existe, si no usa campos planos
+    // address/city/lat/lng: prioriza venueObj si existe
     final resolvedAddress = venueObj?.address ?? json['address']?.toString();
     final resolvedCity = venueObj?.city ?? json['city']?.toString();
     final resolvedLat = venueObj?.lat ?? _parseDouble(json['lat']);
@@ -209,8 +222,15 @@ class Game {
       homeScore: (json['home_score'] as num?)?.toInt(),
       opponentScore: (json['opponent_score'] as num?)?.toInt(),
       notes: json['notes']?.toString(),
-      evidence: json['evidece']?.toString(), // ojo: backend lo manda con typo
-      evidenceUrl: json['evidece_url']?.toString(), // idem
+      evidence: json['evidece']?.toString(),
+      evidenceUrl: json['evidece_url']?.toString(),
+
+      // ===== LIVE =====
+      liveStatus: json['live_status']?.toString(),
+      canWatchLive: json['can_watch_live'] as bool?,
+      liveEventId: (json['live_event_id'] as num?)?.toInt(),
+      livePlayUrl: json['live_play_url']?.toString(),
+
       createdAt: _parseDate(json['created_at']),
       updatedAt: _parseDate(json['updated_at']),
     );
@@ -225,13 +245,8 @@ class Game {
     'opponent_notes': opponentNotes,
     'starts_at': startsAt?.toIso8601String(),
     'duration_minutes': durationMinutes,
-
-    // Puedes mandar venue_id al backend (recomendado)
     'venue_id': venueId,
-
-    // Si necesitas enviar el objeto completo a algún cache/local:
     'venue': venueObj?.toJson() ?? venue,
-
     'address': address,
     'city': city,
     'lat': lat,
@@ -244,9 +259,22 @@ class Game {
     'notes': notes,
     'evidece': evidence,
     'evidece_url': evidenceUrl,
+
+    // live (solo lectura normalmente)
+    'live_status': liveStatus,
+    'can_watch_live': canWatchLive,
+    'live_event_id': liveEventId,
+    'live_play_url': livePlayUrl,
+
     'created_at': createdAt?.toIso8601String(),
     'updated_at': updatedAt?.toIso8601String(),
   };
+
+  // ===== Helpers útiles para UI =====
+  bool get hasLive => canWatchLive == true && liveEventId != null;
+  bool get isLiveNow => liveStatus == 'live';
+  bool get isReplay => liveStatus == 'replay';
+  bool get isFinished => liveStatus == 'finished';
 }
 
 List<Game> gameDtoListFromData(dynamic data) {

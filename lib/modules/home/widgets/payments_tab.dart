@@ -14,7 +14,7 @@ class PaymentsTab extends StatelessWidget {
     final theme = Theme.of(context);
 
     return GetX<PaymentsController>(
-      init: PaymentsController(), // ✅ se instancia SOLO aquí
+      init: PaymentsController(),
       builder: (c) {
         if (c.isLoading.value) {
           return const Center(child: CircularProgressIndicator());
@@ -44,12 +44,10 @@ class PaymentsTab extends StatelessWidget {
 
         return Column(
           children: [
-            // ✅ Filtros
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
               child: Column(
                 children: [
-                  // Buscador
                   TextField(
                     onChanged: c.setQuery,
                     decoration: InputDecoration(
@@ -368,23 +366,7 @@ class PaymentsTab extends StatelessWidget {
                                               onPressed:
                                                   c.isPayingWithCard.value
                                                   ? null
-                                                  : () async {
-                                                      // Aquí conecta tu flujo real:
-                                                      // 1) mover payWithCard al PaymentsController
-                                                      // 2) o llamar un método del repo directo
-                                                      //
-                                                      // Por ahora solo te pongo un placeholder seguro:
-                                                      // await c.payWithCardReal(p.id);
-
-                                                      // Si aún no lo migras, no lo ejecuto para no romper.
-                                                      Get.snackbar(
-                                                        'Pendiente',
-                                                        'Migra el flujo de tarjeta al PaymentsController para habilitarlo aquí.',
-                                                        snackPosition:
-                                                            SnackPosition
-                                                                .BOTTOM,
-                                                      );
-                                                    },
+                                                  : () => c.payWithCard(p.id),
                                             ),
                                           ),
                                       ],

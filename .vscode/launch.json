@@ -2,12 +2,29 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "Run StopAndGo",
+      "name": "Run StopAndGo (LOCAL)",
       "request": "launch",
       "type": "dart",
       "flutterMode": "debug",
       "program": "lib/main_mainapp.dart",
-      "args": ["--flavor", "mainapp"],
+      "args": [
+        "--flavor",
+        "mainapp",
+        "--dart-define=API_ENV=local"
+      ],
+      "preLaunchTask": "prepare-stopandgo-assets"
+    },
+    {
+      "name": "Run StopAndGo (PROD)",
+      "request": "launch",
+      "type": "dart",
+      "flutterMode": "debug",
+      "program": "lib/main_mainapp.dart",
+      "args": [
+        "--flavor",
+        "mainapp",
+        "--dart-define=API_ENV=prod"
+      ],
       "preLaunchTask": "prepare-stopandgo-assets"
     },
     {

@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:stopandgo/core/models/dto/payment_dto.dart';
 import 'package:stopandgo/core/network/api_repository.dart';
 import 'package:stopandgo/core/storage/app_storage.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 enum PaymentStatusFilter { all, paid, pending, partial }
 
@@ -41,24 +42,58 @@ class PaymentsController extends GetxController {
   // UI states
   final isPayingWithCard = false.obs;
 
-  late final int categoryId;
-
   @override
   void onInit() {
     super.onInit();
-    categoryId = AppStorage.getSelectedCategoryId() ?? 0;
     loadPayments();
   }
 
   Future<void> loadPayments() async {
     isLoading.value = true;
     error.value = null;
+
     try {
-      // Ajusta al método real que ya tengas
-      final list = await _api.managerCategoryPayments(categoryId: categoryId);
+      final user = AppStorage.getUser();
+      if (user == null) {
+        error.value = 'Sesión no encontrada. Inicia sesión de nuevo.';
+        payments.clear();
+        return;
+      }
+
+      List<PaymentDto> list = const [];
+
+      if (user.role == 'manager') {
+        final categoryId = AppStorage.getSelectedCategoryId();
+
+        // ✅ IMPORTANTÍSIMO: nunca mandar 0
+        if (categoryId == null || categoryId <= 0) {
+          error.value =
+              'No hay categoría seleccionada. Regresa y selecciona una categoría.';
+          payments.clear();
+          return;
+        }
+
+        list = await _api.managerCategoryPayments(categoryId: categoryId);
+      } else if (user.role == 'parent') {
+        final playerId = AppStorage.getSelectedPlayerId();
+
+        if (playerId == null || playerId <= 0) {
+          error.value =
+              'No hay jugador seleccionado. Regresa y selecciona un jugador.';
+          payments.clear();
+          return;
+        }
+
+        list = await _api.playerMyPayments(playerId: playerId);
+      } else {
+        // player / otros roles con pagos propios
+        list = await _api.myPayments();
+      }
+
       payments.assignAll(list);
     } catch (e) {
       error.value = 'Error al cargar pagos: $e';
+      payments.clear();
     } finally {
       isLoading.value = false;
     }
@@ -77,6 +112,7 @@ class PaymentsController extends GetxController {
   List<PaymentDto> get filteredPayments {
     final list = payments.toList();
     final q = query.value.trim().toLowerCase();
+
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
     final dueSoonLimit = today.add(Duration(days: dueSoonDays.value));
@@ -113,7 +149,6 @@ class PaymentsController extends GetxController {
       return true;
     }).toList();
 
-    // orden opcional: por dueDate asc, luego id desc
     out.sort((a, b) {
       final far = DateTime(2100);
       final ad = a.dueDate ?? far;
@@ -126,17 +161,22 @@ class PaymentsController extends GetxController {
     return out;
   }
 
-  /// Si tu flujo de pagar con tarjeta vive en HomeController hoy,
-  /// lo ideal es moverlo aquí (llamar API y navegar).
-  /// Por ahora dejo el “wrapper” para que lo conectes a tu método real.
-  Future<void> payWithCard(
-    int paymentId,
-    Future<void> Function() action,
-  ) async {
+  Future<void> payWithCard(int paymentId) async {
+    if (isPayingWithCard.value) return;
+
     isPayingWithCard.value = true;
+
     try {
-      await action();
-      await loadPayments();
+      final intent = await _api.createMercadoPagoIntent(paymentId: paymentId);
+
+      final uri = Uri.parse(intent.initUrl);
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    } catch (e) {
+      Get.snackbar(
+        'Pago con tarjeta',
+        'No se pudo iniciar el pago: $e',
+        snackPosition: SnackPosition.BOTTOM,
+      );
     } finally {
       isPayingWithCard.value = false;
     }

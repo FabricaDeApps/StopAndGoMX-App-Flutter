@@ -34,4 +34,7 @@ abstract class Routes {
   static const ecommerceOrderResult = '/ecommerceOrderResult';
   static const ecommerceOrders = '/ecommerceOrders';
   static const ecommerceOrderDetail = '/ecommerceOrderDetail';
+  static const initLive = '/initLive';
+  static const broadcastLive = '/broadcastLive';
+  static const watchLive = '/watchLive';
 }

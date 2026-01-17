@@ -4,6 +4,11 @@ Todos los cambios importantes del proyecto **StopAndGoMX** se documentan en este
 El formato sigue las recomendaciones de **Keep a Changelog**  
 y el versionado está basado en **Semantic Versioning (SemVer)**.
 
+## [1.0.25] - 2026-1-15
+- Fix en pagos
+- Stream
+- Fix en games
+
 ## [1.0.23] - 2026-1-13
 - Filtros en pagos
 - Role de Staff

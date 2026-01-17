@@ -97,45 +97,46 @@ class HomeController extends GetxController with GetTickerProviderStateMixin {
   }
 
   @override
-  Future<void> onReady() async {
-    super.onReady();
+  void onInit() {
+    super.onInit();
+
     org.value = AppStorage.getOrganization();
     _loadSession();
 
     tabs.value = FlavorConfig.I.getTabsForRole(userRole.value);
+
+    // ✅ crear controller aquí (antes de build)
     tabController = TabController(length: tabs.length, vsync: this);
 
-    tabController.addListener(() async {
-      // 🔥 evita múltiples triggers durante animación/cambio
-      if (tabController.indexIsChanging) return;
+    tabController!.addListener(() async {
+      if (tabController!.indexIsChanging) return;
 
-      final idx = tabController.index;
-
-      // 🔥 evita pegar 2 veces al mismo tab por listeners
+      final idx = tabController!.index;
       if (_lastLoadedTabIndex == idx) return;
       _lastLoadedTabIndex = idx;
 
       currentTab.value = idx;
 
       final tabKey = tabs[idx];
-
       switch (tabKey) {
         case 'games':
           await loadTabGameContent();
           break;
-
         case 'payments':
           await loadPaymentsTab();
           break;
-
         case 'notices':
           await loadNoticesTab();
           break;
-
-        default:
-          break;
       }
     });
+
+    _lastLoadedTabIndex = 0;
+  }
+
+  @override
+  Future<void> onReady() async {
+    super.onReady();
 
     switch (userRole.value) {
       case 'manager':

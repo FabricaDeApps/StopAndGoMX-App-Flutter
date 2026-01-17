@@ -4,6 +4,8 @@ import 'package:stopandgo/modules/assign_player/index.dart';
 import 'package:stopandgo/modules/attendece_game/index.dart';
 import 'package:stopandgo/modules/auth/login_binding.dart';
 import 'package:stopandgo/modules/auth/login_view.dart';
+import 'package:stopandgo/modules/broadcast_live/broadcast_live_view.dart';
+import 'package:stopandgo/modules/broadcast_live/index.dart';
 import 'package:stopandgo/modules/complete_game/complete_game_binding.dart';
 import 'package:stopandgo/modules/complete_game/complete_game_view.dart';
 import 'package:stopandgo/modules/create_trainning/index.dart';
@@ -28,6 +30,8 @@ import 'package:stopandgo/modules/ecommerce_products/index.dart';
 import 'package:stopandgo/modules/home/index.dart';
 import 'package:stopandgo/modules/image_view/image_binding.dart';
 import 'package:stopandgo/modules/image_view/image_view.dart';
+import 'package:stopandgo/modules/init_live/index.dart';
+import 'package:stopandgo/modules/init_live/init_live_view.dart';
 import 'package:stopandgo/modules/make_payment/index.dart';
 import 'package:stopandgo/modules/my_profile/index.dart';
 import 'package:stopandgo/modules/my_profile/my_profile_view.dart';
@@ -53,6 +57,8 @@ import 'package:stopandgo/modules/splash/splash_view.dart';
 import 'package:stopandgo/modules/training_attendance/index.dart';
 import 'package:stopandgo/modules/training_attendance/training_attendance_view.dart';
 import 'package:stopandgo/modules/trainnings/index.dart';
+import 'package:stopandgo/modules/watch_live/index.dart';
+import 'package:stopandgo/modules/watch_live/watch_live_view.dart';
 
 part 'app_routes_names.dart';
 
@@ -219,6 +225,21 @@ class AppPages {
       name: Routes.ecommerceOrderDetail,
       page: () => const EcommerceOrderDetailView(),
       binding: EcommerceOrderDetailBinding(),
+    ),
+    GetPage(
+      name: Routes.initLive,
+      page: () => const InitLiveView(),
+      binding: InitLiveBinding(),
+    ),
+    GetPage(
+      name: Routes.broadcastLive,
+      page: () => const BroadcastLiveView(),
+      binding: BroadcastLiveBinding(),
+    ),
+    GetPage(
+      name: Routes.watchLive,
+      page: () => const WatchLiveView(),
+      binding: WatchLiveBinding(),
     ),
   ];
 }

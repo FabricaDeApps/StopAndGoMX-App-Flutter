@@ -9,6 +9,7 @@ class OrganizationResponse {
   // Flags
   final bool isActive;
   final bool isEcommerceAvailable;
+  final bool streamingEnabled;
 
   // Ecommerce
   final EcommerceConfig ecommerce;
@@ -26,6 +27,7 @@ class OrganizationResponse {
     required this.secondaryColor,
     required this.isActive,
     required this.isEcommerceAvailable,
+    required this.streamingEnabled,
     required this.ecommerce,
     this.androidUrl,
     this.iosUrl,
@@ -43,6 +45,7 @@ class OrganizationResponse {
       // Flags
       isActive: json['is_active'] ?? true,
       isEcommerceAvailable: json['is_ecommerce_available'] ?? false,
+      streamingEnabled: json['streaming_enabled'] ?? false,
 
       // Ecommerce
       ecommerce: EcommerceConfig.fromJson(json['ecommerce'] ?? const {}),
@@ -62,6 +65,7 @@ class OrganizationResponse {
     'secondary_color': secondaryColor,
     'is_active': isActive,
     'is_ecommerce_available': isEcommerceAvailable,
+    'streaming_enabled': streamingEnabled,
     'ecommerce': ecommerce.toJson(),
     'android_url': androidUrl,
     'ios_url': iosUrl,

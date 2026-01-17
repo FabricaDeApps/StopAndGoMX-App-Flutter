@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:get/get.dart';
 import 'package:intl/date_symbol_data_local.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
 
 import 'package:stopandgo/app_binding.dart';
 import 'package:stopandgo/core/services/notification_service.dart';
@@ -20,38 +21,53 @@ late FirebaseAnalytics firebaseAnalytics;
 late FirebaseAnalyticsObserver firebaseObserver;
 
 Future<void> main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-  await initializeDateFormatting('es_MX', null);
-  await AppStorage.init();
-  FlavorConfig.init(
-    flavor: AppFlavor.bearsqro,
-    appName: 'Bears Querétaro',
-    bundleId: 'app.stopandgomx.bearsqro',
-    organizationId: 18,
-    paymentProvider: 'mercadopago',
+  await SentryFlutter.init(
+    (options) {
+      options.dsn =
+          'https://492035ed33b2bfbfaf2b07a1871f910d@o4510723899129856.ingest.us.sentry.io/4510723974037504';
+      options.environment = FlavorConfig.I.flavor.name;
+      options.tracesSampleRate = 0.0;
+      options.sendDefaultPii = false;
+    },
+    appRunner: () async {
+      WidgetsFlutterBinding.ensureInitialized();
+      await Firebase.initializeApp(
+        options: DefaultFirebaseOptions.currentPlatform,
+      );
+      await initializeDateFormatting('es_MX', null);
+      await AppStorage.init();
+      FlavorConfig.init(
+        flavor: AppFlavor.bearsqro,
+        appName: 'Bears Querétaro',
+        bundleId: 'app.stopandgomx.bearsqro',
+        organizationId: 18,
+        paymentProvider: 'mercadopago',
+      );
+
+      firebaseAnalytics = FirebaseAnalytics.instance;
+      firebaseObserver = FirebaseAnalyticsObserver(
+        analytics: firebaseAnalytics,
+      );
+
+      await firebaseAnalytics.setUserProperty(
+        name: 'flavor',
+        value: FlavorConfig.I.flavor.name,
+      );
+
+      if (FlavorConfig.I.organizationId != null) {
+        await firebaseAnalytics.setUserProperty(
+          name: 'organization_id',
+          value: FlavorConfig.I.organizationId.toString(),
+        );
+      }
+
+      FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
+      await NotificationService.initialize();
+      await ApiClient.init();
+
+      runApp(MainApp());
+    },
   );
-
-  firebaseAnalytics = FirebaseAnalytics.instance;
-  firebaseObserver = FirebaseAnalyticsObserver(analytics: firebaseAnalytics);
-
-  await firebaseAnalytics.setUserProperty(
-    name: 'flavor',
-    value: FlavorConfig.I.flavor.name,
-  );
-
-  if (FlavorConfig.I.organizationId != null) {
-    await firebaseAnalytics.setUserProperty(
-      name: 'organization_id',
-      value: FlavorConfig.I.organizationId.toString(),
-    );
-  }
-
-  FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
-  await NotificationService.initialize();
-  await ApiClient.init();
-
-  runApp(MainApp());
 }
 
 class MainApp extends StatelessWidget {
@@ -77,6 +93,7 @@ class MainApp extends StatelessWidget {
           GlobalWidgetsLocalizations.delegate,
           GlobalCupertinoLocalizations.delegate,
         ],
+        navigatorObservers: [firebaseObserver, SentryNavigatorObserver()],
       );
     });
   }

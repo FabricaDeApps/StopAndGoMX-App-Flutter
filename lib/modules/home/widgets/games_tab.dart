@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:stopandgo/core/storage/app_storage.dart';
 import 'package:stopandgo/modules/home/home_controller.dart';
+import 'package:stopandgo/modules/home/widgets/live_breathing_badge.dart';
 import 'package:stopandgo/routes/app_routes.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -38,6 +40,11 @@ class GamesTab extends StatelessWidget {
     }
   }
 
+  bool _canStartLive(String role) {
+    // ajusta roles según tu sistema
+    return role == 'manager' || role == 'coach';
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -48,6 +55,7 @@ class GamesTab extends StatelessWidget {
       }
 
       final list = controller.upcomingGames;
+
       final listView = (list.isEmpty)
           ? Center(child: Text('Sin juegos', style: theme.textTheme.bodyMedium))
           : ListView.separated(
@@ -58,12 +66,28 @@ class GamesTab extends StatelessWidget {
                 final g = list[i];
                 final now = DateTime.now();
                 final isPast = g.startsAt != null && g.startsAt!.isBefore(now);
-                final canComplete =
-                    controller.userRole.value == 'manager' && isPast;
+
+                final role = controller.userRole.value;
+                final canComplete = role == 'manager' && isPast;
+                final canStartLive = _canStartLive(role);
+
+                final streamingEnabled =
+                    controller.org.value?.streamingEnabled ?? false;
 
                 final venueName = g.venueObj?.name ?? g.venue ?? '';
                 final labelForMaps =
                     '${g.opponent}${venueName.isNotEmpty ? ' · $venueName' : ''}';
+
+                // ✅ LIVE flags (backend: live | replay | null)
+                final liveStatus = (g.liveStatus ?? '').trim().toLowerCase();
+                final isLiveNow = liveStatus == 'live';
+                final isReplay = liveStatus == 'replay';
+
+                final liveEventId = g.liveEventId;
+                final playUrl = (g.livePlayUrl ?? '').trim();
+
+                // ✅ hasLive confiable
+                final hasLive = liveEventId != null && playUrl.isNotEmpty;
 
                 return ListTile(
                   shape: RoundedRectangleBorder(
@@ -98,7 +122,6 @@ class GamesTab extends StatelessWidget {
                           ),
                         ),
                       ],
-
                       if (g.status == 'completed') ...[
                         const SizedBox(height: 2),
                         Text(
@@ -111,12 +134,121 @@ class GamesTab extends StatelessWidget {
                       ],
                     ],
                   ),
-                  trailing: Row(
-                    mainAxisSize: MainAxisSize.min,
+                  trailing: Wrap(
+                    spacing: 2,
+                    runSpacing: 2,
+                    alignment: WrapAlignment.end,
+                    crossAxisAlignment: WrapCrossAlignment.center,
                     children: [
+                      // ===== LIVE / REPLAY =====
+                      if (streamingEnabled && hasLive) ...[
+                        // 🔴 LIVE (activo)
+                        if (g.liveStatus == 'live')
+                          IconButton(
+                            padding: EdgeInsets.zero,
+                            constraints: const BoxConstraints(
+                              minWidth: 36,
+                              minHeight: 36,
+                            ),
+                            visualDensity: VisualDensity.compact,
+                            icon: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const Icon(
+                                  Icons.live_tv_rounded,
+                                  color: Colors.red,
+                                  size: 20,
+                                ),
+                                const SizedBox(height: 2),
+                                const LiveBreathingBadge(
+                                  label: 'LIVE',
+                                  color: Colors.red,
+                                ),
+                              ],
+                            ),
+                            tooltip: 'Ver en vivo',
+                            onPressed: () async {
+                              if (liveEventId == null || playUrl.isEmpty)
+                                return;
+
+                              final we = AppStorage.getOrganization()!.name;
+                              final categ =
+                                  AppStorage.getSelectedCategoryName();
+
+                              await Get.toNamed(
+                                Routes.watchLive,
+                                arguments: {
+                                  'liveEventId': liveEventId,
+                                  'playUrl': playUrl,
+                                  'title': "${g.opponent} vs $we - $categ",
+                                },
+                              );
+
+                              controller.loadTabGameContent();
+                            },
+                          ),
+
+                        // ⚪ REPLAY / FINALIZADO (gris, inactivo)
+                        if (g.liveStatus == 'replay' ||
+                            g.liveStatus == 'finished')
+                          Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                Icons.play_circle_fill_rounded,
+                                color: Colors.grey.shade400,
+                                size: 20,
+                              ),
+                              const SizedBox(height: 2),
+                              const LiveBreathingBadge(
+                                label: 'Finalizado',
+                                color: Colors.grey,
+                                animate: false,
+                              ),
+                            ],
+                          ),
+                      ],
+
+                      // 🎥 Iniciar Live (solo manager/coach y streaming habilitado)
+                      if (streamingEnabled && canStartLive)
+                        IconButton(
+                          padding: EdgeInsets.zero,
+                          constraints: const BoxConstraints(
+                            minWidth: 36,
+                            minHeight: 36,
+                          ),
+                          visualDensity: VisualDensity.compact,
+                          icon: const Icon(Icons.videocam_outlined, size: 22),
+                          tooltip: 'Iniciar Live',
+                          onPressed: () async {
+                            final orgId =
+                                controller.org.value?.id ?? g.organizationId;
+                            final we = AppStorage.getOrganization()!.name;
+                            final categ = AppStorage.getSelectedCategoryName();
+
+                            await Get.toNamed(
+                              Routes.initLive,
+                              arguments: {
+                                'organizationId': orgId,
+                                'categoryId': g.categoryId,
+                                'gameId': g.id,
+                                'title': "${g.opponent} vs $we - $categ",
+                              },
+                            );
+
+                            controller.loadTabGameContent();
+                          },
+                        ),
+
                       // 🗺️ Google Maps
                       IconButton(
-                        icon: const Icon(Icons.map_outlined),
+                        padding: EdgeInsets.zero,
+                        constraints: const BoxConstraints(
+                          minWidth: 36,
+                          minHeight: 36,
+                        ),
+                        visualDensity: VisualDensity.compact,
+                        icon: const Icon(Icons.map_outlined, size: 22),
                         tooltip: 'Abrir en Google Maps',
                         onPressed: () => _openInGoogleMaps(
                           context: context,
@@ -126,14 +258,23 @@ class GamesTab extends StatelessWidget {
                         ),
                       ),
 
-                      // 🔹 Icono de asistencia (solo manager y mismo día)
-                      if (controller.userRole.value == 'manager' &&
+                      // 📋 Asistencia (manager, mismo día)
+                      if (role == 'manager' &&
                           g.startsAt != null &&
                           DateTime.now().year == g.startsAt!.year &&
                           DateTime.now().month == g.startsAt!.month &&
                           DateTime.now().day == g.startsAt!.day)
                         IconButton(
-                          icon: const Icon(Icons.playlist_add_check_rounded),
+                          padding: EdgeInsets.zero,
+                          constraints: const BoxConstraints(
+                            minWidth: 36,
+                            minHeight: 36,
+                          ),
+                          visualDensity: VisualDensity.compact,
+                          icon: const Icon(
+                            Icons.playlist_add_check_rounded,
+                            size: 22,
+                          ),
                           tooltip: 'Lista de asistencia',
                           onPressed: () async {
                             final result = await Get.toNamed(
@@ -149,10 +290,6 @@ class GamesTab extends StatelessWidget {
                             }
                           },
                         ),
-
-                      // 🔹 Ícono de completar solo si no está finalizado
-                      if (g.status != 'completed' && canComplete)
-                        const Icon(Icons.edit),
                     ],
                   ),
                   onTap: () async {
@@ -198,6 +335,8 @@ class GamesTab extends StatelessWidget {
       return Stack(
         children: [
           Positioned.fill(child: listView),
+
+          // ✅ Solo manager crea juegos
           if (controller.userRole.value == 'manager')
             Positioned(
               right: 16,

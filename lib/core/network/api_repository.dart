@@ -17,6 +17,7 @@ import 'package:stopandgo/core/models/players.dart';
 import 'package:stopandgo/core/models/responses/generic_response.dart';
 import 'package:stopandgo/core/models/responses/login_response.dart';
 import 'package:stopandgo/core/models/responses/organization_response.dart';
+import 'package:stopandgo/core/models/streaming/live_event.dart';
 import 'package:stopandgo/core/models/training.dart';
 import 'package:stopandgo/core/models/trainning_attendance.dart';
 import 'package:stopandgo/core/network/paginated_response.dart';
@@ -140,7 +141,7 @@ class ApiRepository {
       options: Options(headers: _headers()),
     );
 
-    final data = res.data['data']; // <- AQUÍ VIENE LA LISTA
+    final data = res.data['data'];
     return gameDtoListFromData(data);
   }
 
@@ -1462,5 +1463,66 @@ class ApiRepository {
     return EcommerceOrderDetailModel.fromJson(
       Map<String, dynamic>.from(res.data as Map),
     );
+  }
+
+  Future<LiveEventModel> createLiveEvent({
+    required int organizationId,
+    required int categoryId,
+    required int gameId,
+    required String title,
+  }) async {
+    final res = await _dio.post(
+      '/live-events',
+      data: {
+        'organization_id': organizationId,
+        'category_id': categoryId,
+        'game_id': gameId,
+        'title': title,
+      },
+      options: Options(headers: _headers()),
+    );
+
+    return LiveEventModel.fromJson(Map<String, dynamic>.from(res.data as Map));
+  }
+
+  Future<LiveEventModel> getLiveEvent(int liveEventId) async {
+    final res = await _dio.get(
+      '/live-events/$liveEventId',
+      options: Options(headers: _headers()),
+    );
+
+    return LiveEventModel.fromJson(Map<String, dynamic>.from(res.data as Map));
+  }
+
+  Future<void> startLiveEvent(int liveEventId) async {
+    await _dio.post(
+      '/live-events/$liveEventId/start',
+      options: Options(headers: _headers()),
+    );
+  }
+
+  Future<void> pauseLiveEvent(int liveEventId) async {
+    await _dio.post(
+      '/live-events/$liveEventId/pause',
+      options: Options(headers: _headers()),
+    );
+  }
+
+  Future<void> finishLiveEvent(int liveEventId) async {
+    await _dio.post(
+      '/live-events/$liveEventId/finish',
+      options: Options(headers: _headers()),
+    );
+  }
+
+  Future<LiveEventModel?> getLiveByGame(int gameId) async {
+    final res = await _dio.get(
+      '/games/$gameId/live',
+      options: Options(headers: _headers()),
+    );
+
+    if (res.data == null) return null;
+
+    return LiveEventModel.fromJson(Map<String, dynamic>.from(res.data as Map));
   }
 }

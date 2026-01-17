@@ -1,5 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:get/get.dart';
+import 'package:stopandgo/core/network/api_env.dart';
+import 'package:stopandgo/core/network/interceptors/sentry_interceptor.dart';
 import 'interceptors/auth_interceptor.dart';
 import 'interceptors/org_interceptor.dart';
 import 'token_storage.dart';
@@ -14,7 +16,7 @@ class ApiClient {
       await Get.putAsync<TokenStorage>(() async => TokenStorage().init());
     }
 
-    const baseUrl = 'https://stopandgomx.app/api';
+    final baseUrl = ApiEnv.baseUrl;
 
     dio = Dio(
       BaseOptions(
@@ -30,6 +32,7 @@ class ApiClient {
     dio.interceptors.addAll([
       OrgInterceptor(),
       AuthInterceptor(),
+      SentryInterceptor(),
       PrettyDioLogger(
         requestHeader: true,
         requestBody: true,
