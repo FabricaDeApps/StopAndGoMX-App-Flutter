@@ -63,9 +63,9 @@ class PaymentsController extends GetxController {
       List<PaymentDto> list = const [];
 
       if (user.role == 'manager') {
+        payments.clear();
         final categoryId = AppStorage.getSelectedCategoryId();
 
-        // ✅ IMPORTANTÍSIMO: nunca mandar 0
         if (categoryId == null || categoryId <= 0) {
           error.value =
               'No hay categoría seleccionada. Regresa y selecciona una categoría.';

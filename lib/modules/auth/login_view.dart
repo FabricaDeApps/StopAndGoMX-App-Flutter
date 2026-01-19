@@ -1,7 +1,9 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:stopandgo/core/config/flavor_config.dart';
 import 'package:stopandgo/core/models/responses/organization_response.dart';
+import 'package:stopandgo/modules/webview/webview_page.dart';
 import 'package:stopandgo/routes/app_routes.dart';
 import 'login_controller.dart';
 
@@ -214,6 +216,34 @@ class LoginView extends GetView<LoginController> {
                             },
                             icon: const Icon(Icons.person_add_alt_1),
                             label: const Text('Crear cuenta'),
+                          ),
+                        ),
+                        SizedBox(height: 40),
+                        SizedBox(
+                          width: double.infinity,
+                          child: TextButton(
+                            onPressed: () {
+                              final slug =
+                                  controller.selectedOrganization.value?.slug;
+                              final url =
+                                  'https://$slug.stopandgomx.app/pre-register';
+
+                              Get.to(
+                                () => AppWebViewPage(
+                                  title: 'Registrar jugador',
+                                  url: url,
+                                ),
+                              );
+                            },
+                            child: const Text(
+                              'Pre-Registro de Jugador',
+                              style: TextStyle(
+                                decoration: TextDecoration.underline,
+                                decorationStyle: TextDecorationStyle.dotted,
+                                decorationThickness: 1.5,
+                                decorationColor: Colors.blue,
+                              ),
+                            ),
                           ),
                         ),
                       ],

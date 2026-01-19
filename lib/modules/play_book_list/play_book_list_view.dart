@@ -18,11 +18,17 @@ class PlayBookListView extends GetView<PlayBookListController> {
         ),
       ),
 
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: controller.goToCreate,
-        icon: const Icon(Icons.add),
-        label: const Text('Nueva jugada'),
-      ),
+      floatingActionButton: Obx(() {
+        if (controller.userRole.value == 'player') {
+          return const SizedBox.shrink();
+        }
+
+        return FloatingActionButton.extended(
+          onPressed: controller.goToCreate,
+          icon: const Icon(Icons.add),
+          label: const Text('Nueva jugada'),
+        );
+      }),
 
       body: Column(
         children: [

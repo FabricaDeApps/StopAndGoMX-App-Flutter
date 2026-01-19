@@ -4,6 +4,8 @@ import 'package:dio/dio.dart';
 import 'package:stopandgo/core/config/flavor_config.dart';
 import 'package:stopandgo/core/constants/api_endpoints.dart';
 import 'package:stopandgo/core/models/category.dart';
+import 'package:stopandgo/core/models/combines/combine_event.dart';
+import 'package:stopandgo/core/models/combines/combine_event_results_response.dart';
 import 'package:stopandgo/core/models/dashboard_models.dart';
 import 'package:stopandgo/core/models/dto/notice_model.dart';
 import 'package:stopandgo/core/models/dto/payment_dto.dart';
@@ -19,11 +21,13 @@ import 'package:stopandgo/core/models/responses/login_response.dart';
 import 'package:stopandgo/core/models/responses/organization_response.dart';
 import 'package:stopandgo/core/models/streaming/live_event.dart';
 import 'package:stopandgo/core/models/training.dart';
+import 'package:stopandgo/core/models/trainings/training_player_response.dart';
 import 'package:stopandgo/core/models/trainning_attendance.dart';
 import 'package:stopandgo/core/network/paginated_response.dart';
 import 'package:stopandgo/core/storage/app_storage.dart';
 import 'package:stopandgo/core/utils/device_info.dart';
 import 'package:stopandgo/core/models/play_book_model.dart';
+import 'package:stopandgo/modules/combine_event_detail/combine_event_detail_controller.dart';
 import 'api_client.dart';
 import 'token_storage.dart';
 import 'package:get/get.dart' hide FormData, MultipartFile;
@@ -471,7 +475,7 @@ class ApiRepository {
   Future<Map<String, dynamic>> updateAccount({
     required String name,
     required String email,
-    String? role, // parent | player | manager
+    String? role,
   }) async {
     try {
       final body = <String, dynamic>{
@@ -1524,5 +1528,297 @@ class ApiRepository {
     if (res.data == null) return null;
 
     return LiveEventModel.fromJson(Map<String, dynamic>.from(res.data as Map));
+  }
+
+  Future<TrainingPlayerResponse?> getTrainingPlayerHistory({
+    required int playerId,
+    DateTime? from,
+    DateTime? to,
+    int? seasonId,
+    int? categoryId,
+    bool countJustified = false,
+  }) async {
+    try {
+      final qp = <String, dynamic>{'count_justified': countJustified ? 1 : 0};
+
+      String fmtDate(DateTime d) {
+        final y = d.year.toString().padLeft(4, '0');
+        final m = d.month.toString().padLeft(2, '0');
+        final day = d.day.toString().padLeft(2, '0');
+        return '$y-$m-$day';
+      }
+
+      if (from != null) qp['from'] = fmtDate(from);
+      if (to != null) qp['to'] = fmtDate(to);
+      if (seasonId != null) qp['season_id'] = seasonId;
+      if (categoryId != null) qp['category_id'] = categoryId;
+
+      final res = await _dio.get(
+        '/training/player/$playerId',
+        queryParameters: qp,
+        options: Options(headers: _headers()),
+      );
+
+      final data = res.data;
+      if (data == null) return null;
+
+      if (data is Map<String, dynamic>) {
+        return TrainingPlayerResponse.fromJson(data);
+      }
+
+      if (data is Map) {
+        return TrainingPlayerResponse.fromJson(Map<String, dynamic>.from(data));
+      }
+
+      return null;
+    } on DioException catch (e) {
+      return null;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  Future<List<CombineEvent>?> getCombineEvents({
+    int? categoryId,
+    DateTime? from,
+    DateTime? to,
+  }) async {
+    try {
+      final qp = <String, dynamic>{};
+
+      String fmtDate(DateTime d) {
+        final y = d.year.toString().padLeft(4, '0');
+        final m = d.month.toString().padLeft(2, '0');
+        final day = d.day.toString().padLeft(2, '0');
+        return '$y-$m-$day';
+      }
+
+      if (categoryId != null) qp['category_id'] = categoryId;
+      if (from != null) qp['from'] = fmtDate(from);
+      if (to != null) qp['to'] = fmtDate(to);
+
+      final res = await _dio.get(
+        '/combine/events',
+        queryParameters: qp,
+        options: Options(headers: _headers()),
+      );
+
+      final data = res.data;
+      if (data == null) return null;
+      if (data is Map) {
+        final map = Map<String, dynamic>.from(data);
+        final list = map['data'] ?? map['events'] ?? map['items'];
+        if (list is List) {
+          return list
+              .whereType<Map>()
+              .map((e) => CombineEvent.fromJson(Map<String, dynamic>.from(e)))
+              .toList();
+        }
+      }
+
+      if (data is List) {
+        return data
+            .whereType<Map>()
+            .map((e) => CombineEvent.fromJson(Map<String, dynamic>.from(e)))
+            .toList();
+      }
+
+      return null;
+    } on DioException {
+      return null;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  Future<CombineEvent?> createCombineEvent({
+    required int categoryId,
+    int? seasonId,
+    int? venueId,
+    required String name,
+    required String startsAt, // "YYYY-MM-DD HH:mm:ss"
+    String? endsAt, // "YYYY-MM-DD HH:mm:ss"
+    String? notes,
+  }) async {
+    try {
+      final body = <String, dynamic>{
+        'category_id': categoryId,
+        'name': name,
+        'starts_at': startsAt,
+      };
+      if (seasonId != null) body['season_id'] = seasonId;
+      if (venueId != null) body['venue_id'] = venueId;
+      if (endsAt != null) body['ends_at'] = endsAt;
+      if (notes != null) body['notes'] = notes;
+
+      final res = await _dio.post(
+        '/combine/events',
+        data: body,
+        options: Options(headers: _headers()),
+      );
+
+      final raw = res.data;
+      if (raw == null) return null;
+
+      // Caso 1: Map<String,dynamic>
+      if (raw is Map<String, dynamic>) {
+        final eventRaw = raw['event']; // 👈 TU PAYLOAD REAL
+        if (eventRaw is Map<String, dynamic>) {
+          return CombineEvent.fromJson(eventRaw);
+        }
+        if (eventRaw is Map) {
+          return CombineEvent.fromJson(Map<String, dynamic>.from(eventRaw));
+        }
+
+        // fallback por si alguna vez regresa directo
+        return CombineEvent.fromJson(raw);
+      }
+
+      // Caso 2: Map<dynamic,dynamic>
+      if (raw is Map) {
+        final map = Map<String, dynamic>.from(raw);
+        final eventRaw = map['event'];
+        if (eventRaw is Map<String, dynamic>) {
+          return CombineEvent.fromJson(eventRaw);
+        }
+        if (eventRaw is Map) {
+          return CombineEvent.fromJson(Map<String, dynamic>.from(eventRaw));
+        }
+
+        return CombineEvent.fromJson(map);
+      }
+
+      return null;
+    } on DioException {
+      return null;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  Future<CombineEventDetailResponse?> getCombineEventDetail({
+    required int eventId,
+  }) async {
+    try {
+      final res = await _dio.get(
+        '/combine/events/$eventId',
+        options: Options(headers: _headers()),
+      );
+
+      final raw = res.data;
+      if (raw == null) return null;
+
+      // Caso ideal: Map<String, dynamic>
+      if (raw is Map<String, dynamic>) {
+        return CombineEventDetailResponse.fromJson(raw);
+      }
+
+      // Caso: Map<dynamic, dynamic>
+      if (raw is Map) {
+        return CombineEventDetailResponse.fromJson(
+          Map<String, dynamic>.from(raw),
+        );
+      }
+
+      return null;
+    } on DioException {
+      return null;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  Future<Map<String, dynamic>?> createCombineResult({
+    required int eventId,
+    required int playerId,
+    required String measuredAt,
+    String? notes,
+    double? overallScore,
+    required List<Map<String, dynamic>> values,
+  }) async {
+    try {
+      final body = <String, dynamic>{
+        'player_id': playerId,
+        'measured_at': measuredAt,
+        'values': values,
+      };
+      if (notes != null && notes.trim().isNotEmpty)
+        body['notes'] = notes.trim();
+      if (overallScore != null) body['overall_score'] = overallScore;
+
+      final res = await _dio.post(
+        '/combine/events/$eventId/results',
+        data: body,
+        options: Options(headers: _headers()),
+      );
+
+      final raw = res.data;
+      if (raw == null) return null;
+
+      if (raw is Map<String, dynamic>) return raw;
+      if (raw is Map) return Map<String, dynamic>.from(raw);
+
+      return null;
+    } on DioException {
+      return null;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  Future<Map<String, dynamic>?> getCombineLeaderboard({
+    required int eventId,
+    required String metricKey,
+    int limit = 10,
+  }) async {
+    try {
+      final res = await _dio.get(
+        '/combine/events/$eventId/leaderboard',
+        queryParameters: {'metric_key': metricKey, 'limit': limit},
+        options: Options(headers: _headers()),
+      );
+
+      final raw = res.data;
+      if (raw == null) return null;
+
+      if (raw is Map<String, dynamic>) return raw;
+      if (raw is Map) return Map<String, dynamic>.from(raw);
+
+      return null;
+    } on DioException {
+      return null;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  Future<CombineEventResultsResponse?> getCombineEventResults({
+    required int eventId,
+  }) async {
+    try {
+      final res = await _dio.get(
+        '/combine/events/$eventId/results',
+        options: Options(headers: _headers()),
+      );
+
+      final raw = res.data;
+      if (raw == null) return null;
+
+      return CombineEventResultsResponse.fromJson(raw);
+    } on DioException {
+      return null;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  dynamic jsonNormalize(dynamic input) {
+    if (input is Map) {
+      return input.map((k, v) => MapEntry(k.toString(), jsonNormalize(v)));
+    }
+    if (input is List) {
+      return input.map(jsonNormalize).toList();
+    }
+    return input;
   }
 }

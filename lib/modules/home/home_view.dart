@@ -97,8 +97,9 @@ class HomeView extends GetView<HomeController> {
             ),
             actions: [
               Obx(() {
-                if (!controller.canShowEcommerce)
+                if (!controller.canShowEcommerce) {
                   return const SizedBox.shrink();
+                }
 
                 return IconButton(
                   onPressed: () {
@@ -152,7 +153,7 @@ class HomeView extends GetView<HomeController> {
                     children: controller.tabs.map((t) {
                       switch (t) {
                         case "dashboard":
-                          return Container(); // tu dashboard
+                          return Container();
                         case "games":
                           return GamesTab(controller: controller);
                         case "payments":
@@ -242,24 +243,11 @@ class HomeView extends GetView<HomeController> {
                 accountEmail: Text(controller.userEmail.value),
               ),
 
-              // Opción siempre visible
               ListTile(
                 leading: const Icon(Icons.home_outlined),
                 title: const Text('Inicio'),
                 onTap: () => Get.back(),
               ),
-
-              // 👇 SOLO PARA MANAGER
-              if (isManager) ...[
-                ListTile(
-                  leading: const Icon(Icons.person_outline),
-                  title: const Text('Asignar Jugador'),
-                  onTap: () {
-                    Get.back();
-                    Get.toNamed(Routes.assignPlayer);
-                  },
-                ),
-              ],
 
               if (isManager || isCoach) ...[
                 ListTile(
@@ -276,6 +264,28 @@ class HomeView extends GetView<HomeController> {
                   onTap: () {
                     Get.back();
                     Get.toNamed(Routes.trainnings);
+                  },
+                ),
+              ],
+
+              if (isPlayer || isParent || isCoach) ...[
+                ListTile(
+                  leading: const Icon(Icons.fitness_center),
+                  title: const Text('Evaluación (Combine)'),
+                  onTap: () {
+                    Get.back();
+                    Get.toNamed(Routes.combineEvents);
+                  },
+                ),
+              ],
+
+              if (isPlayer || isParent) ...[
+                ListTile(
+                  leading: const Icon(Icons.list_alt_outlined),
+                  title: const Text('Entrenamientos'),
+                  onTap: () {
+                    Get.back();
+                    Get.toNamed(Routes.playerTrainnings);
                   },
                 ),
               ],

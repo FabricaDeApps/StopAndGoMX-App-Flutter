@@ -11,6 +11,7 @@ import 'package:stopandgo/core/models/responses/organization_response.dart';
 import 'package:stopandgo/core/network/api_repository.dart';
 import 'package:stopandgo/core/network/token_storage.dart';
 import 'package:stopandgo/core/storage/app_storage.dart';
+import 'package:stopandgo/modules/home/controllers/payments_controller.dart';
 import 'package:stopandgo/routes/app_routes.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -105,7 +106,6 @@ class HomeController extends GetxController with GetTickerProviderStateMixin {
 
     tabs.value = FlavorConfig.I.getTabsForRole(userRole.value);
 
-    // ✅ crear controller aquí (antes de build)
     tabController = TabController(length: tabs.length, vsync: this);
 
     tabController!.addListener(() async {
@@ -158,8 +158,6 @@ class HomeController extends GetxController with GetTickerProviderStateMixin {
         await _loadDashboardForPlayerOrParent();
         break;
     }
-
-    // ✅ opcional: marcar el tab 0 como ya “visitado”
     _lastLoadedTabIndex = 0;
   }
 
@@ -238,11 +236,8 @@ class HomeController extends GetxController with GetTickerProviderStateMixin {
   }
 
   void _mapManagerDashboard(ManagerDashboardResponse dash) {
-    // En el endpoint manager actual no hay totales de pagos
     saldoPendiente.value = 0.0;
     pagosRealizados.value = 0.0;
-
-    // Ya viene "proximos 3"
     upcomingGames.assignAll(_sortedByStart(dash.nextGames));
 
     _setSingleNotice(dash.lastNotice);
@@ -651,38 +646,44 @@ class HomeController extends GetxController with GetTickerProviderStateMixin {
       payments.clear();
 
       List<PaymentDto> list;
-      if (userRole.value == 'manager') {
-        final categoryId =
-            selectedCategoryId.value ?? AppStorage.getSelectedCategoryId();
-        if (categoryId == null) return;
-        list = await api.managerCategoryPayments(categoryId: categoryId);
-      } else if (userRole.value == 'parent') {
-        final playerId =
-            selectedPlayerId.value ?? AppStorage.getSelectedPlayerId();
-        if (playerId == null) return;
-        list = await api.playerMyPayments(playerId: playerId);
+
+      final tabKey = tabs[tabController.index];
+      final categoryId =
+          selectedCategoryId.value ?? AppStorage.getSelectedCategoryId();
+
+      if (tabKey == "payments" && Get.isRegistered<PaymentsController>()) {
+        Get.find<PaymentsController>().loadPayments();
       } else {
-        list = await api.myPayments();
+        if (userRole.value == 'manager') {
+          if (categoryId == null) return;
+          list = await api.managerCategoryPayments(categoryId: categoryId);
+        } else if (userRole.value == 'parent') {
+          final playerId =
+              selectedPlayerId.value ?? AppStorage.getSelectedPlayerId();
+          if (playerId == null) return;
+          list = await api.playerMyPayments(playerId: playerId);
+        } else {
+          list = await api.myPayments();
+        }
+
+        payments.assignAll(list);
+        double totalPagado = 0.0;
+        double totalAdeudo = 0.0;
+
+        for (final p in list) {
+          final totalRecibido = p.receipts.fold<double>(
+            0.0,
+            (sum, r) => sum + r.amount,
+          );
+          final effectiveAmount = p.netAmount;
+          totalPagado += totalRecibido;
+          final balance = (effectiveAmount - totalRecibido);
+          if (balance > 0) totalAdeudo += balance;
+        }
+
+        pagosRealizados.value = totalPagado;
+        saldoPendiente.value = totalAdeudo;
       }
-
-      payments.assignAll(list);
-
-      double totalPagado = 0.0;
-      double totalAdeudo = 0.0;
-
-      for (final p in list) {
-        final totalRecibido = p.receipts.fold<double>(
-          0.0,
-          (sum, r) => sum + r.amount,
-        );
-        final effectiveAmount = p.netAmount;
-        totalPagado += totalRecibido;
-        final balance = (effectiveAmount - totalRecibido);
-        if (balance > 0) totalAdeudo += balance;
-      }
-
-      pagosRealizados.value = totalPagado;
-      saldoPendiente.value = totalAdeudo;
     } catch (e, st) {
       debugPrint('[HomeController] ❌ Error cargando pagos: $e\n$st');
       Get.snackbar(

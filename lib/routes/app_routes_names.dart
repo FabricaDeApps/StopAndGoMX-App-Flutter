@@ -37,4 +37,12 @@ abstract class Routes {
   static const initLive = '/initLive';
   static const broadcastLive = '/broadcastLive';
   static const watchLive = '/watchLive';
+
+  static const playerTrainnings = '/playerTrainnings';
+  static const combineEvents = '/combineEvents';
+  static const combineCreate = '/combineCreate';
+  static const combineDetail = '/combineDetail';
+  static const combineResultCreate = '/combineResultCreate';
+  static const combineMetricLeaderBoard = '/combineMetricLeaderBoard';
+  static const combineEventResults = '/combineEventResults';
 }

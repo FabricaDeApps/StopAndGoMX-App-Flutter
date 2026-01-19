@@ -56,7 +56,6 @@ class LoginController extends GetxController {
       final list = await _api.getPublicOrganizations();
       organizations.assignAll(list);
 
-      // Si ya tenías algo guardado en storage, recupéralo como selección
       final cached = AppStorage.getOrganization();
       if (cached != null) {
         final match = list.firstWhereOrNull((o) => o.id == cached.id);
@@ -99,8 +98,8 @@ class LoginController extends GetxController {
   }
 
   void _loadBrandingFromStorage() {
-    final OrganizationResponse? org = AppStorage.getOrganization();
-    url.value = org?.logo;
+    selectedOrganization.value = AppStorage.getOrganization();
+    url.value = selectedOrganization.value?.logo;
     Get.find<ThemeController>().refreshTheme();
   }
 

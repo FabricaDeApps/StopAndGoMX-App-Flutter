@@ -6,6 +6,18 @@ import 'package:stopandgo/modules/auth/login_binding.dart';
 import 'package:stopandgo/modules/auth/login_view.dart';
 import 'package:stopandgo/modules/broadcast_live/broadcast_live_view.dart';
 import 'package:stopandgo/modules/broadcast_live/index.dart';
+import 'package:stopandgo/modules/combine_create/combine_create_view.dart';
+import 'package:stopandgo/modules/combine_create/index.dart';
+import 'package:stopandgo/modules/combine_event_detail/combine_event_detail_binding.dart';
+import 'package:stopandgo/modules/combine_event_detail/combine_event_detail_view.dart';
+import 'package:stopandgo/modules/combine_event_results/combine_event_results_view.dart';
+import 'package:stopandgo/modules/combine_event_results/index.dart';
+import 'package:stopandgo/modules/combine_events/combine_events_binding.dart';
+import 'package:stopandgo/modules/combine_events/combine_events_view.dart';
+import 'package:stopandgo/modules/combine_metric_leader_board/combine_metric_leader_board_binding.dart';
+import 'package:stopandgo/modules/combine_metric_leader_board/combine_metric_leader_board_view.dart';
+import 'package:stopandgo/modules/combine_result_create/combine_result_create_view.dart';
+import 'package:stopandgo/modules/combine_result_create/index.dart';
 import 'package:stopandgo/modules/complete_game/complete_game_binding.dart';
 import 'package:stopandgo/modules/complete_game/complete_game_view.dart';
 import 'package:stopandgo/modules/create_trainning/index.dart';
@@ -48,6 +60,8 @@ import 'package:stopandgo/modules/play_book_read/index.dart';
 import 'package:stopandgo/modules/play_book_read/play_book_read_view.dart';
 import 'package:stopandgo/modules/player_documents/player_documents_binding.dart';
 import 'package:stopandgo/modules/player_documents/player_documents_view.dart';
+import 'package:stopandgo/modules/player_trainings/player_trainings_binding.dart';
+import 'package:stopandgo/modules/player_trainings/player_trainings_view.dart';
 import 'package:stopandgo/modules/roster/roster_binding.dart';
 import 'package:stopandgo/modules/roster/roster_view.dart';
 import 'package:stopandgo/modules/sign_in/sign_in_binding.dart';
@@ -240,6 +254,41 @@ class AppPages {
       name: Routes.watchLive,
       page: () => const WatchLiveView(),
       binding: WatchLiveBinding(),
+    ),
+    GetPage(
+      name: Routes.playerTrainnings,
+      page: () => const PlayerTrainingsView(),
+      binding: PlayerTrainingsBinding(),
+    ),
+    GetPage(
+      name: Routes.combineEvents,
+      page: () => const CombineEventsView(),
+      binding: CombineEventsBinding(),
+    ),
+    GetPage(
+      name: Routes.combineCreate,
+      page: () => const CombineCreateView(),
+      binding: CombineCreateBinding(),
+    ),
+    GetPage(
+      name: Routes.combineDetail,
+      page: () => const CombineEventDetailView(),
+      binding: CombineEventDetailBinding(),
+    ),
+    GetPage(
+      name: Routes.combineResultCreate,
+      page: () => const CombineResultCreateView(),
+      binding: CombineResultCreateBinding(),
+    ),
+    GetPage(
+      name: Routes.combineMetricLeaderBoard,
+      page: () => const CombineMetricLeaderBoardView(),
+      binding: CombineMetricLeaderBoardBinding(),
+    ),
+    GetPage(
+      name: Routes.combineEventResults,
+      page: () => const CombineEventResultsView(),
+      binding: CombineEventResultsBinding(),
     ),
   ];
 }
