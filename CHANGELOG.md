@@ -6,6 +6,8 @@ y el versionado está basado en **Semantic Versioning (SemVer)**.
 
 ## [1.0.27] - 2026-1-19
 - Fixes
+- Combine/Evaluaciones
+- Streaming
 
 ## [1.0.25] - 2026-1-15
 - Fix en pagos
