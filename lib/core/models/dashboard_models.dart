@@ -1,3 +1,4 @@
+import 'package:stopandgo/core/models/attendance_dashboard.dart';
 import 'package:stopandgo/core/models/games.dart';
 
 /// --------- MODELOS COMPARTIDOS ---------
@@ -84,37 +85,62 @@ class ManagerDashboardCategory {
 }
 
 class ManagerDashboardResponse {
-  final String role; // "manager"
+  final String role;
   final List<Game> nextGames;
   final List<ManagerDashboardCategory> categories;
+
+  /// Lista completa de avisos (nuevo)
+  final List<DashboardNotice> notices;
+
+  /// Compat: antes venía como objeto
   final DashboardNotice? lastNotice;
 
   ManagerDashboardResponse({
     required this.role,
     required this.nextGames,
     required this.categories,
+    required this.notices,
     required this.lastNotice,
   });
 
   factory ManagerDashboardResponse.fromJson(Map<String, dynamic> json) {
-    final nextGamesJson = (json['next_games'] as List<dynamic>? ?? []);
-    final categoriesJson = (json['categories'] as List<dynamic>? ?? []);
+    final nextGamesJson = (json['next_games'] as List?) ?? const [];
+    final categoriesJson = (json['categories'] as List?) ?? const [];
+    final noticesJson = (json['notices'] as List?) ?? const [];
+
+    // 1) Parse lista notices (nuevo)
+    final parsedNotices = noticesJson
+        .whereType<Map>()
+        .map((e) => DashboardNotice.fromJson(Map<String, dynamic>.from(e)))
+        .toList();
+
+    // 2) Compat last_notice si viene
+    DashboardNotice? parsedLastNotice;
+    final rawLast = json['last_notice'];
+    if (rawLast is Map) {
+      parsedLastNotice = DashboardNotice.fromJson(
+        Map<String, dynamic>.from(rawLast),
+      );
+    } else if (parsedNotices.isNotEmpty) {
+      // 3) Si no viene last_notice, usamos el primero de notices (ya viene ordenado desc)
+      parsedLastNotice = parsedNotices.first;
+    }
 
     return ManagerDashboardResponse(
-      role: json['role'] as String,
+      role: (json['role'] ?? '') as String,
       nextGames: nextGamesJson
-          .map((e) => Game.fromJson(e as Map<String, dynamic>))
+          .whereType<Map>()
+          .map((e) => Game.fromJson(Map<String, dynamic>.from(e)))
           .toList(),
       categories: categoriesJson
+          .whereType<Map>()
           .map(
-            (e) => ManagerDashboardCategory.fromJson(e as Map<String, dynamic>),
+            (e) =>
+                ManagerDashboardCategory.fromJson(Map<String, dynamic>.from(e)),
           )
           .toList(),
-      lastNotice: json['last_notice'] != null
-          ? DashboardNotice.fromJson(
-              json['last_notice'] as Map<String, dynamic>,
-            )
-          : null,
+      notices: parsedNotices,
+      lastNotice: parsedLastNotice,
     );
   }
 }
@@ -144,11 +170,12 @@ class PlayerDashboardCategory {
 }
 
 class PlayerDashboardResponse {
-  final String role; // "player"
+  final String role;
   final int playerId;
   final List<PlayerDashboardCategory> categories;
   final double pendingTotal;
   final DashboardNotice? lastNotice;
+  final AttendanceDashboard attendance;
 
   PlayerDashboardResponse({
     required this.role,
@@ -156,6 +183,7 @@ class PlayerDashboardResponse {
     required this.categories,
     required this.pendingTotal,
     required this.lastNotice,
+    required this.attendance,
   });
 
   factory PlayerDashboardResponse.fromJson(Map<String, dynamic> json) {
@@ -175,6 +203,11 @@ class PlayerDashboardResponse {
               json['last_notice'] as Map<String, dynamic>,
             )
           : null,
+      attendance: json['attendance'] != null
+          ? AttendanceDashboard.fromJson(
+              json['attendance'] as Map<String, dynamic>,
+            )
+          : AttendanceDashboard.empty,
     );
   }
 }

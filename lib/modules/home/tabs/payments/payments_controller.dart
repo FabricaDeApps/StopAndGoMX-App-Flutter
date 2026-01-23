@@ -26,9 +26,15 @@ extension PaymentDueFilterX on PaymentDueFilter {
   };
 }
 
-class PaymentsController extends GetxController {
+class PaymentsTabController extends GetxController {
   final ApiRepository _api = Get.find<ApiRepository>();
 
+  // Contexto (lo setea HomeController)
+  final role = ''.obs; // manager/parent/player/coach/staff...
+  final selectedCategoryId = RxnInt();
+  final selectedPlayerId = RxnInt();
+
+  // Estado
   final isLoading = true.obs;
   final payments = <PaymentDto>[].obs;
   final error = RxnString();
@@ -42,11 +48,14 @@ class PaymentsController extends GetxController {
   // UI states
   final isPayingWithCard = false.obs;
 
-  @override
-  void onInit() {
-    super.onInit();
-    loadPayments();
+  void setContext({required String userRole, int? categoryId, int? playerId}) {
+    role.value = userRole;
+    selectedCategoryId.value = categoryId;
+    selectedPlayerId.value = playerId;
   }
+
+  /// Llamado por HomeController al entrar al tab o cuando cambia categoría/jugador.
+  Future<void> refreshData() async => loadPayments();
 
   Future<void> loadPayments() async {
     isLoading.value = true;
@@ -62,9 +71,11 @@ class PaymentsController extends GetxController {
 
       List<PaymentDto> list = const [];
 
-      if (user.role == 'manager') {
-        payments.clear();
-        final categoryId = AppStorage.getSelectedCategoryId();
+      final r = role.value.isEmpty ? user.role : role.value;
+
+      if (r == 'manager') {
+        final categoryId =
+            selectedCategoryId.value ?? AppStorage.getSelectedCategoryId();
 
         if (categoryId == null || categoryId <= 0) {
           error.value =
@@ -74,8 +85,9 @@ class PaymentsController extends GetxController {
         }
 
         list = await _api.managerCategoryPayments(categoryId: categoryId);
-      } else if (user.role == 'parent') {
-        final playerId = AppStorage.getSelectedPlayerId();
+      } else if (r == 'parent') {
+        final playerId =
+            selectedPlayerId.value ?? AppStorage.getSelectedPlayerId();
 
         if (playerId == null || playerId <= 0) {
           error.value =
@@ -118,7 +130,6 @@ class PaymentsController extends GetxController {
     final dueSoonLimit = today.add(Duration(days: dueSoonDays.value));
 
     final out = list.where((p) {
-      // status
       final okStatus = switch (statusFilter.value) {
         PaymentStatusFilter.all => true,
         PaymentStatusFilter.paid => p.status == 'paid',
@@ -127,7 +138,6 @@ class PaymentsController extends GetxController {
       };
       if (!okStatus) return false;
 
-      // due
       final okDue = switch (dueFilter.value) {
         PaymentDueFilter.all => true,
         PaymentDueFilter.overdue =>
@@ -140,7 +150,6 @@ class PaymentsController extends GetxController {
       };
       if (!okDue) return false;
 
-      // search
       if (q.isNotEmpty) {
         final haystack = '${p.playerName ?? ''} ${p.concept}'.toLowerCase();
         if (!haystack.contains(q)) return false;
@@ -168,7 +177,6 @@ class PaymentsController extends GetxController {
 
     try {
       final intent = await _api.createMercadoPagoIntent(paymentId: paymentId);
-
       final uri = Uri.parse(intent.initUrl);
       await launchUrl(uri, mode: LaunchMode.externalApplication);
     } catch (e) {

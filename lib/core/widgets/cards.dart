@@ -57,10 +57,16 @@ class MetricCard extends StatelessWidget {
 }
 
 class MiniCard extends StatelessWidget {
-  const MiniCard({super.key, required this.title, required this.child});
+  const MiniCard({
+    super.key,
+    required this.title,
+    required this.child,
+    this.withNext = true,
+  });
 
   final String title;
   final Widget child;
+  final bool withNext;
 
   @override
   Widget build(BuildContext context) {
@@ -81,10 +87,12 @@ class MiniCard extends StatelessWidget {
                   ),
                 ),
                 const Spacer(),
-                Icon(
-                  Icons.chevron_right,
-                  color: theme.colorScheme.onSurfaceVariant,
-                ),
+                withNext
+                    ? Icon(
+                        Icons.chevron_right,
+                        color: theme.colorScheme.onSurfaceVariant,
+                      )
+                    : SizedBox(),
               ],
             ),
             const SizedBox(height: 8),
