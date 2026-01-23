@@ -8,7 +8,6 @@ class SignInView extends GetView<SignInController> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     return Scaffold(
       appBar: AppBar(title: const Text('Registro de usuario')),
       body: Obx(() {
@@ -82,17 +81,15 @@ class SignInView extends GetView<SignInController> {
                       ),
                       const SizedBox(height: 12),
 
-                      Obx(
-                        () => DropdownButtonFormField<String>(
+                      Obx(() {
+                        return DropdownButtonFormField<String>(
                           value: controller.role.value,
-                          items: controller.roles
-                              .map(
-                                (r) => DropdownMenuItem(
-                                  value: r,
-                                  child: Text(r.toUpperCase()),
-                                ),
-                              )
-                              .toList(),
+                          items: controller.availableRoles.map((r) {
+                            return DropdownMenuItem<String>(
+                              value: r,
+                              child: Text(controller.roleLabel(r)),
+                            );
+                          }).toList(),
                           onChanged: (v) => controller.role.value = v,
                           decoration: const InputDecoration(
                             labelText: 'Rol',
@@ -101,8 +98,9 @@ class SignInView extends GetView<SignInController> {
                           validator: (v) => (v == null || v.isEmpty)
                               ? 'Selecciona un rol'
                               : null,
-                        ),
-                      ),
+                        );
+                      }),
+
                       const SizedBox(height: 20),
 
                       FilledButton.icon(

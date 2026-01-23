@@ -59,7 +59,6 @@ class TrainingsController extends GetxController {
     }
   }
 
-  // ✅ cambia status (chips)
   Future<void> setStatus(String? status) async {
     if (selectedStatus.value == status) return;
     selectedStatus.value = status;

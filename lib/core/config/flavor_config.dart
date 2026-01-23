@@ -1,4 +1,4 @@
-enum AppFlavor { main, zorros, raidersqro, wolverinesqro, bearsqro }
+enum AppFlavor { main, zorros, raidersqro, wolverinesqro, bearsqro, redskins }
 
 class FlavorConfig {
   final AppFlavor flavor;
@@ -82,6 +82,13 @@ class FlavorConfig {
       "manager": ["dashboard", "games", "notices"],
     },
     AppFlavor.bearsqro: {
+      "parent": ["dashboard", "games", "payments", "notices"],
+      "player": ["dashboard", "games", "payments", "notices"],
+      "coach": ["dashboard", "games", "notices"],
+      "staff": ["dashboard", "games", "notices"],
+      "manager": ["dashboard", "games", "payments", "notices"],
+    },
+    AppFlavor.redskins: {
       "parent": ["dashboard", "games", "payments", "notices"],
       "player": ["dashboard", "games", "payments", "notices"],
       "coach": ["dashboard", "games", "notices"],

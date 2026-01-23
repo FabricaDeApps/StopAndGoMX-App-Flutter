@@ -38,10 +38,10 @@ class CombineEventsController extends GetxController {
       isLoading.value = true;
       error.value = null;
 
-      // Ajusta este método al nombre que tengas en ApiRepository:
-      // ej: getCombineEvents({categoryId, from, to})
+      final categoryId = AppStorage.getSelectedCategoryId();
+
       final res = await _api.getCombineEvents(
-        categoryId: selectedCategoryId.value,
+        categoryId: categoryId,
         from: from.value,
         to: to.value,
       );

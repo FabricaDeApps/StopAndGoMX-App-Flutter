@@ -49,6 +49,7 @@ flutter build aab --flavor mainapp -t lib/main_stopandgo.dart
 flutter build aab --flavor raidersqro -t lib/main_raidersqro.dart
 flutter build aab --flavor wolverinesqro -t lib/main_wolverinesqro.dart
 flutter build aab --flavor bearsqro -t lib/main_bearsqro.dart
+flutter build apk --flavor redskins -t lib/main_redskins.dart
 
 
 Flavors iOS
@@ -88,7 +89,7 @@ STOPANDGO
 # FIREBASE CONFIGURE:
 flutterfire configure \
   --project=stopandgomx-4ab82 \
-  --android-app-id=app.stopandgomx.raidersqro \
+  --android-app-id=app.stopandgomx.raidersqueretaro \
   --platforms=android \
   --out=lib/firebase_options_raidersqro.dart
 

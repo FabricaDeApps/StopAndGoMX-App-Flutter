@@ -142,7 +142,7 @@ platform :android do
     deploy(
       flavor: "raidersqro",
       target: "lib/main_raidersqro.dart",
-      package_name: "app.stopandgomx.raidersqro",
+      package_name: "app.stopandgomx.raidersqueretaro",
       track: "production"
     )
   end

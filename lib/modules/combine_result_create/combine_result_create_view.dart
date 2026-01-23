@@ -17,7 +17,11 @@ class CombineResultCreateView extends GetView<CombineResultCreateController> {
         actions: [
           IconButton(
             tooltip: 'Refrescar',
-            onPressed: controller.load,
+            onPressed: () {
+              controller.load();
+              controller.loadMetrics();
+              controller.loadPlayers();
+            },
             icon: const Icon(Icons.refresh),
           ),
         ],
@@ -26,10 +30,14 @@ class CombineResultCreateView extends GetView<CombineResultCreateController> {
         if (controller.isLoading.value) {
           return const Center(child: CircularProgressIndicator());
         }
-        if (controller.error.value != null && controller.metrics.isEmpty) {
+        if (controller.error.value != null && controller.allMetrics.isEmpty) {
           return _ErrorState(
             message: controller.error.value!,
-            onRetry: controller.load,
+            onRetry: () {
+              controller.load();
+              controller.loadMetrics();
+              controller.loadPlayers();
+            },
           );
         }
 
@@ -69,12 +77,8 @@ class CombineResultCreateView extends GetView<CombineResultCreateController> {
                                 displayStringForOption: controller.playerLabel,
                                 optionsBuilder: (TextEditingValue value) {
                                   final q = value.text;
-
-                                  // Si no hay query, enseña un top N (para no saturar)
-                                  if (q.trim().isEmpty) {
+                                  if (q.trim().isEmpty)
                                     return controller.players.take(25);
-                                  }
-
                                   final filtered = controller.players.where(
                                     (p) => controller.matchesPlayer(p, q),
                                   );
@@ -84,8 +88,6 @@ class CombineResultCreateView extends GetView<CombineResultCreateController> {
                                   controller.selectedPlayer.value = p;
                                   controller.playerSearchCtrl.text = controller
                                       .playerLabel(p);
-
-                                  // Cierra teclado / mantiene UX estable
                                   controller.playerFocus.unfocus();
                                 },
                                 fieldViewBuilder:
@@ -122,7 +124,6 @@ class CombineResultCreateView extends GetView<CombineResultCreateController> {
                                                         null;
                                                     controller.playerSearchCtrl
                                                         .clear();
-                                                    // vuelve a enfocar para seguir buscando
                                                     controller.playerFocus
                                                         .requestFocus();
                                                   },
@@ -144,11 +145,9 @@ class CombineResultCreateView extends GetView<CombineResultCreateController> {
                                             return 'Selecciona un jugador';
                                           return null;
                                         },
-                                        onChanged: (_) {
-                                          // Importante: si está escribiendo, invalida selección
-                                          controller.selectedPlayer.value =
-                                              null;
-                                        },
+                                        onChanged: (_) =>
+                                            controller.selectedPlayer.value =
+                                                null,
                                       );
                                     },
                                 optionsViewBuilder:
@@ -188,7 +187,7 @@ class CombineResultCreateView extends GetView<CombineResultCreateController> {
                                                               jersey
                                                                   .toString()
                                                                   .isNotEmpty)
-                                                          ? '${jersey}'
+                                                          ? '$jersey'
                                                           : 'P',
                                                       maxLines: 1,
                                                     ),
@@ -249,7 +248,9 @@ class CombineResultCreateView extends GetView<CombineResultCreateController> {
                   ],
                 ),
               ),
+
               const SizedBox(height: 12),
+
               _SectionCard(
                 title: 'Notas y score',
                 child: Column(
@@ -286,6 +287,7 @@ class CombineResultCreateView extends GetView<CombineResultCreateController> {
                   ],
                 ),
               ),
+
               const SizedBox(height: 12),
 
               Row(
@@ -298,19 +300,45 @@ class CombineResultCreateView extends GetView<CombineResultCreateController> {
                       ),
                     ),
                   ),
-                  Text('${controller.metrics.length}'),
+                  Obx(() => Text('${controller.selectedMetricKeys.length}')),
+                  const SizedBox(width: 8),
+                  OutlinedButton.icon(
+                    onPressed: () => controller.openMetricPicker(context),
+                    icon: const Icon(Icons.tune),
+                    label: const Text('Elegir'),
+                  ),
+                  const SizedBox(width: 8),
+                  IconButton(
+                    tooltip: 'Crear métrica',
+                    onPressed: controller.goCreateMetric,
+                    icon: const Icon(Icons.add_circle_outline),
+                  ),
                 ],
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 10),
 
-              ...controller.metrics.map(
-                (m) => _MetricInput(
-                  metric: m,
-                  controller: controller.valueCtrls[m.key]!,
-                ),
-              ),
+              Obx(() {
+                final list = controller.selectedMetrics;
+                if (list.isEmpty) {
+                  return const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 12),
+                    child: Text(
+                      'Selecciona al menos una métrica para capturar valores.',
+                    ),
+                  );
+                }
+
+                return Column(
+                  children: list.map((m) {
+                    final ctrl = controller.valueCtrls[m.key];
+                    if (ctrl == null) return const SizedBox.shrink();
+                    return _MetricInput(metric: m, controller: ctrl);
+                  }).toList(),
+                );
+              }),
 
               const SizedBox(height: 12),
+
               Obx(() {
                 final err = controller.error.value;
                 if (err == null) return const SizedBox.shrink();
@@ -406,7 +434,7 @@ class _MetricInput extends StatelessWidget {
               ),
               validator: (v) {
                 final t = (v ?? '').trim();
-                if (t.isEmpty) return null; // opcional
+                if (t.isEmpty) return null;
                 final d = double.tryParse(t);
                 if (d == null) return 'Número inválido';
                 final min = metric.min;

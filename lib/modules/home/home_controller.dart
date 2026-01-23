@@ -5,7 +5,6 @@ import 'package:stopandgo/core/config/flavor_config.dart';
 import 'package:stopandgo/core/models/category.dart';
 import 'package:stopandgo/core/models/dashboard_models.dart';
 import 'package:stopandgo/core/models/dto/payment_dto.dart';
-import 'package:stopandgo/core/models/dto/payment_provider_intent_dto.dart';
 import 'package:stopandgo/core/models/games.dart';
 import 'package:stopandgo/core/models/responses/organization_response.dart';
 import 'package:stopandgo/core/network/api_repository.dart';
@@ -119,6 +118,9 @@ class HomeController extends GetxController with GetTickerProviderStateMixin {
 
       final tabKey = tabs[idx];
       switch (tabKey) {
+        case 'dashboard':
+          await loadDashboardTab();
+          break;
         case 'games':
           await loadTabGameContent();
           break;
@@ -132,6 +134,27 @@ class HomeController extends GetxController with GetTickerProviderStateMixin {
     });
 
     _lastLoadedTabIndex = 0;
+  }
+
+  Future<void> loadDashboardTab() async {
+    switch (userRole.value) {
+      case 'manager':
+        await _loadDashboardForManager();
+        break;
+      case 'coach':
+        await _loadDashboardForCoach();
+        break;
+      case 'staff':
+        await _loadDashboardForStaff();
+        break;
+      case 'parent':
+      case 'player':
+        await _loadDashboardForPlayerOrParent();
+        break;
+      default:
+        await _loadDashboardForPlayerOrParent();
+        break;
+    }
   }
 
   @override
@@ -518,7 +541,6 @@ class HomeController extends GetxController with GetTickerProviderStateMixin {
     return copy;
   }
 
-  /// ⚠️ Versión vieja basada en /player/home (fallback)
   void _mapPlayerHomeJson(Map<String, dynamic> json) {
     final payments = (json['payments'] ?? {}) as Map<String, dynamic>;
     final items = (payments['items'] as List?) ?? const [];
@@ -756,7 +778,6 @@ class HomeController extends GetxController with GetTickerProviderStateMixin {
   // ========= Callbacks UI =========
   Future<void> onChangeCategory(int? id) async {
     if (id == null) return;
-    if (userRole.value != 'manager') return;
 
     selectedCategoryId.value = id;
     await AppStorage.setSelectedCategoryId(id);
@@ -766,13 +787,15 @@ class HomeController extends GetxController with GetTickerProviderStateMixin {
       await AppStorage.setSelectedCategoryName(cat.name);
     }
 
-    await _loadDashboardForManager();
+    final tabKey = tabs[tabController.index];
 
-    if (tabController.index == 1) {
+    if (tabKey == 'dashboard') {
+      await loadDashboardTab();
+    } else if (tabKey == 'games') {
       await loadTabGameContent();
-    } else if (tabController.index == 2) {
+    } else if (tabKey == 'payments') {
       await loadPaymentsTab();
-    } else if (tabController.index == 3) {
+    } else if (tabKey == 'notices') {
       await loadNoticesTab();
     }
   }
@@ -789,14 +812,15 @@ class HomeController extends GetxController with GetTickerProviderStateMixin {
       await AppStorage.setSelectedPlayerName(player.name);
     }
 
-    await _loadDashboardForPlayerOrParent();
-
-    if (tabController.index == 1) {
+    final tabKey = tabs[tabController.index];
+    if (tabKey == 'games') {
       await loadTabGameContent();
-    } else if (tabController.index == 2) {
+    } else if (tabKey == 'payments') {
       await loadPaymentsTab();
-    } else if (tabController.index == 3) {
+    } else if (tabKey == 'notices') {
       await loadNoticesTab();
+    } else if (tabKey == 'dashboard') {
+      await _loadDashboardForPlayerOrParent();
     }
   }
 
@@ -813,6 +837,15 @@ class HomeController extends GetxController with GetTickerProviderStateMixin {
     }
 
     await _loadDashboardForPlayerOrParent();
+
+    final tabKey = tabs[tabController.index];
+    if (tabKey == 'games') {
+      await loadTabGameContent();
+    } else if (tabKey == 'payments') {
+      await loadPaymentsTab();
+    } else if (tabKey == 'notices') {
+      await loadNoticesTab();
+    }
   }
 
   void onTapGame(Game g) {}

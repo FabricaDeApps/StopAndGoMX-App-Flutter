@@ -62,6 +62,15 @@
       "program": "lib/main_bearsqro.dart",
       "args": ["--flavor", "bearsqro"],
       "preLaunchTask": "prepare-bearsqro-assets"
+    },
+    {
+      "name": "Run Redskins",
+      "request": "launch",
+      "type": "dart",
+      "flutterMode": "debug",
+      "program": "lib/main_redskins.dart",
+      "args": ["--flavor", "redskins"],
+      "preLaunchTask": "prepare-redskins-assets"
     }
   ]
 }

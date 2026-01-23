@@ -116,36 +116,6 @@ class HomeView extends GetView<HomeController> {
 
           body: Column(
             children: [
-              // ====== DASHBOARD ======
-              Obx(() {
-                if (controller.currentTab.value != 0) {
-                  return const SizedBox.shrink();
-                }
-
-                return Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
-                  child: () {
-                    switch (role) {
-                      case 'manager':
-                        return _ManagerDashboard(controller: controller);
-
-                      case 'coach':
-                        return _CoachDashboard(controller: controller);
-                      case 'staff':
-                        return _CoachDashboard(controller: controller);
-
-                      case 'parent':
-                      case 'player':
-                        return _PlayerDashboard(controller: controller);
-
-                      default:
-                        return const SizedBox.shrink();
-                    }
-                  }(),
-                );
-              }),
-
-              // ====== CONTENIDO DE TABS ======
               Expanded(
                 child: Obx(() {
                   return TabBarView(
@@ -153,7 +123,35 @@ class HomeView extends GetView<HomeController> {
                     children: controller.tabs.map((t) {
                       switch (t) {
                         case "dashboard":
-                          return Container();
+                          return Padding(
+                            padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+                            child: () {
+                              switch (role) {
+                                case 'manager':
+                                  return _ManagerDashboard(
+                                    controller: controller,
+                                  );
+
+                                case 'coach':
+                                  return _CoachDashboard(
+                                    controller: controller,
+                                  );
+                                case 'staff':
+                                  return _CoachDashboard(
+                                    controller: controller,
+                                  );
+
+                                case 'parent':
+                                case 'player':
+                                  return _PlayerDashboard(
+                                    controller: controller,
+                                  );
+
+                                default:
+                                  return const SizedBox.shrink();
+                              }
+                            }(),
+                          );
                         case "games":
                           return GamesTab(controller: controller);
                         case "payments":

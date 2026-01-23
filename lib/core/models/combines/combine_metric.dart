@@ -4,8 +4,8 @@ class CombineMetric {
   final String key;
   final String name;
   final String? unit;
-  final String type; // number|time|score|text
-  final String direction; // lower_is_better|higher_is_better
+  final String type;
+  final String direction;
   final int decimals;
   final double? min;
   final double? max;

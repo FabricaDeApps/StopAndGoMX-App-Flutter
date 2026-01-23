@@ -67,7 +67,7 @@ android {
         // Flavor Raiders Qro
         create("raidersqro") {
             dimension = "default"
-            applicationId = "app.stopandgomx.raidersqro"
+            applicationId = "app.stopandgomx.raidersqueretaro"
             resValue("string", "app_name", "Raiders Qro")
         }
 
@@ -83,6 +83,13 @@ android {
             dimension = "default"
             applicationId = "app.stopandgomx.bearsqro"
             resValue("string", "app_name", "Bears Querétaro")
+        }
+
+        // Redskins
+        create("redskins") {
+            dimension = "default"
+            applicationId = "app.stopandgomx.bearsqro"
+            resValue("string", "app_name", "Redskins")
         }
     }
 

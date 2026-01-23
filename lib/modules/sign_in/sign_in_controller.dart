@@ -15,8 +15,23 @@ class SignInController extends GetxController {
   final emailCtrl = TextEditingController();
   final passCtrl = TextEditingController();
 
-  final roles = const ['manager', 'coach', 'parent', 'player'];
+  // 👇 Debe ser static const (o final) para que compile bien
+  static const Map<String, String> roleLabelsEs = {
+    'parent': 'Padre',
+    'coach': 'Entrenador',
+    'manager': 'Manager',
+    'player': 'Jugador',
+    'admin': 'Administrador',
+  };
+
+  // Valor real que va al backend
   final role = RxnString();
+
+  // Opcional: lista de roles para la UI
+  List<String> get availableRoles => roleLabelsEs.keys.toList();
+
+  // Label UI
+  String roleLabel(String value) => roleLabelsEs[value] ?? value;
 
   final isObscure = true.obs;
   final isLoading = false.obs;
@@ -24,8 +39,6 @@ class SignInController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    final args = Get.arguments as Map<String, dynamic>?;
-
     orgId = FlavorConfig.I.organizationId!;
   }
 
@@ -51,9 +64,10 @@ class SignInController extends GetxController {
   }
 
   Future<void> submit() async {
-    // Validación UI
     final currentRole = role.value;
+
     if (!formKey.currentState!.validate()) return;
+
     if (currentRole == null || currentRole.isEmpty) {
       Get.snackbar(
         'Registro',
@@ -70,7 +84,7 @@ class SignInController extends GetxController {
         name: nameCtrl.text.trim(),
         email: emailCtrl.text.trim(),
         password: passCtrl.text.trim(),
-        role: currentRole,
+        role: currentRole, // ✅ aquí va parent/coach/etc.
       );
 
       final success = resp['success'] == true;

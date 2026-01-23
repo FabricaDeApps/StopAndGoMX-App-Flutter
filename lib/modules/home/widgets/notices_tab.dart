@@ -71,15 +71,10 @@ class NoticesTab extends StatelessWidget {
                   : null,
               onTap: () async {
                 final attachment = n.attachment;
-
-                // Si hay attachment, intentamos abrirlo
                 if (attachment != null && attachment.isNotEmpty) {
                   final url = attachment.trim();
                   debugPrint('Intentando abrir attachment: $url');
-
                   final uri = Uri.parse(url);
-
-                  // Modo de apertura según plataforma
                   LaunchMode mode;
                   if (kIsWeb) {
                     mode = LaunchMode.platformDefault;
@@ -112,7 +107,6 @@ class NoticesTab extends StatelessWidget {
                     print(e);
                   }
                 } else {
-                  // Sin attachment -> flujo normal
                   controller.onTapNotice(n);
                 }
               },

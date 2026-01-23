@@ -15,11 +15,15 @@ class CombineEventDetailController extends GetxController {
   final metrics = <CombineMetric>[].obs;
   final resultsCount = 0.obs;
 
-  int get eventId => int.tryParse(Get.parameters['eventId'] ?? '') ?? 0;
+  late final int eventId;
 
   @override
   void onInit() {
     super.onInit();
+    final pid = int.tryParse(Get.parameters['eventId'] ?? '');
+    final args = (Get.arguments as Map?) ?? {};
+
+    eventId = pid ?? (args['eventId'] as int? ?? 0);
     load();
   }
 
@@ -50,9 +54,11 @@ class CombineEventDetailController extends GetxController {
   }
 
   void goCapture() {
+    if (eventId <= 0) return;
+
     Get.toNamed(
       Routes.combineResultCreate,
-      parameters: {'eventId': '${event.value!.id}'},
+      parameters: {'eventId': '$eventId'},
     );
   }
 

@@ -30,6 +30,12 @@
       "type": "shell",
       "command": "./scripts/use_logo.sh bearsqro",
       "problemMatcher": []
+    },
+    {
+      "label": "prepare-redskins-assets",
+      "type": "shell",
+      "command": "./scripts/use_logo.sh redskins",
+      "problemMatcher": []
     }
   ]
 }

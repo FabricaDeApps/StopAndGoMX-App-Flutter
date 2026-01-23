@@ -45,4 +45,5 @@ abstract class Routes {
   static const combineResultCreate = '/combineResultCreate';
   static const combineMetricLeaderBoard = '/combineMetricLeaderBoard';
   static const combineEventResults = '/combineEventResults';
+  static const combineCreateMetrics = '/combineCreateMetrics';
 }

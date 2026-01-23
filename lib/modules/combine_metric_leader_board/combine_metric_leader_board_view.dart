@@ -12,12 +12,7 @@ class CombineMetricLeaderBoardView
     final theme = Theme.of(context);
 
     return Scaffold(
-      appBar: AppBar(
-        title: Obx(() {
-          final m = controller.metric;
-          return Text('Leaderboard • ${m.name}');
-        }),
-      ),
+      appBar: AppBar(title: Text('Leaderboard • ${controller.metric.name}')),
       body: Obx(() {
         if (controller.isLoading.value) {
           return const Center(child: CircularProgressIndicator());

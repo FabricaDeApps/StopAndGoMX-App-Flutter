@@ -20,6 +20,8 @@ import 'package:stopandgo/modules/combine_result_create/combine_result_create_vi
 import 'package:stopandgo/modules/combine_result_create/index.dart';
 import 'package:stopandgo/modules/complete_game/complete_game_binding.dart';
 import 'package:stopandgo/modules/complete_game/complete_game_view.dart';
+import 'package:stopandgo/modules/create_metric/create_metric_view.dart';
+import 'package:stopandgo/modules/create_metric/index.dart';
 import 'package:stopandgo/modules/create_trainning/index.dart';
 import 'package:stopandgo/modules/ecommerce_cart/ecommerce_cart_binding.dart';
 import 'package:stopandgo/modules/ecommerce_cart/ecommerce_cart_view.dart';
@@ -289,6 +291,11 @@ class AppPages {
       name: Routes.combineEventResults,
       page: () => const CombineEventResultsView(),
       binding: CombineEventResultsBinding(),
+    ),
+    GetPage(
+      name: Routes.combineCreateMetrics,
+      page: () => const CreateMetricView(),
+      binding: CreateMetricBinding(),
     ),
   ];
 }

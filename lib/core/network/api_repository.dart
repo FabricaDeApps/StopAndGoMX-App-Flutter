@@ -1812,6 +1812,54 @@ class ApiRepository {
     }
   }
 
+  Future<Map<String, dynamic>?> createCombineMetric({
+    required String key,
+    required String name,
+    String? unit,
+    String type = 'number',
+    String direction = 'lower_is_better',
+    int decimals = 2,
+    double? min,
+    double? max,
+    bool isActive = true,
+  }) async {
+    try {
+      final body = <String, dynamic>{
+        'key': key,
+        'name': name,
+        'type': type,
+        'direction': direction,
+        'decimals': decimals,
+        'is_active': isActive,
+      };
+
+      if (unit != null && unit.trim().isNotEmpty) {
+        body['unit'] = unit.trim();
+      }
+
+      if (min != null) body['min'] = min;
+      if (max != null) body['max'] = max;
+
+      final res = await _dio.post(
+        '/combine/metrics',
+        data: body,
+        options: Options(headers: _headers()),
+      );
+
+      final raw = res.data;
+      if (raw == null) return null;
+
+      if (raw is Map<String, dynamic>) return raw;
+      if (raw is Map) return Map<String, dynamic>.from(raw);
+
+      return null;
+    } on DioException {
+      return null;
+    } catch (_) {
+      return null;
+    }
+  }
+
   dynamic jsonNormalize(dynamic input) {
     if (input is Map) {
       return input.map((k, v) => MapEntry(k.toString(), jsonNormalize(v)));
@@ -1820,5 +1868,36 @@ class ApiRepository {
       return input.map(jsonNormalize).toList();
     }
     return input;
+  }
+
+  Future<List<Map<String, dynamic>>?> getCombineMetrics({
+    bool? onlyActive,
+  }) async {
+    try {
+      final query = <String, dynamic>{};
+      if (onlyActive != null) {
+        query['is_active'] = onlyActive ? 1 : 0;
+      }
+
+      final res = await _dio.get(
+        '/combine/metrics',
+        queryParameters: query.isEmpty ? null : query,
+        options: Options(headers: _headers()),
+      );
+
+      final raw = res.data;
+      if (raw == null) return null;
+
+      // ✅ Contrato real del backend
+      if (raw is Map && raw['metrics'] is List) {
+        return List<Map<String, dynamic>>.from(raw['metrics'] as List);
+      }
+
+      return null;
+    } on DioException {
+      return null;
+    } catch (_) {
+      return null;
+    }
   }
 }
