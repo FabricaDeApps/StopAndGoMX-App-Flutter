@@ -209,6 +209,7 @@ class HomeView extends GetView<HomeController> {
           final isParent = role == 'parent';
           final isPlayer = role == 'player';
           final isCoach = role == 'coach';
+          final isStaff = role == 'staff';
 
           return Column(
             children: [
@@ -328,6 +329,22 @@ class HomeView extends GetView<HomeController> {
                       arguments: {'playerId': idPlayer, 'playerName': name},
                     );
                   },
+                ),
+              ],
+
+              if (isPlayer) ...[
+                ListTile(
+                  leading: const Icon(Icons.family_restroom),
+                  title: const Text('Datos de padres'),
+                  onTap: () => Get.toNamed(Routes.parentsInfo),
+                ),
+              ],
+
+              if (isPlayer || isCoach || isManager || isStaff) ...[
+                ListTile(
+                  leading: const Icon(Icons.how_to_reg),
+                  title: const Text('Check-ins'),
+                  onTap: () => Get.toNamed(Routes.checkins),
                 ),
               ],
 

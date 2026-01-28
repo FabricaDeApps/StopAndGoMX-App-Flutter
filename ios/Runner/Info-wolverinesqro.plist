@@ -54,5 +54,9 @@
 	</array>
     <key>NSMicrophoneUsageDescription</key>
     <string>Necesitamos el micrófono para transmitir en vivo.</string>
+		<key>NSLocationWhenInUseUsageDescription</key>
+	<string>Necesitamos tu ubicación para registrar tu check-in.</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>Necesitamos tu ubicación para registrar tu check-in.</string>
 </dict>
 </plist>

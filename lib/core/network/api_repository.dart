@@ -4,6 +4,9 @@ import 'package:dio/dio.dart';
 import 'package:stopandgo/core/config/flavor_config.dart';
 import 'package:stopandgo/core/constants/api_endpoints.dart';
 import 'package:stopandgo/core/models/category.dart';
+import 'package:stopandgo/core/models/checkin_model.dart';
+import 'package:stopandgo/core/models/checkin_model_response.dart';
+import 'package:stopandgo/core/models/checkin_response.dart';
 import 'package:stopandgo/core/models/combines/combine_event.dart';
 import 'package:stopandgo/core/models/combines/combine_event_results_response.dart';
 import 'package:stopandgo/core/models/dashboard_models.dart';
@@ -16,6 +19,7 @@ import 'package:stopandgo/core/models/ecommerce/ecommerce_order_list_item_model.
 import 'package:stopandgo/core/models/games.dart';
 import 'package:stopandgo/core/models/player_document.dart';
 import 'package:stopandgo/core/models/players.dart';
+import 'package:stopandgo/core/models/players/parents_model.dart';
 import 'package:stopandgo/core/models/responses/generic_response.dart';
 import 'package:stopandgo/core/models/responses/login_response.dart';
 import 'package:stopandgo/core/models/responses/organization_response.dart';
@@ -1898,6 +1902,126 @@ class ApiRepository {
       return null;
     } catch (_) {
       return null;
+    }
+  }
+
+  Future<ParentsModel?> getMyParents() async {
+    try {
+      final res = await _dio.get(
+        '/player/my-parents',
+        options: Options(headers: _headers()),
+      );
+      final raw = res.data;
+      if (raw == null || raw is! Map<String, dynamic>) return null;
+
+      final data = raw['data'];
+      if (data == null || data is! Map<String, dynamic>) return null;
+
+      return ParentsModel.fromJson(data);
+    } on DioException {
+      return null;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  // PUT /player/my-parents
+  Future<bool> updateMyParents({required ParentsModel parents}) async {
+    try {
+      final res = await _dio.put(
+        '/player/my-parents',
+        data: parents.toJson(),
+        options: Options(headers: _headers()),
+      );
+      return res.statusCode == 200;
+    } on DioException {
+      return false;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  Future<List<CheckinModelResponse>> getCheckinsHistory({
+    required String dateFrom,
+    required String dateTo,
+  }) async {
+    try {
+      final res = await _dio.get(
+        '/checkins/history',
+        queryParameters: {'date_from': dateFrom, 'date_to': dateTo},
+        options: Options(headers: _headers()),
+      );
+
+      final raw = res.data;
+      if (raw is! Map<String, dynamic>) return [];
+
+      final paginated = raw['data'];
+      if (paginated is! Map<String, dynamic>) return [];
+
+      final list = paginated['data'];
+      if (list is! List) return [];
+
+      return list
+          .whereType<Map<String, dynamic>>()
+          .map(CheckinModelResponse.fromJson)
+          .toList();
+    } catch (_) {
+      return [];
+    }
+  }
+
+  Future<CheckinResponse?> createCheckin({
+    required CheckinModel checkin,
+  }) async {
+    try {
+      final res = await _dio.post(
+        '/checkins',
+        data: checkin.toJson(),
+        options: Options(
+          headers: _headers(),
+          validateStatus: (code) => code != null && code >= 200 && code < 500,
+        ),
+      );
+
+      final raw = res.data;
+      if (raw is Map<String, dynamic>) {
+        return CheckinResponse.fromJson(raw);
+      }
+
+      return null;
+    } on DioException catch (e) {
+      final raw = e.response?.data;
+      if (raw is Map<String, dynamic>) {
+        return CheckinResponse.fromJson(raw);
+      }
+      return null;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  Future<bool> updatePlayerJerseyNumber({
+    required int categoryPlayerId,
+    required int jerseyNumber,
+  }) async {
+    try {
+      final res = await _dio.put(
+        '/category-players/$categoryPlayerId/jersey',
+        data: {'jersey_number': jerseyNumber},
+        options: Options(
+          headers: _headers(),
+          validateStatus: (code) => code != null && code >= 200 && code < 500,
+        ),
+      );
+
+      if (res.statusCode == 200) {
+        return true;
+      }
+      return false;
+    } on DioException catch (_) {
+      return false;
+    } catch (_) {
+      return false;
     }
   }
 }
