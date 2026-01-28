@@ -6,6 +6,8 @@ import 'package:stopandgo/modules/auth/login_binding.dart';
 import 'package:stopandgo/modules/auth/login_view.dart';
 import 'package:stopandgo/modules/broadcast_live/broadcast_live_view.dart';
 import 'package:stopandgo/modules/broadcast_live/index.dart';
+import 'package:stopandgo/modules/checkins/checkins_view.dart';
+import 'package:stopandgo/modules/checkins/index.dart';
 import 'package:stopandgo/modules/combine_create/combine_create_view.dart';
 import 'package:stopandgo/modules/combine_create/index.dart';
 import 'package:stopandgo/modules/combine_event_detail/combine_event_detail_binding.dart';
@@ -52,6 +54,8 @@ import 'package:stopandgo/modules/my_profile/my_profile_view.dart';
 import 'package:stopandgo/modules/new_game/index.dart';
 import 'package:stopandgo/modules/no_category/index.dart';
 import 'package:stopandgo/modules/no_category/no_category_view.dart';
+import 'package:stopandgo/modules/parents_info/index.dart';
+import 'package:stopandgo/modules/parents_info/parents_info_view.dart';
 import 'package:stopandgo/modules/play_book_go/index.dart';
 import 'package:stopandgo/modules/play_book_go/play_book_view.dart';
 import 'package:stopandgo/modules/play_book_create/play_book_create_binding.dart';
@@ -296,6 +300,16 @@ class AppPages {
       name: Routes.combineCreateMetrics,
       page: () => const CreateMetricView(),
       binding: CreateMetricBinding(),
+    ),
+    GetPage(
+      name: Routes.parentsInfo,
+      page: () => const ParentsInfoView(),
+      binding: ParentsInfoBinding(),
+    ),
+    GetPage(
+      name: Routes.checkins,
+      page: () => const CheckinsView(),
+      binding: CheckinsBinding(),
     ),
   ];
 }

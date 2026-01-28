@@ -4,6 +4,10 @@ Todos los cambios importantes del proyecto **StopAndGoMX** se documentan en este
 El formato sigue las recomendaciones de **Keep a Changelog**  
 y el versionado está basado en **Semantic Versioning (SemVer)**.
 
+## [1.0.30] - 2026-1-27
+- New dashboard
+- Invite Parents
+- Team Check In
 
 ## [1.0.28] - 2026-1-22
 - Fix de abrir avisos

@@ -69,12 +69,7 @@ class SplashController extends GetxController {
       await rcFuture;
 
       // 4) Check update (usa links de org)
-      if (orgToUse != null) {
-        await _checkUpdateAndMaybeBlock(orgToUse);
-      } else {
-        // Si no hay org, igual puedes checar update (pero sin URL no sirve abrir store)
-        await _checkUpdateAndMaybeBlock(null);
-      }
+      await _checkUpdate(orgToUse);
 
       // 5) Aplica theme + espera splash mínimo
       Get.find<ThemeController>().refreshTheme();
@@ -117,8 +112,9 @@ class SplashController extends GetxController {
     }
   }
 
-  Future<void> _checkUpdateAndMaybeBlock(OrganizationResponse? org) async {
+  Future<void> _checkUpdate(OrganizationResponse? org) async {
     final currentBuild = int.tryParse(buildNumber.value) ?? 0;
+
     final minBuild = Platform.isAndroid
         ? _rc.getInt('min_build_android')
         : _rc.getInt('min_build_ios');
@@ -127,66 +123,87 @@ class SplashController extends GetxController {
     if (currentBuild >= minBuild) return;
 
     final force = _rc.getBool('force_update');
-    final message = _rc.getString('update_message').trim().isEmpty
+
+    final msgRaw = _rc.getString('update_message');
+    final message = msgRaw.trim().isEmpty
         ? 'Hay una nueva versión disponible. Actualiza para continuar.'
-        : _rc.getString('update_message').trim();
+        : msgRaw.trim();
 
     final storeUrl = _storeUrlFromOrg(org);
 
-    _blockedByUpdate = force;
+    if (force) {
+      // ⛔ Bloquea y NO navega
+      _blockedByUpdate = true;
+      await _showForceUpdateDialog(message: message, storeUrl: storeUrl);
+      return;
+    }
 
-    await _showUpdateDialog(force: force, message: message, storeUrl: storeUrl);
+    // ⚠️ No forzoso: solo aviso NO bloqueante y deja continuar
+    _blockedByUpdate = false;
+
+    Get.snackbar(
+      'Actualización disponible',
+      message,
+      snackPosition: SnackPosition.BOTTOM,
+      duration: const Duration(seconds: 6),
+      margin: const EdgeInsets.all(12),
+      mainButton: TextButton(
+        onPressed: () async {
+          await _openStoreUrl(storeUrl);
+        },
+        child: const Text('Actualizar'),
+      ),
+    );
   }
 
   String _storeUrlFromOrg(OrganizationResponse? org) {
     if (org == null) return '';
     if (Platform.isAndroid) {
-      final v = (org.androidUrl ?? '').trim();
-      return v;
+      return (org.androidUrl ?? '').trim();
     } else {
-      final v = (org.iosUrl ?? '').trim();
-      return v;
+      return (org.iosUrl ?? '').trim();
     }
   }
 
-  Future<void> _showUpdateDialog({
-    required bool force,
+  Future<void> _openStoreUrl(String storeUrl) async {
+    if (storeUrl.trim().isEmpty) {
+      Get.snackbar('Info', 'No hay URL de tienda configurada');
+      return;
+    }
+    final uri = Uri.tryParse(storeUrl.trim());
+    if (uri == null) {
+      Get.snackbar('Info', 'La URL de tienda es inválida');
+      return;
+    }
+    final ok = await launchUrl(uri, mode: LaunchMode.externalApplication);
+    if (!ok) {
+      Get.snackbar('Info', 'No se pudo abrir la tienda');
+    }
+  }
+
+  Future<void> _showForceUpdateDialog({
     required String message,
     required String storeUrl,
   }) async {
     await Get.dialog(
       WillPopScope(
-        onWillPop: () async => !force,
+        onWillPop: () async => false, // no se puede cerrar
         child: AlertDialog(
-          title: Text(
-            force ? 'Actualización requerida' : 'Actualización disponible',
-          ),
+          title: const Text('Actualización requerida'),
           content: Text(message),
           actions: [
-            if (!force)
-              TextButton(
-                onPressed: () {
-                  _blockedByUpdate = false;
-                  Get.back();
-                },
-                child: const Text('Después'),
-              ),
             FilledButton(
               onPressed: () async {
-                if (storeUrl.isEmpty) {
-                  Get.snackbar('Info', 'No hay URL de tienda configurada');
-                  return;
-                }
-                final uri = Uri.tryParse(storeUrl);
-                if (uri == null) return;
-                await launchUrl(uri, mode: LaunchMode.externalApplication);
+                // En forzoso no permitimos cerrar,
+                // solo intentamos abrir tienda y si falla mostramos mensaje.
+                await _openStoreUrl(storeUrl);
               },
               child: const Text('Actualizar'),
             ),
           ],
         ),
       ),
-      barrierDismissible: !force,
+      barrierDismissible: false,
     );
   }
 

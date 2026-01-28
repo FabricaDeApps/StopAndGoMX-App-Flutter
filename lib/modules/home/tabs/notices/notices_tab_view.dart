@@ -1,20 +1,22 @@
+// lib/modules/home/tabs/notices/notices_tab_view.dart
+import 'dart:io' show Platform;
+
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import '../home_controller.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'dart:io' show Platform;
-import 'package:flutter/foundation.dart' show kIsWeb;
 
-class NoticesTab extends StatelessWidget {
-  const NoticesTab({super.key, required this.controller});
-  final HomeController controller;
+import 'notices_tab_controller.dart';
+
+class NoticesTabView extends GetView<NoticesTabController> {
+  const NoticesTabView({super.key});
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
     return Obx(() {
-      if (controller.isLoadingNotices.value) {
+      if (controller.isLoading.value) {
         return const Center(child: CircularProgressIndicator());
       }
 
@@ -31,6 +33,7 @@ class NoticesTab extends StatelessWidget {
         separatorBuilder: (_, __) => const SizedBox(height: 8),
         itemBuilder: (_, i) {
           final n = list[i];
+
           return Card(
             elevation: 0,
             shape: RoundedRectangleBorder(
@@ -52,29 +55,38 @@ class NoticesTab extends StatelessWidget {
                   const SizedBox(height: 6),
                   Text(
                     _fmtDateTime(n.date),
-                    style: theme.textTheme.bodySmall!.copyWith(
+                    style: theme.textTheme.bodySmall?.copyWith(
                       color: theme.colorScheme.onSurfaceVariant,
                     ),
                   ),
-                  if ((n.message ?? '').isNotEmpty) ...[
+                  if ((n.message ?? '').trim().isNotEmpty) ...[
                     const SizedBox(height: 6),
                     Text(
-                      n.message!,
+                      n.message!.trim(),
                       maxLines: 3,
                       overflow: TextOverflow.ellipsis,
                     ),
                   ],
                 ],
               ),
-              trailing: (n.attachment != null && n.attachment!.isNotEmpty)
+              trailing:
+                  (n.attachment != null && n.attachment!.trim().isNotEmpty)
                   ? const Icon(Icons.chevron_right)
                   : null,
               onTap: () async {
-                final attachment = n.attachment;
-                if (attachment != null && attachment.isNotEmpty) {
-                  final url = attachment.trim();
-                  debugPrint('Intentando abrir attachment: $url');
-                  final uri = Uri.parse(url);
+                final attachment = (n.attachment ?? '').trim();
+
+                if (attachment.isNotEmpty) {
+                  final uri = Uri.tryParse(attachment);
+                  if (uri == null) {
+                    Get.snackbar(
+                      'Error',
+                      'URL inválida:\n$attachment',
+                      snackPosition: SnackPosition.BOTTOM,
+                    );
+                    return;
+                  }
+
                   LaunchMode mode;
                   if (kIsWeb) {
                     mode = LaunchMode.platformDefault;
@@ -83,32 +95,39 @@ class NoticesTab extends StatelessWidget {
                   } else {
                     mode = LaunchMode.platformDefault;
                   }
+
                   try {
                     final can = await canLaunchUrl(uri);
-                    debugPrint('canLaunchUrl($uri) = $can');
-
-                    if (can) {
-                      final ok = await launchUrl(uri, mode: mode);
-                      if (!ok) {
-                        Get.snackbar(
-                          'Error',
-                          'No se pudo abrir el archivo adjunto',
-                          snackPosition: SnackPosition.BOTTOM,
-                        );
-                      }
-                    } else {
+                    if (!can) {
                       Get.snackbar(
                         'Error',
-                        'No se pudo abrir el archivo adjunto:\n$url',
+                        'No se pudo abrir el archivo adjunto:\n$attachment',
+                        snackPosition: SnackPosition.BOTTOM,
+                      );
+                      return;
+                    }
+
+                    final ok = await launchUrl(uri, mode: mode);
+                    if (!ok) {
+                      Get.snackbar(
+                        'Error',
+                        'No se pudo abrir el archivo adjunto',
                         snackPosition: SnackPosition.BOTTOM,
                       );
                     }
                   } catch (e) {
-                    print(e);
+                    Get.snackbar(
+                      'Error',
+                      'No se pudo abrir el archivo adjunto: $e',
+                      snackPosition: SnackPosition.BOTTOM,
+                    );
                   }
-                } else {
-                  controller.onTapNotice(n);
+
+                  return;
                 }
+
+                // Si no hay attachment, por ahora no hace nada.
+                // Si luego haces NoticeDetail, aquí navegas.
               },
             ),
           );
