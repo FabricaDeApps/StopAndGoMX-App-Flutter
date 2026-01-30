@@ -91,10 +91,6 @@ class Game {
   final DateTime? startsAt;
   final int? durationMinutes;
 
-  /// Compat: antes era string, ahora puede venir objeto.
-  /// - venueObj: el objeto venue completo (nuevo)
-  /// - venueId: id del venue (nuevo)
-  /// - venue: nombre fallback (string) para UI rápida/legacy
   final Venue? venueObj;
   final int? venueId;
   final String? venue;
@@ -124,6 +120,11 @@ class Game {
 
   final DateTime? createdAt;
   final DateTime? updatedAt;
+
+  final List<String> images; // urls
+
+  final int likesCount;
+  final bool isLikedByMe;
 
   Game({
     required this.id,
@@ -158,6 +159,9 @@ class Game {
 
     this.createdAt,
     this.updatedAt,
+    this.images = const [],
+    this.likesCount = 0,
+    this.isLikedByMe = false,
   });
 
   factory Game.fromJson(Map<String, dynamic> json) {
@@ -233,6 +237,13 @@ class Game {
 
       createdAt: _parseDate(json['created_at']),
       updatedAt: _parseDate(json['updated_at']),
+
+      images:
+          (json['images'] as List?)?.map((e) => e.toString()).toList() ??
+          const [],
+
+      likesCount: (json['likes_count'] as num?)?.toInt() ?? 0,
+      isLikedByMe: (json['is_liked_by_me'] ?? false) as bool,
     );
   }
 
@@ -268,6 +279,8 @@ class Game {
 
     'created_at': createdAt?.toIso8601String(),
     'updated_at': updatedAt?.toIso8601String(),
+    'likes_count': likesCount,
+    'is_liked_by_me': isLikedByMe,
   };
 
   // ===== Helpers útiles para UI =====

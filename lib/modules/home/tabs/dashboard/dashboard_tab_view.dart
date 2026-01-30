@@ -3,7 +3,7 @@ import 'package:get/get.dart';
 import 'package:stopandgo/core/widgets/cards.dart';
 import 'package:stopandgo/modules/home/models/home_notice_item.dart';
 import 'package:stopandgo/modules/home/tabs/dashboard/dashboard_tab_controller.dart';
-import 'package:stopandgo/core/models/games.dart';
+import 'package:stopandgo/core/models/games/games.dart';
 import 'package:stopandgo/modules/home/tabs/dashboard/widgets/dashboard_attendance_card.dart';
 
 import 'widgets/dashboard_games_card.dart';

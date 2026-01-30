@@ -1,7 +1,7 @@
 // lib/modules/home/tabs/games/games_tab_controller.dart
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:stopandgo/core/models/games.dart';
+import 'package:stopandgo/core/models/games/games.dart';
 import 'package:stopandgo/core/network/api_repository.dart';
 import 'package:stopandgo/core/storage/app_storage.dart';
 
@@ -109,9 +109,11 @@ class GamesTabController extends GetxController {
   List<Game> _sortedByStart(List<Game> list) {
     final copy = [...list];
     copy.sort((a, b) {
-      final da = a.startsAt ?? DateTime(2100);
-      final db = b.startsAt ?? DateTime(2100);
-      return da.compareTo(db);
+      if (a.startsAt == null && b.startsAt == null) return 0;
+      if (a.startsAt == null) return 1; // a al final
+      if (b.startsAt == null) return -1; // b al final
+
+      return b.startsAt!.compareTo(a.startsAt!);
     });
     return copy;
   }

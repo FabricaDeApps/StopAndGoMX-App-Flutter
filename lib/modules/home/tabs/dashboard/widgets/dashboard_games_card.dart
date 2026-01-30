@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:stopandgo/core/models/dashboard_models.dart';
 import 'package:stopandgo/core/widgets/cards.dart';
-import 'package:stopandgo/core/models/games.dart';
+import 'package:stopandgo/core/models/games/games.dart';
 
 import 'flat_games_list.dart';
 import 'player_games_by_category.dart';

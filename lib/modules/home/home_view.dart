@@ -316,7 +316,7 @@ class HomeView extends GetView<HomeController> {
                 ),
               ],
 
-              if (isParent) ...[
+              if (isParent || isPlayer) ...[
                 ListTile(
                   leading: const Icon(Icons.person_outline),
                   title: const Text('Documentos'),

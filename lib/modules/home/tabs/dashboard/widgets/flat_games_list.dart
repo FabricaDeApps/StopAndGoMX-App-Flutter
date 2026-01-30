@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:stopandgo/core/models/games.dart';
+import 'package:stopandgo/core/models/games/games.dart';
 
 class FlatGamesList extends StatelessWidget {
   const FlatGamesList({

@@ -2,7 +2,7 @@ import 'package:get/get.dart';
 import 'package:flutter/material.dart';
 import 'package:stopandgo/core/config/flavor_config.dart';
 import 'package:stopandgo/core/models/category.dart';
-import 'package:stopandgo/core/models/games.dart';
+import 'package:stopandgo/core/models/games/games.dart';
 import 'package:stopandgo/core/models/responses/organization_response.dart';
 import 'package:stopandgo/core/network/token_storage.dart';
 import 'package:stopandgo/core/storage/app_storage.dart';
@@ -251,13 +251,34 @@ class HomeController extends GetxController with GetTickerProviderStateMixin {
     selectedCategoryId.value = id;
     await AppStorage.setSelectedCategoryId(id);
 
+    String name = '';
+    for (final p in categories) {
+      if (p.id == id) {
+        name = p.name;
+        break;
+      }
+    }
+
+    await AppStorage.setSelectedCategoryName(name);
+
     await _loadCurrentTab();
   }
 
   Future<void> onChangePlayer(int? id) async {
     if (id == null) return;
     selectedPlayerId.value = id;
+    selectedPlayerId.value = id;
     await AppStorage.setSelectedPlayerId(id);
+
+    String name = '';
+    for (final p in myPlayers) {
+      if (p.id == id) {
+        name = p.name;
+        break;
+      }
+    }
+
+    await AppStorage.setSelectedPlayerName(name);
 
     await _loadCurrentTab();
   }
@@ -266,6 +287,16 @@ class HomeController extends GetxController with GetTickerProviderStateMixin {
     if (id == null) return;
     selectedPlayerCategoryId.value = id;
     await AppStorage.setSelectedCategoryId(id);
+
+    String name = '';
+    for (final p in myCategories) {
+      if (p.id == id) {
+        name = p.name;
+        break;
+      }
+    }
+
+    await AppStorage.setSelectedPlayerName(name);
 
     await _loadCurrentTab();
   }

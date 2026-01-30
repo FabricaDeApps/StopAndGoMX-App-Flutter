@@ -48,4 +48,5 @@ abstract class Routes {
   static const combineCreateMetrics = '/combineCreateMetrics';
   static const parentsInfo = '/parentsInfo';
   static const checkins = '/checkins';
+  static const gameDetail = '/gameDetail';
 }

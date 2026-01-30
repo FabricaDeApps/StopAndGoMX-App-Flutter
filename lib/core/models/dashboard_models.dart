@@ -1,5 +1,5 @@
 import 'package:stopandgo/core/models/attendance_dashboard.dart';
-import 'package:stopandgo/core/models/games.dart';
+import 'package:stopandgo/core/models/games/games.dart';
 
 /// --------- MODELOS COMPARTIDOS ---------
 

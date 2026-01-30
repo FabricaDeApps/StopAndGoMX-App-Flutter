@@ -239,19 +239,43 @@ class GamesTabView extends GetView<GamesTabController> {
                         ),
 
                       // 🗺️ Google Maps
-                      IconButton(
-                        padding: EdgeInsets.zero,
-                        constraints: const BoxConstraints(
-                          minWidth: 36,
-                          minHeight: 36,
-                        ),
-                        visualDensity: VisualDensity.compact,
-                        icon: const Icon(Icons.map_outlined, size: 22),
-                        tooltip: 'Abrir en Google Maps',
-                        onPressed: () => _openInGoogleMaps(
-                          lat: g.lat,
-                          lng: g.lng,
-                          label: labelForMaps,
+                      Visibility(
+                        visible: role == 'manager' && g.status != "completed",
+                        child: IconButton(
+                          padding: EdgeInsets.zero,
+                          constraints: const BoxConstraints(
+                            minWidth: 36,
+                            minHeight: 36,
+                          ),
+                          visualDensity: VisualDensity.compact,
+                          icon: const Icon(Icons.fact_check, size: 22),
+                          onPressed: () async {
+                            if (!canComplete) {
+                              if (!isPast) {
+                                Get.snackbar(
+                                  'No permitido',
+                                  'Solo puedes completar juegos que ya pasaron',
+                                  snackPosition: SnackPosition.BOTTOM,
+                                );
+                              } else {}
+                              return;
+                            }
+
+                            final result = await Get.toNamed(
+                              Routes.completeGame,
+                              arguments: {
+                                'categoryId':
+                                    controller.selectedCategoryId.value ??
+                                    AppStorage.getSelectedCategoryId(),
+                                'gameId': g.id,
+                                'gameDate': g.startsAt,
+                              },
+                            );
+
+                            if (result == true) {
+                              await controller.refresh();
+                            }
+                          },
                         ),
                       ),
 
@@ -290,43 +314,8 @@ class GamesTabView extends GetView<GamesTabController> {
                     ],
                   ),
                   onTap: () async {
-                    if (g.status == 'completed') {
-                      Get.snackbar(
-                        'Completado',
-                        'Este juego ya fue completado: ${g.homeScore ?? 0} - ${g.opponentScore ?? 0}',
-                        snackPosition: SnackPosition.BOTTOM,
-                      );
-                      return;
-                    }
-
-                    if (!canComplete) {
-                      if (!isPast) {
-                        Get.snackbar(
-                          'No permitido',
-                          'Solo puedes completar juegos que ya pasaron',
-                          snackPosition: SnackPosition.BOTTOM,
-                        );
-                      } else {
-                        // tu callback actual (si no completa manager)
-                        // aquí podrías navegar a detalle, etc.
-                      }
-                      return;
-                    }
-
-                    final result = await Get.toNamed(
-                      Routes.completeGame,
-                      arguments: {
-                        'categoryId':
-                            controller.selectedCategoryId.value ??
-                            AppStorage.getSelectedCategoryId(),
-                        'gameId': g.id,
-                        'gameDate': g.startsAt,
-                      },
-                    );
-
-                    if (result == true) {
-                      await controller.refresh();
-                    }
+                    Get.toNamed(Routes.gameDetail, arguments: {'id': g.id});
+                    return;
                   },
                 );
               },

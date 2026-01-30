@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:stopandgo/core/models/dashboard_models.dart';
-import 'package:stopandgo/core/models/games.dart';
+import 'package:stopandgo/core/models/games/games.dart';
 
 class PlayerGamesByCategory extends StatelessWidget {
   const PlayerGamesByCategory({

@@ -16,7 +16,8 @@ import 'package:stopandgo/core/models/dto/payment_provider_intent_dto.dart';
 import 'package:stopandgo/core/models/ecommerce/checkout_result_model.dart';
 import 'package:stopandgo/core/models/ecommerce/ecommerce_order_detail_model.dart';
 import 'package:stopandgo/core/models/ecommerce/ecommerce_order_list_item_model.dart';
-import 'package:stopandgo/core/models/games.dart';
+import 'package:stopandgo/core/models/games/game_comment.dart';
+import 'package:stopandgo/core/models/games/games.dart';
 import 'package:stopandgo/core/models/player_document.dart';
 import 'package:stopandgo/core/models/players.dart';
 import 'package:stopandgo/core/models/players/parents_model.dart';
@@ -2022,6 +2023,171 @@ class ApiRepository {
       return false;
     } catch (_) {
       return false;
+    }
+  }
+
+  Future<Game?> getGameDetailById(int gameId) async {
+    try {
+      final res = await _dio.get(
+        '/games/$gameId',
+        options: Options(
+          headers: _headers(),
+          validateStatus: (code) => code != null && code >= 200 && code < 500,
+        ),
+      );
+
+      if (res.statusCode == 200 && res.data != null) {
+        return Game.fromJson(res.data as Map<String, dynamic>);
+      }
+      return null;
+    } on DioException catch (_) {
+      return null;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  Future<Map<String, dynamic>?> toggleGameLike(int gameId) async {
+    try {
+      final res = await _dio.post(
+        '/games/$gameId/like',
+        options: Options(
+          headers: _headers(),
+          validateStatus: (code) => code != null && code >= 200 && code < 500,
+        ),
+      );
+
+      if (res.statusCode == 200 && res.data != null) {
+        return Map<String, dynamic>.from(res.data as Map);
+      }
+      return null;
+    } on DioException catch (_) {
+      return null;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  Future<String?> uploadGameImage({
+    required int gameId,
+    required File file,
+  }) async {
+    try {
+      final form = FormData.fromMap({
+        'image': await MultipartFile.fromFile(
+          file.path,
+          filename: file.path.split('/').last,
+        ),
+      });
+
+      final res = await _dio.post(
+        '/games/$gameId/images',
+        data: form,
+        options: Options(
+          headers: {..._headers(), 'Content-Type': 'multipart/form-data'},
+          validateStatus: (code) => code != null && code >= 200 && code < 500,
+        ),
+      );
+
+      if ((res.statusCode == 200 || res.statusCode == 201) &&
+          res.data != null) {
+        final data = Map<String, dynamic>.from(res.data as Map);
+        return data['url'] as String?;
+      }
+      return null;
+    } on DioException catch (_) {
+      return null;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  Future<List<GameComment>> getGameComments({
+    required int gameId,
+    int? afterId,
+    int limit = 30,
+  }) async {
+    try {
+      final query = <String, dynamic>{
+        'limit': limit,
+        if (afterId != null && afterId > 0) 'after_id': afterId,
+      };
+
+      final res = await _dio.get(
+        '/games/$gameId/comments',
+        queryParameters: query,
+        options: Options(
+          headers: _headers(),
+          validateStatus: (code) => code != null && code >= 200 && code < 500,
+        ),
+      );
+
+      if (res.statusCode == 200 && res.data != null) {
+        final map = Map<String, dynamic>.from(res.data as Map);
+        final list = (map['data'] as List? ?? const []);
+        return list
+            .map(
+              (e) => GameComment.fromJson(Map<String, dynamic>.from(e as Map)),
+            )
+            .toList();
+      }
+
+      return [];
+    } on DioException catch (_) {
+      return [];
+    } catch (_) {
+      return [];
+    }
+  }
+
+  Future<GameComment?> createGameComment({
+    required int gameId,
+    required String message,
+  }) async {
+    try {
+      final res = await _dio.post(
+        '/games/$gameId/comments',
+        data: {'message': message},
+        options: Options(
+          headers: _headers(),
+          validateStatus: (code) => code != null && code >= 200 && code < 500,
+        ),
+      );
+
+      if ((res.statusCode == 200 || res.statusCode == 201) &&
+          res.data != null) {
+        return GameComment.fromJson(Map<String, dynamic>.from(res.data as Map));
+      }
+
+      return null;
+    } on DioException catch (_) {
+      return null;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  Future<Map<String, dynamic>?> toggleCommentLike({
+    required int gameId,
+    required int commentId,
+  }) async {
+    try {
+      final res = await _dio.post(
+        '/games/$gameId/comments/$commentId/like',
+        options: Options(
+          headers: _headers(),
+          validateStatus: (code) => code != null && code >= 200 && code < 500,
+        ),
+      );
+
+      if (res.statusCode == 200 && res.data != null) {
+        return Map<String, dynamic>.from(res.data as Map);
+      }
+      return null;
+    } on DioException catch (_) {
+      return null;
+    } catch (_) {
+      return null;
     }
   }
 }

@@ -1,7 +1,7 @@
 import 'package:get/get.dart';
 import 'package:stopandgo/core/models/attendance_dashboard.dart';
 import 'package:stopandgo/core/models/dashboard_models.dart';
-import 'package:stopandgo/core/models/games.dart';
+import 'package:stopandgo/core/models/games/games.dart';
 import 'package:stopandgo/core/network/api_repository.dart';
 import 'package:stopandgo/core/storage/app_storage.dart';
 import 'package:stopandgo/modules/home/models/home_notice_item.dart';
@@ -99,14 +99,9 @@ class DashboardTabController extends GetxController {
   Future<void> _loadDashboardForCoach() async {
     try {
       isLoading.value = true;
-
-      // Asegura que exista una categoría seleccionada
       final categoryId =
           selectedCategoryId.value ?? AppStorage.getSelectedCategoryId();
       if (categoryId == null) return;
-
-      // Si tu endpoint ya filtra por categoría internamente, ok.
-      // Si no, aquí podríamos pasar categoryId si el API lo soporta.
       final dash = await api.getCoachDashboard();
       _mapCoachDashboard(dash);
     } catch (e) {
