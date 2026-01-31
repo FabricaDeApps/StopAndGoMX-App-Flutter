@@ -5,6 +5,7 @@ import 'package:get/get.dart';
 import 'package:stopandgo/core/models/category.dart';
 import 'package:stopandgo/core/services/ecommerce_cart_service.dart';
 import 'package:stopandgo/core/storage/app_storage.dart';
+import 'package:stopandgo/core/widgets/player_picker_sheet.dart';
 import 'package:stopandgo/routes/app_routes.dart';
 
 import 'home_controller.dart';
@@ -320,14 +321,48 @@ class HomeView extends GetView<HomeController> {
                 ListTile(
                   leading: const Icon(Icons.person_outline),
                   title: const Text('Documentos'),
-                  onTap: () {
+                  onTap: () async {
                     Get.back();
+
+                    final user = AppStorage.getUser();
+                    final role =
+                        user?.role; // 'player' | 'parent' | 'coach' | etc.
+
                     final idPlayer = AppStorage.getSelectedPlayerId();
                     final name = AppStorage.getSelectedPlayerName();
-                    Get.toNamed(
-                      Routes.documents,
-                      arguments: {'playerId': idPlayer, 'playerName': name},
-                    );
+
+                    // 👤 PLAYER → siempre directo
+                    if (role == 'player' && idPlayer != null) {
+                      Get.toNamed(
+                        Routes.documents,
+                        arguments: {'playerId': idPlayer, 'playerName': name},
+                      );
+                      return;
+                    }
+
+                    // 👨‍👩‍👧‍👦 PARENT → abrir selector
+                    if (role == 'parent') {
+                      final picked =
+                          await Get.bottomSheet<Map<String, dynamic>?>(
+                            const PlayerPickerSheet(),
+                            isScrollControlled: true,
+                            backgroundColor: Colors.transparent,
+                          );
+
+                      if (picked == null) return;
+
+                      final pid = picked['id'] as int;
+                      final pname = picked['name'] as String;
+
+                      AppStorage.setSelectedPlayerId(pid);
+                      AppStorage.setSelectedPlayerName(pname);
+
+                      Get.toNamed(
+                        Routes.documents,
+                        arguments: {'playerId': pid, 'playerName': pname},
+                      );
+                      return;
+                    }
                   },
                 ),
               ],

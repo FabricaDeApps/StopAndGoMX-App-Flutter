@@ -231,6 +231,14 @@ class TrainingsView extends GetView<TrainingsController> {
                                         icon: Icons.check_circle,
                                         label: 'Completar',
                                       ),
+                                      SlidableAction(
+                                        onPressed: (_) =>
+                                            controller.confirmDeleteTraining(t),
+                                        backgroundColor: Colors.red,
+                                        foregroundColor: Colors.white,
+                                        icon: Icons.delete,
+                                        label: 'Eliminar',
+                                      ),
                                     ],
                                   )
                                 : null,

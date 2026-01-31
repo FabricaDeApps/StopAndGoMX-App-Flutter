@@ -2190,4 +2190,17 @@ class ApiRepository {
       return null;
     }
   }
+
+  Future<void> deleteTraining({
+    required int trainingId,
+    required int categoryId,
+  }) async {
+    await _dio.delete(
+      '/manager/$categoryId/trainings/$trainingId',
+      options: Options(
+        headers: _headers(),
+        validateStatus: (code) => code != null && code >= 200 && code < 500,
+      ),
+    );
+  }
 }

@@ -142,4 +142,68 @@ class TrainingsController extends GetxController {
       );
     }
   }
+
+  Future<void> confirmDeleteTraining(Training t) async {
+    final ok = await Get.dialog<bool>(
+      AlertDialog(
+        title: const Text('Eliminar entrenamiento'),
+        content: Text(
+          '¿Seguro que quieres eliminar este entrenamiento?\n\n'
+          '${_formatTrainingSummary(t)}\n\n'
+          'Esta acción lo ocultará de la app.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Get.back(result: false),
+            child: const Text('Cancelar'),
+          ),
+          ElevatedButton.icon(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+              foregroundColor: Colors.white,
+            ),
+            onPressed: () => Get.back(result: true),
+            icon: const Icon(Icons.delete),
+            label: const Text('Eliminar'),
+          ),
+        ],
+      ),
+      barrierDismissible: true,
+    );
+
+    if (ok == true) {
+      await deleteTraining(t);
+    }
+  }
+
+  Future<void> deleteTraining(Training t) async {
+    try {
+      // Optimista: quítalo de la lista al instante
+      final prev = List<Training>.from(trainings);
+      trainings.removeWhere((x) => x.id == t.id);
+
+      await _api.deleteTraining(trainingId: t.id, categoryId: categoryId);
+
+      Get.snackbar(
+        'Entrenamiento eliminado',
+        'Se eliminó correctamente.',
+        snackPosition: SnackPosition.BOTTOM,
+      );
+    } catch (e) {
+      // rollback: vuelve a cargar por si falló
+      await loadTrainings();
+      Get.snackbar(
+        'Error',
+        'No se pudo eliminar el entrenamiento.',
+        snackPosition: SnackPosition.BOTTOM,
+      );
+    }
+  }
+
+  String _formatTrainingSummary(Training t) {
+    final date = t.startsAt != null ? t.startsAt!.toLocal().toString() : '';
+    final venue = (t.venue ?? '').trim();
+    if (venue.isNotEmpty) return '$date\n$venue';
+    return date;
+  }
 }

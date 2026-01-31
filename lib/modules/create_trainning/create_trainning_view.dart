@@ -157,6 +157,7 @@ class CreateTrainningView extends GetView<CreateTrainningController> {
                     const SizedBox(height: 16),
 
                     // STATUS
+                    /*
                     Text('Estado', style: theme.textTheme.titleMedium),
                     const SizedBox(height: 8),
                     Obx(() {
@@ -186,7 +187,7 @@ class CreateTrainningView extends GetView<CreateTrainningController> {
                         ),
                       );
                     }),
-
+                    */
                     const SizedBox(height: 16),
 
                     // NOTAS
