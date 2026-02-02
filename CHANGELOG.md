@@ -4,6 +4,9 @@ Todos los cambios importantes del proyecto **StopAndGoMX** se documentan en este
 El formato sigue las recomendaciones de **Keep a Changelog**  
 y el versionado está basado en **Semantic Versioning (SemVer)**.
 
+## [1.0.33] - 2026-2-2
+- Galería de Juegos, video y fotos
+
 ## [1.0.32] - 2026-1-31
 - Managers poder eliminar entrenamientos
 - Bug seleccionar player en documentos

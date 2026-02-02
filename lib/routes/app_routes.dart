@@ -45,6 +45,8 @@ import 'package:stopandgo/modules/ecommerce_products/ecommerce_products_view.dar
 import 'package:stopandgo/modules/ecommerce_products/index.dart';
 import 'package:stopandgo/modules/game_detail/game_detail_view.dart';
 import 'package:stopandgo/modules/game_detail/index.dart';
+import 'package:stopandgo/modules/game_gallery/game_gallery_view.dart';
+import 'package:stopandgo/modules/game_gallery/index.dart';
 import 'package:stopandgo/modules/home/index.dart';
 import 'package:stopandgo/modules/image_view/image_binding.dart';
 import 'package:stopandgo/modules/image_view/image_view.dart';
@@ -317,6 +319,11 @@ class AppPages {
       name: Routes.gameDetail,
       page: () => const GameDetailView(),
       binding: GameDetailBinding(),
+    ),
+    GetPage(
+      name: Routes.gameGallery,
+      page: () => const GameGalleryView(),
+      binding: GameGalleryBinding(),
     ),
   ];
 }

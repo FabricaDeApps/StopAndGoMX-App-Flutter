@@ -2,7 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:stopandgo/core/models/games/game_comment.dart';
 import 'package:stopandgo/core/models/games/games.dart';
+import 'package:stopandgo/core/utils/helpers.dart';
 import 'package:stopandgo/modules/game_detail/game_detail_controller.dart';
+import 'package:stopandgo/routes/app_routes.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class GameDetailView extends GetView<GameDetailController> {
   const GameDetailView({super.key});
@@ -22,9 +25,11 @@ class GameDetailView extends GetView<GameDetailController> {
         ),
         actions: [
           IconButton(
-            onPressed: controller.onAddPhoto,
-            icon: const Icon(Icons.add_a_photo_rounded, color: Colors.white),
-            tooltip: 'Agregar foto',
+            icon: const Icon(Icons.photo_library_outlined),
+            onPressed: () => Get.toNamed(
+              Routes.gameGallery,
+              arguments: controller.game.value!.id,
+            ),
           ),
           Obx(
             () => IconButton(
@@ -60,6 +65,9 @@ class GameDetailView extends GetView<GameDetailController> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   SizedBox(height: 380, child: _HeaderSlider(game: g)),
+
+                  SizedBox(height: 10),
+                  Center(child: _GalleryFab(gameId: g.id)),
 
                   Padding(
                     padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
@@ -109,8 +117,6 @@ class GameDetailView extends GetView<GameDetailController> {
                 ],
               ),
             ),
-
-            // ✅ Input fijo abajo
             Align(
               alignment: Alignment.bottomCenter,
               child: SafeArea(
@@ -129,11 +135,11 @@ class GameDetailView extends GetView<GameDetailController> {
                   ),
                   child: Row(
                     children: [
-                      IconButton(
+                      /*     IconButton(
                         onPressed: controller.onAddPhoto,
                         icon: const Icon(Icons.photo_camera_back_rounded),
                         tooltip: 'Agregar foto',
-                      ),
+                      ), */
                       Expanded(
                         child: TextField(
                           controller: controller.commentCtrl,
@@ -187,7 +193,6 @@ class _HeaderSlider extends StatelessWidget {
       return Stack(
         fit: StackFit.expand,
         children: [
-          // ✅ PageView recibe swipe
           PageView.builder(
             key: ValueKey(imgs.length),
             itemCount: imgs.length,
@@ -269,6 +274,24 @@ class _GameInfoCard extends StatelessWidget {
   final Game game;
   const _GameInfoCard({required this.game});
 
+  Future<void> _openInMaps({double? lat, double? lng, String? query}) async {
+    Uri uri;
+
+    if (lat != null && lng != null) {
+      uri = Uri.parse(
+        'https://www.google.com/maps/search/?api=1&query=$lat,$lng',
+      );
+    } else if (query != null && query.trim().isNotEmpty) {
+      uri = Uri.parse(
+        'https://www.google.com/maps/search/?api=1&query=${Uri.encodeComponent(query)}',
+      );
+    } else {
+      return;
+    }
+
+    await launchUrl(uri, mode: LaunchMode.externalApplication);
+  }
+
   @override
   Widget build(BuildContext context) {
     final starts = game.startsAt;
@@ -311,9 +334,48 @@ class _GameInfoCard extends StatelessWidget {
           const SizedBox(height: 8),
           _kv('Duración', '${game.durationMinutes ?? 0} min'),
           const SizedBox(height: 8),
-          _kv('Sede', venueLabel()),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const SizedBox(
+                width: 90,
+                child: Text(
+                  'Sede',
+                  style: TextStyle(fontWeight: FontWeight.w700),
+                ),
+              ),
+              Expanded(
+                child: GestureDetector(
+                  onTap: () => _openInMaps(
+                    lat: game.lat,
+                    lng: game.lng,
+                    query: venueLabel(),
+                  ),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        child: Text(
+                          venueLabel(),
+                          style: const TextStyle(
+                            decoration: TextDecoration.underline,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 6),
+                      const Icon(
+                        Icons.location_pin,
+                        size: 18,
+                        color: Colors.redAccent,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
           const SizedBox(height: 8),
-          _kv('Estatus', (game.status ?? '—').toUpperCase()),
+          _kv('Estatus', gameStatusLabel(game.status)),
           const SizedBox(height: 12),
           Text(
             'Notas',
@@ -372,6 +434,55 @@ class _CommentTile extends StatelessWidget {
           const SizedBox(height: 6),
           Text(c.message),
         ],
+      ),
+    );
+  }
+}
+
+class _GalleryFab extends StatelessWidget {
+  final int gameId;
+  const _GalleryFab({required this.gameId});
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(999),
+        onTap: () async {
+          await Get.toNamed(Routes.gameGallery, arguments: gameId);
+          final c = Get.find<GameDetailController>();
+          c.fetchGame();
+        },
+        child: Ink(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+          decoration: BoxDecoration(
+            color: Colors.black.withOpacity(0.55),
+            borderRadius: BorderRadius.circular(999),
+            border: Border.all(color: Colors.white.withOpacity(0.20)),
+            boxShadow: [
+              BoxShadow(
+                blurRadius: 14,
+                offset: const Offset(0, 6),
+                color: Colors.black.withOpacity(0.18),
+              ),
+            ],
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: const [
+              Icon(Icons.photo_library_outlined, color: Colors.white, size: 18),
+              SizedBox(width: 8),
+              Text(
+                'Galería',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

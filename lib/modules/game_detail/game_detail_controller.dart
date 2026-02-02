@@ -10,6 +10,7 @@ import 'package:stopandgo/core/models/games/games.dart';
 import 'package:stopandgo/core/network/api_repository.dart';
 import 'package:image/image.dart' as img;
 import 'package:path_provider/path_provider.dart';
+import 'package:stopandgo/core/widgets/snack_bar.dart';
 
 class GameDetailController extends GetxController {
   final api = Get.find<ApiRepository>();
@@ -82,7 +83,7 @@ class GameDetailController extends GetxController {
       // Carga inicial de comentarios
       await fetchCommentsInitial();
     } catch (e) {
-      Get.snackbar('Error', 'No se pudo cargar el partido');
+      UiSnackbar.error('Error', 'No se pudo subir el video');
     } finally {
       isLoading.value = false;
     }
@@ -207,7 +208,7 @@ class GameDetailController extends GetxController {
         message: text,
       );
       if (created == null) {
-        Get.snackbar('Error', 'No se pudo enviar el comentario');
+        UiSnackbar.error('Error', 'No se pudo enviar el comentario');
         return;
       }
 
@@ -219,7 +220,7 @@ class GameDetailController extends GetxController {
         lastCommentId.value = created.id;
       }
     } catch (_) {
-      Get.snackbar('Error', 'No se pudo enviar el comentario');
+      UiSnackbar.error('Error', 'No se pudo enviar el comentario');
     }
   }
 
@@ -231,14 +232,14 @@ class GameDetailController extends GetxController {
     try {
       final url = await api.uploadGameImage(gameId: gameId, file: file);
       if (url == null || url.isEmpty) {
-        Get.snackbar('Error', 'No se pudo subir la foto');
+        UiSnackbar.error('Error', 'No se pudo subir la foto');
         return;
       }
 
       addImageUrl(url);
-      Get.snackbar('Listo', 'Foto agregada');
+      UiSnackbar.success('Listo', 'Video subido');
     } catch (_) {
-      Get.snackbar('Error', 'No se pudo subir la foto');
+      UiSnackbar.error('Error', 'No se pudo subir la foto');
     }
   }
 

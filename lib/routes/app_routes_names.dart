@@ -49,4 +49,5 @@ abstract class Routes {
   static const parentsInfo = '/parentsInfo';
   static const checkins = '/checkins';
   static const gameDetail = '/gameDetail';
+  static const gameGallery = '/gameGallery';
 }
