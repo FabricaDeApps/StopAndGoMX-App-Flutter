@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
 import 'package:stopandgo/core/network/api_env.dart';
 import 'package:stopandgo/core/network/interceptors/sentry_interceptor.dart';
@@ -32,7 +33,7 @@ class ApiClient {
     dio.interceptors.addAll([
       OrgInterceptor(),
       AuthInterceptor(),
-      SentryInterceptor(),
+      if (kReleaseMode) SentryInterceptor(),
       PrettyDioLogger(
         requestHeader: true,
         requestBody: true,

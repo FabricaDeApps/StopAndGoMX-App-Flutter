@@ -785,30 +785,6 @@ class ApiRepository {
     return res.statusCode == 200;
   }
 
-  Future<GenericResponse> saveAttendancesBulk({
-    required int gameId,
-    required List<Map<String, dynamic>> items,
-  }) async {
-    try {
-      final res = await _dio.post(
-        '/manager/$gameId/attendances/bulk',
-        data: {"items": items},
-      );
-      return GenericResponse.fromJson(Map<String, dynamic>.from(res.data));
-    } on DioException catch (e) {
-      final payload = e.response?.data;
-      if (payload is Map<String, dynamic>) {
-        return GenericResponse.fromJson(payload);
-      }
-      return GenericResponse(
-        success: false,
-        message: e.message ?? 'Error al guardar asistencias',
-      );
-    } catch (e) {
-      return GenericResponse(success: false, message: 'Error inesperado: $e');
-    }
-  }
-
   Future<Map<String, dynamic>> registerPublicUser({
     required int organizationId,
     required String name,

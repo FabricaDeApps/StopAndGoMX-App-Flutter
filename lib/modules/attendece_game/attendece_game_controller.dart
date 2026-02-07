@@ -2,7 +2,6 @@
 import 'package:get/get.dart';
 import 'package:stopandgo/core/models/players.dart';
 import 'package:stopandgo/core/network/api_repository.dart';
-import 'package:stopandgo/core/storage/app_storage.dart';
 
 enum AttStatus { present, absent, late }
 
@@ -140,13 +139,18 @@ class AttendanceGameController extends GetxController {
 
     isSaving.value = true;
     try {
-      final items = rows.map((r) => r.toJson()).toList();
-      final res = await _api.saveAttendancesBulk(gameId: gameId, items: items);
+      final items = rows
+          .map((r) => {...r.toJson(), 'game_id': gameId, 'training_id': null})
+          .toList();
+      final ok = await _api.managerAttendanceBulk(
+        categoryId: categoryId,
+        items: items,
+      );
 
-      if (!res.success) {
+      if (!ok) {
         Get.snackbar(
           'Asistencias',
-          res.message,
+          'No se pudo guardar la asistencia',
           snackPosition: SnackPosition.BOTTOM,
         );
         return;
@@ -155,7 +159,7 @@ class AttendanceGameController extends GetxController {
       Get.back(result: true);
       Get.snackbar(
         'Asistencias',
-        res.message.isEmpty ? 'Guardado correctamente' : res.message,
+        'Guardado correctamente',
         snackPosition: SnackPosition.BOTTOM,
       );
     } catch (e) {
