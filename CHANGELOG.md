@@ -5,9 +5,10 @@ El formato sigue las recomendaciones de **Keep a Changelog**
 y el versionado está basado en **Semantic Versioning (SemVer)**.
 
 ## [1.0.41] - 2026-2-7
-- Fix Coaches
-- Fix Combine
-- Parents phone
+• Se corrigieron incidencias en la gestión de entrenadores.
+• Mejoras en el módulo de Combines y evaluaciones.
+• Se optimizó el registro del teléfono para padres.
+• Mejoras generales de rendimiento.
 
 ## [1.0.40] - 2026-2-6
 - Fix Notices

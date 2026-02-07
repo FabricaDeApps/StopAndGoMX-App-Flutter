@@ -5,8 +5,8 @@ platform :ios do
   # Paths base
   ############################################
 
-  PROJECT_ROOT = File.expand_path('../..', __dir__)
-  IOS_DIR      = File.expand_path('..', __dir__)
+  PROJECT_ROOT = File.expand_path('../..', __dir__)   # ios/
+  IOS_DIR      = File.expand_path('..', __dir__)      # ios/fastlane/..
 
   ############################################
   # API key de App Store Connect
@@ -19,6 +19,31 @@ platform :ios do
       duration: 1200,
       in_house: false
     )
+  end
+
+  ############################################
+  # Changelog (root/CHANGELOG.md)
+  ############################################
+  def latest_changelog
+    changelog_path = File.join(PROJECT_ROOT, "CHANGELOG.md")
+    UI.user_error!("No existe CHANGELOG.md en #{changelog_path}") unless File.exist?(changelog_path)
+
+    content = File.read(changelog_path)
+
+    # Toma el bloque entre el primer "## [x.y.z]" y el siguiente "## [" o EOF
+    match = content.match(/## \[[^\]]+\][^\n]*\n(.*?)(\n## \[|\z)/m)
+
+    UI.user_error!("No pude extraer release notes del CHANGELOG.md") unless match
+
+    notes = match[1].strip
+
+    # Limpieza ligera: soporta bullets con • o -
+    notes = notes.gsub(/\r\n?/, "\n").strip
+
+    UI.message("📝 Release notes detectados desde CHANGELOG.md:")
+    UI.message(notes)
+
+    notes
   end
 
   ############################################
@@ -46,9 +71,9 @@ platform :ios do
 
     build_app(
       workspace: File.join(IOS_DIR, "Runner.xcworkspace"),
-      scheme: scheme,                      # "mainapp" o "zorros"
+      scheme: scheme,
       configuration: config_name,
-      export_method: export_method,        # "app-store"
+      export_method: export_method,
       clean: true,
       output_directory: output_path,
       output_name: output_name,
@@ -67,9 +92,31 @@ platform :ios do
     upload_to_testflight(
       api_key: app_store_api_key_config,
       app_identifier: bundle_id,
+      changelog: changelog,
       skip_waiting_for_build_processing: true,
-      skip_submission: true, 
-      distribute_external: false
+      skip_submission: true,
+      distribute_external: false,
+      uses_non_exempt_encryption: false
+    )
+  end
+
+  ############################################
+  # Submit for review (App Store)
+  ############################################
+  def submit_appstore_for_review(bundle_id:, changelog:)
+    UI.message("📨 Enviando a revisión (submit_for_review) en App Store Connect (bundle_id=#{bundle_id})...")
+
+    deliver(
+      api_key: app_store_api_key_config,
+      app_identifier: bundle_id,
+      release_notes: {
+        "es-MX" => changelog
+      },
+      submit_for_review: true,
+      automatic_release: true,
+      force: true,
+      skip_metadata: true,
+      skip_screenshots: true
     )
   end
 
@@ -85,7 +132,6 @@ platform :ios do
     export_team_id = options[:export_team_id] || "M25Y63Z23D"
 
     ipa_name      = options[:ipa_name]      || "stopandgomx-#{flavor}.ipa"
-    changelog     = options[:changelog]     || "Nueva compilación para #{flavor}"
     tester_groups = options[:groups]        || []
     logo_script   = options[:logo_script].nil? ? true : options[:logo_script]
 
@@ -102,6 +148,11 @@ platform :ios do
     UI.message("   ipa:           #{ipa_name}")
 
     ########################################
+    # 0) Release notes desde CHANGELOG.md
+    ########################################
+    notes = latest_changelog
+
+    ########################################
     # 1) Logo script ANTES del build (como tú quieres)
     ########################################
     run_logo_script(flavor: flavor) if logo_script
@@ -116,11 +167,11 @@ platform :ios do
                    "lib/main_mainapp.dart"
                  when "zorros"
                    "lib/main_zorros.dart"
-                when "raidersqro"
+                 when "raidersqro"
                    "lib/main_raidersqro.dart"
-                when "wolverinesqro"
+                 when "wolverinesqro"
                    "lib/main_wolverinesqro.dart"
-                when "bearsqro"
+                 when "bearsqro"
                    "lib/main_bearsqro.dart"
                  else
                    UI.user_error!("No conozco el entrypoint para flavor=#{flavor}")
@@ -162,7 +213,15 @@ platform :ios do
     upload_to_testflight_generic(
       bundle_id: bundle_id,
       groups: tester_groups,
-      changelog: changelog
+      changelog: notes
+    )
+
+    ########################################
+    # 5) Forzar submit_for_review (App Store)
+    ########################################
+    submit_appstore_for_review(
+      bundle_id: bundle_id,
+      changelog: notes
     )
 
     UI.success("✅ Deploy iOS completado (#{flavor})")
@@ -176,8 +235,8 @@ platform :ios do
   lane :deploy_mainapp do
     deploy(
       flavor: "mainapp",
-      scheme: "mainapp",                       # scheme mainapp en Xcode
-      bundle_id: "app.stopandgomx.stopandgo",  # bundle iOS de mainapp
+      scheme: "mainapp",
+      bundle_id: "app.stopandgomx.stopandgo",
       ipa_name: "stopandgo-mainapp.ipa",
       groups: ["internal"]
     )
@@ -187,14 +246,14 @@ platform :ios do
   lane :deploy_zorros do
     deploy(
       flavor: "zorros",
-      scheme: "zorros",                        # scheme zorros en Xcode
+      scheme: "zorros",
       bundle_id: "app.stopandgomx.zorros",
       ipa_name: "stopandgo-zorros.ipa",
       groups: ["internal"]
     )
   end
 
-  desc "Deploy iOS Zorros"
+  desc "Deploy iOS Raiders Qro"
   lane :deploy_raidersqro do
     deploy(
       flavor: "raidersqro",
@@ -216,8 +275,7 @@ platform :ios do
     )
   end
 
-
-   desc "Deploy iOS Bears Corregidora"
+  desc "Deploy iOS Bears Corregidora"
   lane :deploy_bearsqro do
     deploy(
       flavor: "bearsqro",
@@ -227,5 +285,4 @@ platform :ios do
       groups: ["internal"]
     )
   end
-
 end
