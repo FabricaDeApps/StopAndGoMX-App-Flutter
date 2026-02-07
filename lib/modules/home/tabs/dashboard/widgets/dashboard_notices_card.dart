@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:stopandgo/core/models/dto/notice_model.dart';
 import 'package:stopandgo/core/widgets/cards.dart';
-import 'package:stopandgo/modules/home/models/home_notice_item.dart';
 
 class DashboardNoticesCard extends StatelessWidget {
   const DashboardNoticesCard({
@@ -10,9 +10,9 @@ class DashboardNoticesCard extends StatelessWidget {
     required this.onTapNotice,
   });
 
-  final List<NoticeItem> notices;
+  final List<Notice> notices;
   final VoidCallback onGoNoticesTab;
-  final void Function(NoticeItem n) onTapNotice;
+  final void Function(Notice n) onTapNotice;
 
   @override
   Widget build(BuildContext context) {
@@ -36,7 +36,7 @@ class DashboardNoticesCard extends StatelessWidget {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
-                    subtitle: Text(_fmtDate(n.date)),
+                    subtitle: Text(_fmtDate(n.publishedAt!)),
                     onTap: () => onTapNotice(n),
                   );
                 }).toList(),

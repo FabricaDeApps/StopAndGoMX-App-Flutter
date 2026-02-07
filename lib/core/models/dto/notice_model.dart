@@ -3,6 +3,7 @@ class Notice {
   final int organizationId;
   final int? userId;
   final int? categoryId;
+  final String? categoryName;
   final int? seasonId;
 
   final String title;
@@ -22,6 +23,7 @@ class Notice {
     required this.isPublished,
     this.userId,
     this.categoryId,
+    this.categoryName,
     this.seasonId,
     this.message,
     this.image,
@@ -37,6 +39,7 @@ class Notice {
       organizationId: json['organization_id'] as int,
       userId: json['user_id'] as int?,
       categoryId: json['category_id'] as int?,
+      categoryName: json['category_name'] as String?,
       seasonId: json['season_id'] as int?,
 
       title: json['title'] as String,

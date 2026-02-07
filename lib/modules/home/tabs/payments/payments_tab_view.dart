@@ -213,9 +213,9 @@ class PaymentsTabView extends GetView<PaymentsTabController> {
                               Text(
                                 p.hasDiscount
                                     ? 'Monto: \$${p.amount.toStringAsFixed(2)}\n'
-                                          'Neto: ${effectiveAmount.toStringAsFixed(2)} \n'
-                                          'Pagado: ${totalRecibido.toStringAsFixed(2)} \n'
-                                          'Saldo: ${balance.toStringAsFixed(2)}'
+                                          'Con Descuento: ${money(effectiveAmount)} \n'
+                                          'Pagado: ${money(totalRecibido)} \n'
+                                          'Saldo: ${money(balance)}'
                                     : 'Monto: ${money(p.amount)} \n'
                                           'Pagado: ${money(totalRecibido)} \n'
                                           'Saldo: ${money(balance)}',

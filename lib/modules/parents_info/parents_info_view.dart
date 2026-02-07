@@ -50,6 +50,15 @@ class ParentsInfoView extends GetView<ParentsInfoController> {
                     border: OutlineInputBorder(),
                   ),
                 ),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: controller.fatherPhoneCtrl,
+                  keyboardType: TextInputType.phone,
+                  decoration: const InputDecoration(
+                    labelText: 'Teléfono del padre (opcional)',
+                    border: OutlineInputBorder(),
+                  ),
+                ),
 
                 const SizedBox(height: 24),
 
@@ -71,6 +80,15 @@ class ParentsInfoView extends GetView<ParentsInfoController> {
                   keyboardType: TextInputType.emailAddress,
                   decoration: const InputDecoration(
                     labelText: 'Email de la madre',
+                    border: OutlineInputBorder(),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: controller.motherPhoneCtrl,
+                  keyboardType: TextInputType.phone,
+                  decoration: const InputDecoration(
+                    labelText: 'Teléfono de la madre (opcional)',
                     border: OutlineInputBorder(),
                   ),
                 ),

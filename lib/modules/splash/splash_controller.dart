@@ -34,6 +34,9 @@ class SplashController extends GetxController {
   final _rc = FirebaseRemoteConfig.instance;
   bool _blockedByUpdate = false;
 
+  // Org en memoria (sin cache)
+  OrganizationResponse? _org;
+
   @override
   void onReady() {
     super.onReady();
@@ -47,29 +50,19 @@ class SplashController extends GetxController {
 
       await _loadVersion();
 
-      // 1) Branding/org: cache primero (instantáneo)
-      final cached = AppStorage.getOrganization();
-      if (cached != null) _applyBranding(cached);
-
-      // 2) Remote Config init/fetch (en paralelo)
+      // 1) Remote Config init/fetch (en paralelo)
       final rcFuture = _initRemoteConfig();
 
-      // 3) Intentar org remoto
-      OrganizationResponse? orgToUse = cached;
-      try {
-        final org = await _api.getOrganization();
-        await AppStorage.setOrganization(org);
-        orgToUse = org;
-        _applyBranding(org);
-      } catch (e) {
-        debugPrint('⚠️ No se pudo actualizar org remoto: $e');
-      }
+      // 2) ORG SIEMPRE REMOTA (sin cache)
+      _org = await _api.getOrganization();
+      await AppStorage.setOrganization(_org!);
+      _applyBranding(_org!);
 
-      // Espera RC (si tarda, no quieres bloquear todo por siempre)
+      // 3) Espera RC
       await rcFuture;
 
       // 4) Check update (usa links de org)
-      await _checkUpdate(orgToUse);
+      await _checkUpdate(_org);
 
       // 5) Aplica theme + espera splash mínimo
       Get.find<ThemeController>().refreshTheme();
@@ -77,7 +70,8 @@ class SplashController extends GetxController {
 
       if (!_blockedByUpdate) _goNext();
     } catch (e) {
-      error.value = 'Error cargando splash: $e';
+      error.value = 'Error cargando la aplicación';
+      debugPrint('❌ Splash error: $e');
     } finally {
       isLoading.value = false;
     }
@@ -141,19 +135,19 @@ class SplashController extends GetxController {
     // ⚠️ No forzoso: solo aviso NO bloqueante y deja continuar
     _blockedByUpdate = false;
 
-    Get.snackbar(
-      'Actualización disponible',
-      message,
-      snackPosition: SnackPosition.BOTTOM,
-      duration: const Duration(seconds: 6),
-      margin: const EdgeInsets.all(12),
-      mainButton: TextButton(
-        onPressed: () async {
-          await _openStoreUrl(storeUrl);
-        },
-        child: const Text('Actualizar'),
-      ),
-    );
+    if (!_navigated) {
+      Get.snackbar(
+        'Actualización disponible',
+        message,
+        snackPosition: SnackPosition.BOTTOM,
+        duration: const Duration(seconds: 6),
+        margin: const EdgeInsets.all(12),
+        mainButton: TextButton(
+          onPressed: () async => _openStoreUrl(storeUrl),
+          child: const Text('Actualizar'),
+        ),
+      );
+    }
   }
 
   String _storeUrlFromOrg(OrganizationResponse? org) {

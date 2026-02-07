@@ -8,6 +8,10 @@ class OrganizationResponse {
 
   // Flags
   final bool isActive;
+
+  /// Fuente compatible con cache viejo:
+  /// - Si existe is_ecommerce_available -> lo respeta
+  /// - Si NO existe -> cae a ecommerce.enabled
   final bool isEcommerceAvailable;
   final bool streamingEnabled;
 
@@ -18,7 +22,7 @@ class OrganizationResponse {
   final String? androidUrl;
   final String? iosUrl;
 
-  OrganizationResponse({
+  const OrganizationResponse({
     required this.id,
     required this.name,
     required this.slug,
@@ -33,26 +37,59 @@ class OrganizationResponse {
     this.iosUrl,
   });
 
+  // ✅ Cast seguro para bool (GetStorage/GetBox a veces guarda 1/0 o "true"/"false")
+  static bool _asBool(dynamic v, {required bool fallback}) {
+    if (v is bool) return v;
+    if (v is num) return v != 0;
+    if (v is String) {
+      final s = v.trim().toLowerCase();
+      if (['true', '1', 'yes', 'y', 'si', 'sí'].contains(s)) return true;
+      if (['false', '0', 'no', 'n'].contains(s)) return false;
+    }
+    return fallback;
+  }
+
+  static int _asInt(dynamic v, {required int fallback}) {
+    if (v is int) return v;
+    if (v is num) return v.toInt();
+    if (v is String) return int.tryParse(v) ?? fallback;
+    return fallback;
+  }
+
+  static Map<String, dynamic> _asMap(dynamic v) {
+    if (v is Map<String, dynamic>) return v;
+    if (v is Map) return v.map((k, val) => MapEntry(k.toString(), val));
+    return const <String, dynamic>{};
+  }
+
   factory OrganizationResponse.fromJson(Map<String, dynamic> json) {
+    final ecommerceMap = _asMap(json['ecommerce']);
+    final ecommerce = EcommerceConfig.fromJson(ecommerceMap);
+
+    // ✅ Si la key no existe (cache viejo), usa ecommerce.enabled
+    final bool isEcomAvailable = json.containsKey('is_ecommerce_available')
+        ? _asBool(json['is_ecommerce_available'], fallback: ecommerce.enabled)
+        : ecommerce.enabled;
+
     return OrganizationResponse(
-      id: json['id'] ?? 0,
-      name: json['name'] ?? '',
-      slug: json['slug'] ?? '',
-      logo: json['logo'] ?? '',
-      primaryColor: json['primary_color'] ?? '#000000',
-      secondaryColor: json['secondary_color'] ?? '#FFFFFF',
+      id: _asInt(json['id'], fallback: 0),
+      name: (json['name'] ?? '').toString(),
+      slug: (json['slug'] ?? '').toString(),
+      logo: (json['logo'] ?? '').toString(),
+      primaryColor: (json['primary_color'] ?? '#000000').toString(),
+      secondaryColor: (json['secondary_color'] ?? '#FFFFFF').toString(),
 
       // Flags
-      isActive: json['is_active'] ?? true,
-      isEcommerceAvailable: json['is_ecommerce_available'] ?? false,
-      streamingEnabled: json['streaming_enabled'] ?? false,
+      isActive: _asBool(json['is_active'], fallback: true),
+      isEcommerceAvailable: isEcomAvailable,
+      streamingEnabled: _asBool(json['streaming_enabled'], fallback: false),
 
       // Ecommerce
-      ecommerce: EcommerceConfig.fromJson(json['ecommerce'] ?? const {}),
+      ecommerce: ecommerce,
 
       // Apps
-      androidUrl: json['android_url'],
-      iosUrl: json['ios_url'],
+      androidUrl: json['android_url']?.toString(),
+      iosUrl: json['ios_url']?.toString(),
     );
   }
 
@@ -70,6 +107,10 @@ class OrganizationResponse {
     'android_url': androidUrl,
     'ios_url': iosUrl,
   };
+
+  /// Si quieres usar UNA sola fuente de verdad en UI, usa este getter:
+  /// (aunque el flag exista, normalmente “available” = ecommerce.enabled)
+  bool get ecommerceEnabled => ecommerce.enabled;
 }
 
 class EcommerceConfig {
@@ -89,14 +130,32 @@ class EcommerceConfig {
     required this.minOrderCents,
   });
 
+  static bool _asBool(dynamic v, {required bool fallback}) {
+    if (v is bool) return v;
+    if (v is num) return v != 0;
+    if (v is String) {
+      final s = v.trim().toLowerCase();
+      if (['true', '1', 'yes', 'y', 'si', 'sí'].contains(s)) return true;
+      if (['false', '0', 'no', 'n'].contains(s)) return false;
+    }
+    return fallback;
+  }
+
+  static int _asInt(dynamic v, {required int fallback}) {
+    if (v is int) return v;
+    if (v is num) return v.toInt();
+    if (v is String) return int.tryParse(v) ?? fallback;
+    return fallback;
+  }
+
   factory EcommerceConfig.fromJson(Map<String, dynamic> json) {
     return EcommerceConfig(
-      enabled: json['enabled'] ?? false,
-      currency: json['currency'] ?? 'MXN',
-      pickupEnabled: json['pickup_enabled'] ?? true,
-      deliveryEnabled: json['delivery_enabled'] ?? false,
-      deliveryFeeCents: json['delivery_fee_cents'] ?? 0,
-      minOrderCents: json['min_order_cents'] ?? 0,
+      enabled: _asBool(json['enabled'], fallback: false),
+      currency: (json['currency'] ?? 'MXN').toString(),
+      pickupEnabled: _asBool(json['pickup_enabled'], fallback: true),
+      deliveryEnabled: _asBool(json['delivery_enabled'], fallback: false),
+      deliveryFeeCents: _asInt(json['delivery_fee_cents'], fallback: 0),
+      minOrderCents: _asInt(json['min_order_cents'], fallback: 0),
     );
   }
 

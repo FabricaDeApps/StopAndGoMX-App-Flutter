@@ -16,8 +16,10 @@ class ParentsInfoController extends GetxController {
   // Controllers de formulario
   final fatherNameCtrl = TextEditingController();
   final fatherEmailCtrl = TextEditingController();
+  final fatherPhoneCtrl = TextEditingController();
   final motherNameCtrl = TextEditingController();
   final motherEmailCtrl = TextEditingController();
+  final motherPhoneCtrl = TextEditingController();
 
   @override
   void onInit() {
@@ -41,8 +43,10 @@ class ParentsInfoController extends GetxController {
       // llenar form
       fatherNameCtrl.text = res.fatherName ?? '';
       fatherEmailCtrl.text = res.fatherEmail ?? '';
+      fatherPhoneCtrl.text = res.fatherPhone ?? '';
       motherNameCtrl.text = res.motherName ?? '';
       motherEmailCtrl.text = res.motherEmail ?? '';
+      motherPhoneCtrl.text = res.motherPhone ?? '';
     } catch (e) {
       error.value = e.toString();
     } finally {
@@ -62,12 +66,18 @@ class ParentsInfoController extends GetxController {
         fatherEmail: fatherEmailCtrl.text.trim().isEmpty
             ? null
             : fatherEmailCtrl.text.trim(),
+        fatherPhone: fatherPhoneCtrl.text.trim().isEmpty
+            ? null
+            : fatherPhoneCtrl.text.trim(),
         motherName: motherNameCtrl.text.trim().isEmpty
             ? null
             : motherNameCtrl.text.trim(),
         motherEmail: motherEmailCtrl.text.trim().isEmpty
             ? null
             : motherEmailCtrl.text.trim(),
+        motherPhone: motherPhoneCtrl.text.trim().isEmpty
+            ? null
+            : motherPhoneCtrl.text.trim(),
       );
 
       final ok = await _api.updateMyParents(parents: model);
@@ -93,8 +103,10 @@ class ParentsInfoController extends GetxController {
   void onClose() {
     fatherNameCtrl.dispose();
     fatherEmailCtrl.dispose();
+    fatherPhoneCtrl.dispose();
     motherNameCtrl.dispose();
     motherEmailCtrl.dispose();
+    motherPhoneCtrl.dispose();
     super.onClose();
   }
 }

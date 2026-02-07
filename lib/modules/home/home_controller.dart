@@ -2,12 +2,12 @@ import 'package:get/get.dart';
 import 'package:flutter/material.dart';
 import 'package:stopandgo/core/config/flavor_config.dart';
 import 'package:stopandgo/core/models/category.dart';
+import 'package:stopandgo/core/models/dto/notice_model.dart';
 import 'package:stopandgo/core/models/games/games.dart';
 import 'package:stopandgo/core/models/responses/organization_response.dart';
 import 'package:stopandgo/core/network/token_storage.dart';
 import 'package:stopandgo/core/storage/app_storage.dart';
 import 'package:stopandgo/core/network/api_repository.dart';
-import 'package:stopandgo/modules/home/models/home_notice_item.dart';
 import 'package:stopandgo/modules/home/models/simple_player.dart';
 import 'package:stopandgo/modules/home/tabs/games/games_tab_controller.dart';
 import 'package:stopandgo/modules/home/tabs/notices/notices_tab_controller.dart';
@@ -316,7 +316,7 @@ class HomeController extends GetxController with GetTickerProviderStateMixin {
     }
   }
 
-  void onTapNotice(NoticeItem n) {
+  void onTapNotice(Notice n) {
     final idx = tabs.indexOf('notices');
     if (idx < 0) return;
     tabController.index = idx;
@@ -332,9 +332,9 @@ class HomeController extends GetxController with GetTickerProviderStateMixin {
       AppStorage.clearAll();
       await api.logout();
     } catch (_) {
-      Get.offAllNamed(Routes.login);
+      Get.offAllNamed(Routes.splash);
     } finally {
-      Get.offAllNamed(Routes.login);
+      Get.offAllNamed(Routes.splash);
     }
   }
 

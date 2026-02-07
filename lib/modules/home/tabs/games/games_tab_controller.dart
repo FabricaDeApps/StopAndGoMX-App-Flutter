@@ -5,6 +5,8 @@ import 'package:stopandgo/core/models/games/games.dart';
 import 'package:stopandgo/core/network/api_repository.dart';
 import 'package:stopandgo/core/storage/app_storage.dart';
 
+enum GamesStatusFilter { all, played, upcoming }
+
 class GamesTabController extends GetxController {
   final api = Get.find<ApiRepository>();
 
@@ -13,9 +15,25 @@ class GamesTabController extends GetxController {
   final selectedCategoryId = RxnInt();
   final selectedPlayerId = RxnInt();
 
+  final filterStatus = GamesStatusFilter.all.obs;
+  final selectedRange = Rxn<DateTimeRange>();
+
   // Estado UI
   final isLoading = false.obs;
   final games = <Game>[].obs;
+
+  DateTimeRange get effectiveRange {
+    final r = selectedRange.value;
+    if (r != null) return r;
+
+    final now = DateTime.now();
+    final from = DateTime(now.year, now.month, 1);
+    final to = DateTime(now.year, now.month + 1, 0);
+    return DateTimeRange(start: from, end: to);
+  }
+
+  void setFilterStatus(GamesStatusFilter s) => filterStatus.value = s;
+  void setDateRange(DateTimeRange? r) => selectedRange.value = r;
 
   // Org (para streamingEnabled y orgId)
   bool get streamingEnabled =>
@@ -33,6 +51,18 @@ class GamesTabController extends GetxController {
     return r == 'manager' || r == 'coach';
   }
 
+  String? _statusParam(GamesStatusFilter f) {
+    switch (f) {
+      case GamesStatusFilter.played:
+        return 'completed'; // o 'completed' según tu backend
+      case GamesStatusFilter.upcoming:
+        return 'scheduled';
+      case GamesStatusFilter.all:
+      default:
+        return null;
+    }
+  }
+
   Future<void> refresh() async {
     if (isLoading.value) return;
     isLoading.value = true;
@@ -40,15 +70,20 @@ class GamesTabController extends GetxController {
     try {
       games.clear();
 
-      // Rango del mes (para manager/coach/staff que filtran por fecha)
-      final now = DateTime.now();
-      final from = DateTime(now.year, now.month, 1);
-      final to = DateTime(now.year, now.month + 1, 0);
-
       final r = role.value;
+      final range = effectiveRange;
+      final from = range.start;
+      final to = range.end;
+
+      final status = _statusParam(filterStatus.value);
 
       if (r == 'staff') {
-        final dtos = await api.getStaffGames(from: from, to: to, limit: 200);
+        final dtos = await api.getStaffGames(
+          from: from,
+          to: to,
+          status: status,
+          limit: 200,
+        );
         games.assignAll(_sortedByStart(dtos));
         return;
       }
@@ -62,17 +97,8 @@ class GamesTabController extends GetxController {
           categoryId: categoryId,
           from: _ymd(from),
           to: _ymd(to),
+          status: status,
         );
-        games.assignAll(_sortedByStart(dtos));
-        return;
-      }
-
-      if (r == 'parent') {
-        final playerId =
-            selectedPlayerId.value ?? AppStorage.getSelectedPlayerId();
-        if (playerId == null) return;
-
-        final dtos = await api.playerMyGamesFromParent(playerId: playerId);
         games.assignAll(_sortedByStart(dtos));
         return;
       }
@@ -86,13 +112,33 @@ class GamesTabController extends GetxController {
           categoryId: categoryId,
           from: _ymd(from),
           to: _ymd(to),
+          status: status,
         );
         games.assignAll(_sortedByStart(dtos));
         return;
       }
 
-      // player (default)
-      final dtos = await api.playerMyGames();
+      if (r == 'parent') {
+        final playerId =
+            selectedPlayerId.value ?? AppStorage.getSelectedPlayerId();
+        if (playerId == null) return;
+
+        final dtos = await api.playerMyGamesFromParent(
+          playerId: playerId,
+          from: _ymd(from),
+          to: _ymd(to),
+          status: status,
+        );
+        games.assignAll(_sortedByStart(dtos));
+        return;
+      }
+
+      // player
+      final dtos = await api.playerMyGames(
+        from: _ymd(from),
+        to: _ymd(to),
+        status: status,
+      );
       games.assignAll(_sortedByStart(dtos));
     } catch (e, st) {
       debugPrint('[GamesTabController] ❌ Error cargando juegos: $e\n$st');
@@ -122,4 +168,8 @@ class GamesTabController extends GetxController {
       '${d.year.toString().padLeft(4, '0')}-'
       '${d.month.toString().padLeft(2, '0')}-'
       '${d.day.toString().padLeft(2, '0')}';
+
+  void clearDateRange() {
+    selectedRange.value = null;
+  }
 }

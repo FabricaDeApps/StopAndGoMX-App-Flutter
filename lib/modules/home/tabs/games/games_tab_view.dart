@@ -323,9 +323,13 @@ class GamesTabView extends GetView<GamesTabController> {
 
       return Stack(
         children: [
-          Positioned.fill(child: listView),
+          Column(
+            children: [
+              _GamesFiltersHeader(controller: controller),
+              Expanded(child: listView),
+            ],
+          ),
 
-          // ✅ Solo manager crea juegos
           if (controller.role.value == 'manager')
             Positioned(
               right: 16,
@@ -350,6 +354,121 @@ class GamesTabView extends GetView<GamesTabController> {
               ),
             ),
         ],
+      );
+    });
+  }
+}
+
+class _GamesFiltersHeader extends StatelessWidget {
+  final GamesTabController controller;
+  const _GamesFiltersHeader({required this.controller});
+
+  String _fmt(DateTime d) =>
+      '${d.day.toString().padLeft(2, '0')}/${d.month.toString().padLeft(2, '0')}/${d.year}';
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Obx(() {
+      final range = controller.effectiveRange;
+      final selected = controller.selectedRange.value != null;
+
+      Widget chip(String label, GamesStatusFilter v) {
+        final active = controller.filterStatus.value == v;
+        return ChoiceChip(
+          label: Text(label),
+          selected: active,
+          onSelected: (_) async {
+            controller.setFilterStatus(v);
+            await controller.refresh(); // ✅ consume endpoint
+          },
+        );
+      }
+
+      return Container(
+        padding: const EdgeInsets.fromLTRB(16, 12, 16, 10),
+        decoration: BoxDecoration(
+          color: theme.scaffoldBackgroundColor,
+          border: Border(
+            bottom: BorderSide(color: theme.dividerColor.withOpacity(.5)),
+          ),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // RANGO FECHAS
+            Row(
+              children: [
+                Expanded(
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(12),
+                    onTap: () async {
+                      final picked = await showDateRangePicker(
+                        context: context,
+                        firstDate: DateTime(2020, 1, 1),
+                        lastDate: DateTime(2035, 12, 31),
+                        initialDateRange: range,
+                      );
+                      if (picked != null) {
+                        controller.setDateRange(picked);
+                        await controller.refresh(); // ✅ consume endpoint
+                      }
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 10,
+                      ),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: theme.dividerColor.withOpacity(.7),
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          const Icon(Icons.date_range_rounded, size: 18),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              '${_fmt(range.start)} — ${_fmt(range.end)}',
+                              style: theme.textTheme.bodyMedium,
+                            ),
+                          ),
+                          const Icon(Icons.keyboard_arrow_down_rounded),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                if (selected)
+                  IconButton(
+                    tooltip: 'Quitar rango (mes actual)',
+                    onPressed: () async {
+                      controller.clearDateRange();
+                      await controller.refresh(); // ✅ consume endpoint
+                    },
+                    icon: const Icon(Icons.close_rounded),
+                  ),
+              ],
+            ),
+
+            const SizedBox(height: 10),
+
+            // STATUS: Todos / Jugados / Por jugar
+            Wrap(
+              spacing: 8,
+              runSpacing: 6,
+              children: [
+                chip('Todos', GamesStatusFilter.all),
+                chip('Jugados', GamesStatusFilter.played),
+                chip('Por jugar', GamesStatusFilter.upcoming),
+              ],
+            ),
+          ],
+        ),
       );
     });
   }

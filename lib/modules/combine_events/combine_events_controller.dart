@@ -38,7 +38,44 @@ class CombineEventsController extends GetxController {
       isLoading.value = true;
       error.value = null;
 
-      final categoryId = AppStorage.getSelectedCategoryId();
+      final args = Get.arguments;
+      final params = Get.parameters;
+
+      int? argCategoryId;
+      String? argCategoryName;
+
+      if (args is Map) {
+        final rawId = args['categoryId'] ?? args['category_id'];
+        if (rawId is int) {
+          argCategoryId = rawId;
+        } else if (rawId is num) {
+          argCategoryId = rawId.toInt();
+        } else if (rawId != null) {
+          argCategoryId = int.tryParse(rawId.toString());
+        }
+
+        final rawName = args['categoryName'] ?? args['category_name'];
+        if (rawName != null) {
+          argCategoryName = rawName.toString();
+        }
+      }
+
+      if (argCategoryId == null) {
+        final rawParamId = params['categoryId'] ?? params['category_id'];
+        if (rawParamId != null) {
+          argCategoryId = int.tryParse(rawParamId.toString());
+        }
+      }
+
+      if (argCategoryId != null) {
+        await AppStorage.setSelectedCategoryId(argCategoryId);
+      }
+
+      if (argCategoryName != null) {
+        await AppStorage.setSelectedCategoryName(argCategoryName);
+      }
+
+      final categoryId = argCategoryId ?? AppStorage.getSelectedCategoryId();
 
       final res = await _api.getCombineEvents(
         categoryId: categoryId,

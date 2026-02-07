@@ -1,10 +1,10 @@
 import 'package:get/get.dart';
 import 'package:stopandgo/core/models/attendance_dashboard.dart';
 import 'package:stopandgo/core/models/dashboard_models.dart';
+import 'package:stopandgo/core/models/dto/notice_model.dart';
 import 'package:stopandgo/core/models/games/games.dart';
 import 'package:stopandgo/core/network/api_repository.dart';
 import 'package:stopandgo/core/storage/app_storage.dart';
-import 'package:stopandgo/modules/home/models/home_notice_item.dart';
 
 class DashboardTabController extends GetxController {
   final api = Get.find<ApiRepository>();
@@ -19,7 +19,7 @@ class DashboardTabController extends GetxController {
   final saldoPendiente = 0.0.obs;
   final pagosRealizados = 0.0.obs;
   final upcomingGames = <Game>[].obs;
-  final notices = <NoticeItem>[].obs;
+  final notices = <Notice>[].obs;
   final playerCategories = <PlayerDashboardCategory>[].obs;
   final attendance = AttendanceDashboard.empty.obs;
 
@@ -212,13 +212,15 @@ class DashboardTabController extends GetxController {
     } catch (_) {}
 
     notices.add(
-      NoticeItem(
+      Notice(
         id: (n.id as int),
         title: (n.title as String),
         message: n.message?.toString(),
         image: n.image?.toString(),
         attachment: n.attachment?.toString(),
-        date: date,
+        publishedAt: date,
+        organizationId: 0,
+        isPublished: true,
       ),
     );
   }
@@ -266,17 +268,19 @@ class DashboardTabController extends GetxController {
     if (json['last_notice'] != null) {
       final n = json['last_notice'] as Map<String, dynamic>;
       notices.add(
-        NoticeItem(
+        Notice(
           id: (n['id'] ?? 0) as int,
           title: (n['title'] ?? '') as String,
           message: n['message']?.toString(),
           image: n['image']?.toString(),
           attachment: n['attachment']?.toString(),
-          date:
+          publishedAt:
               DateTime.tryParse(
                 (n['published_at'] ?? n['created_at'] ?? '').toString(),
               ) ??
               DateTime.now(),
+          organizationId: 0,
+          isPublished: true,
         ),
       );
     }

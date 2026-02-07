@@ -1,8 +1,8 @@
 // lib/modules/home/tabs/notices/notices_tab_controller.dart
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:stopandgo/core/models/dto/notice_model.dart';
 import 'package:stopandgo/core/network/api_repository.dart';
-import 'package:stopandgo/modules/home/models/home_notice_item.dart';
 
 class NoticesTabController extends GetxController {
   final api = Get.find<ApiRepository>();
@@ -14,7 +14,7 @@ class NoticesTabController extends GetxController {
 
   // Estado
   final isLoading = false.obs;
-  final notices = <NoticeItem>[].obs;
+  final listNotices = <Notice>[].obs;
 
   void setContext({required String userRole, int? categoryId, int? playerId}) {
     role.value = userRole;
@@ -27,58 +27,27 @@ class NoticesTabController extends GetxController {
     isLoading.value = true;
 
     try {
-      notices.clear();
+      listNotices.clear();
 
       final r = role.value;
 
       if (r == 'staff') {
-        // List<Notice> tipado
         final dtos = await api.getStaffNotices();
+        listNotices.assignAll(dtos);
+        return;
+      }
 
-        final mapped = dtos.map((n) {
-          return NoticeItem(
-            id: n.id,
-            title: n.title,
-            message: n.message,
-            image: n.image,
-            attachment: n.attachment,
-            date: n.publishedAt ?? DateTime.now(),
-          );
-        }).toList();
-
-        notices.assignAll(mapped);
+      if (r == 'player' || r == 'parent') {
+        final notices = await api.getMyNotices();
+        listNotices.assignAll(notices);
         return;
       }
 
       if (r == 'manager' || r == 'coach') {
-        // List<Map<String,dynamic>>
-        final list = await api.managerNotices();
-
-        final mapped = list.map((m) {
-          return NoticeItem(
-            id: (m['id'] ?? 0) as int,
-            title: (m['title'] ?? '') as String,
-            message: m['message']?.toString(),
-            image: m['image']?.toString(),
-            attachment: m['attachment']?.toString(),
-            date:
-                DateTime.tryParse(
-                  (m['published_at'] ?? m['created_at'] ?? '').toString(),
-                ) ??
-                DateTime.now(),
-          );
-        }).toList();
-
-        notices.assignAll(mapped);
+        final notices = await api.managerNotices();
+        listNotices.assignAll(notices);
         return;
       }
-
-      // Player/Parent:
-      // Hoy tu app usa last_notice del dashboard, no un listado.
-      // Aquí NO hacemos nada (tab queda vacío) para no duplicar llamadas.
-      // Si quieres fallback, descomenta:
-      //
-      // await _fallbackLoadLastNoticeFromDashboard(r);
     } catch (e, st) {
       debugPrint('[NoticesTabController] ❌ Error cargando avisos: $e\n$st');
       Get.snackbar(

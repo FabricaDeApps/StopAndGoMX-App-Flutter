@@ -133,6 +133,14 @@ class LoginController extends GetxController {
 
       loginResponse.value = res;
 
+      try {
+        final org = await _api.getOrganization();
+        await AppStorage.setOrganization(org);
+        Get.find<ThemeController>().refreshTheme();
+      } catch (e) {
+        debugPrint('⚠️ No se pudo cargar org post-login: $e');
+      }
+
       Get.snackbar(
         'Bienvenido',
         res.user.name,

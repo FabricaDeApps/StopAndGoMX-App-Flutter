@@ -143,10 +143,25 @@ class ApiRepository {
   }
 
   // /player/my-games?player_id=...
-  Future<List<Game>> playerMyGamesFromParent({required int playerId}) async {
+  Future<List<Game>> playerMyGamesFromParent({
+    required int playerId,
+    required String from,
+    required String to,
+    String? status,
+  }) async {
+    final params = <String, dynamic>{
+      'player_id': playerId,
+      'from': from,
+      'to': to,
+    };
+
+    if (status != null) {
+      params['status'] = status;
+    }
+
     final res = await _dio.get(
       '/player/my-games',
-      queryParameters: {'player_id': playerId},
+      queryParameters: params,
       options: Options(headers: _headers()),
     );
 
@@ -154,9 +169,19 @@ class ApiRepository {
     return gameDtoListFromData(data);
   }
 
-  Future<List<Game>> playerMyGames() async {
+  Future<List<Game>> playerMyGames({
+    required String from,
+    required String to,
+    String? status,
+  }) async {
+    final params = <String, dynamic>{'from': from, 'to': to};
+
+    if (status != null) {
+      params['status'] = status;
+    }
     final res = await _dio.get(
       '/player/my-games',
+      queryParameters: params,
       options: Options(headers: _headers()),
     );
 
@@ -169,6 +194,7 @@ class ApiRepository {
     required int categoryId,
     required String from,
     required String to,
+    String? status,
   }) async {
     final res = await _dio.get(
       '/manager/$categoryId/games',
@@ -240,10 +266,11 @@ class ApiRepository {
     required int categoryId,
     required String from,
     required String to,
+    String? status,
   }) async {
     final res = await _dio.get(
       '/coach/categories/$categoryId/games',
-      queryParameters: {'from': from, 'to': to},
+      queryParameters: {'from': from, 'to': to, 'status': status},
       options: Options(headers: _headers()),
     );
 
@@ -305,13 +332,16 @@ class ApiRepository {
   }
 
   // MANAGER: /manager/notices -> usar res.data['data'] (lista)
-  Future<List<Map<String, dynamic>>> managerNotices() async {
+  Future<List<Notice>> managerNotices() async {
     final res = await _dio.get(
       '/manager/notices',
       options: Options(headers: _headers()),
     );
     final data = (res.data['data'] as List?) ?? const [];
-    return data.map((e) => Map<String, dynamic>.from(e as Map)).toList();
+
+    return data
+        .map((e) => Notice.fromJson(Map<String, dynamic>.from(e as Map)))
+        .toList();
   }
 
   Future<void> createPlayerReceipt({
@@ -1132,6 +1162,28 @@ class ApiRepository {
     return list
         .map((e) => Notice.fromJson(Map<String, dynamic>.from(e as Map)))
         .toList();
+  }
+
+  Future<List<Notice>> getMyNotices() async {
+    try {
+      final res = await _dio.get(
+        '/player/my-notices',
+        options: Options(headers: _headers()),
+      );
+
+      if (res.data is! Map) {
+        throw Exception('Respuesta inesperada en staff notices');
+      }
+
+      final map = Map<String, dynamic>.from(res.data as Map);
+      final list = (map['data'] as List?) ?? const [];
+
+      return list
+          .map((e) => Notice.fromJson(Map<String, dynamic>.from(e as Map)))
+          .toList();
+    } catch (e) {
+      return [];
+    }
   }
 
   /// helper: DateTime -> YYYY-MM-DD

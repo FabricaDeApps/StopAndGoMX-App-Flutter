@@ -106,8 +106,17 @@ class CreateMetricController extends GetxController {
         return;
       }
 
-      final metric = CombineMetric.fromJson(res['data']);
-      Get.back(result: metric);
+      CombineMetric? metric;
+      try {
+        final raw = res['data'] ?? res['metric'] ?? res['result'] ?? res;
+        if (raw is Map) {
+          metric = CombineMetric.fromJson(Map<String, dynamic>.from(raw));
+        }
+      } catch (_) {
+        metric = null;
+      }
+
+      Get.back(result: metric ?? true);
 
       Get.snackbar(
         'Éxito',

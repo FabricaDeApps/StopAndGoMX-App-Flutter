@@ -5,6 +5,7 @@ import 'package:get/get.dart';
 import 'package:stopandgo/core/models/category.dart';
 import 'package:stopandgo/core/services/ecommerce_cart_service.dart';
 import 'package:stopandgo/core/storage/app_storage.dart';
+import 'package:stopandgo/core/widgets/category_picker_sheet.dart';
 import 'package:stopandgo/core/widgets/player_picker_sheet.dart';
 import 'package:stopandgo/routes/app_routes.dart';
 
@@ -264,6 +265,42 @@ class HomeView extends GetView<HomeController> {
                   title: const Text('Evaluación (Combine)'),
                   onTap: () {
                     Get.back();
+
+                    if (isCoach) {
+                      if (controller.categories.isEmpty) {
+                        Get.snackbar(
+                          'Categorías',
+                          'No hay categorías asignadas para mostrar.',
+                          snackPosition: SnackPosition.BOTTOM,
+                        );
+                        return;
+                      }
+
+                      Get.bottomSheet<Map<String, dynamic>?>(
+                        CategoryPickerSheet(categories: controller.categories),
+                        isScrollControlled: true,
+                        backgroundColor: Colors.transparent,
+                      ).then((picked) async {
+                        if (picked == null) return;
+
+                        final cid = picked['id'] as int;
+                        final cname = picked['name'] as String;
+
+                        controller.selectedCategoryId.value = cid;
+                        await AppStorage.setSelectedCategoryId(cid);
+                        await AppStorage.setSelectedCategoryName(cname);
+
+                        Get.toNamed(
+                          Routes.combineEvents,
+                          arguments: {
+                            'categoryId': cid,
+                            'categoryName': cname,
+                          },
+                        );
+                      });
+                      return;
+                    }
+
                     Get.toNamed(Routes.combineEvents);
                   },
                 ),

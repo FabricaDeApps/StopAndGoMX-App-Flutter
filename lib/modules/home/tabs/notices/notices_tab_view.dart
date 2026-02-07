@@ -20,7 +20,7 @@ class NoticesTabView extends GetView<NoticesTabController> {
         return const Center(child: CircularProgressIndicator());
       }
 
-      final list = controller.notices;
+      final list = controller.listNotices;
       if (list.isEmpty) {
         return Center(
           child: Text('Sin avisos', style: theme.textTheme.bodyMedium),
@@ -32,7 +32,14 @@ class NoticesTabView extends GetView<NoticesTabController> {
         itemCount: list.length,
         separatorBuilder: (_, __) => const SizedBox(height: 8),
         itemBuilder: (_, i) {
-          final n = list[i];
+          final notice = list[i];
+
+          String title = "";
+          if (notice.categoryId != null) {
+            title = "${notice.title} - ${notice.categoryName}";
+          } else {
+            title = notice.title;
+          }
 
           return Card(
             elevation: 0,
@@ -46,7 +53,7 @@ class NoticesTabView extends GetView<NoticesTabController> {
                 child: const Icon(Icons.campaign_outlined),
               ),
               title: Text(
-                n.title,
+                title,
                 style: const TextStyle(fontWeight: FontWeight.w600),
               ),
               subtitle: Column(
@@ -54,15 +61,15 @@ class NoticesTabView extends GetView<NoticesTabController> {
                 children: [
                   const SizedBox(height: 6),
                   Text(
-                    _fmtDateTime(n.date),
+                    _fmtDateTime(notice.publishedAt!),
                     style: theme.textTheme.bodySmall?.copyWith(
                       color: theme.colorScheme.onSurfaceVariant,
                     ),
                   ),
-                  if ((n.message ?? '').trim().isNotEmpty) ...[
+                  if ((notice.message ?? '').trim().isNotEmpty) ...[
                     const SizedBox(height: 6),
                     Text(
-                      n.message!.trim(),
+                      notice.message!.trim(),
                       maxLines: 3,
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -70,11 +77,12 @@ class NoticesTabView extends GetView<NoticesTabController> {
                 ],
               ),
               trailing:
-                  (n.attachment != null && n.attachment!.trim().isNotEmpty)
+                  (notice.attachment != null &&
+                      notice.attachment!.trim().isNotEmpty)
                   ? const Icon(Icons.chevron_right)
                   : null,
               onTap: () async {
-                final attachment = (n.attachment ?? '').trim();
+                final attachment = (notice.attachment ?? '').trim();
 
                 if (attachment.isNotEmpty) {
                   final uri = Uri.tryParse(attachment);
