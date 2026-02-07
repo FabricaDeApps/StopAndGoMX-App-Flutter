@@ -11,7 +11,8 @@ class DashboardAttendanceCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    final percent = attendance.percent; // present / marked
+    final percent = attendance.percent;
+    final safePercent = percent.isFinite ? percent.clamp(0.0, 100.0) : 0.0;
     final marked = attendance.trainingsMarkedTotal;
 
     String subtitle;
@@ -32,7 +33,7 @@ class DashboardAttendanceCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  marked <= 0 ? '0%' : '${percent.toStringAsFixed(1)}%',
+                  marked <= 0 ? '0%' : '${safePercent.toStringAsFixed(1)}%',
                   style: theme.textTheme.headlineSmall?.copyWith(
                     fontWeight: FontWeight.w800,
                   ),
@@ -44,7 +45,7 @@ class DashboardAttendanceCard extends StatelessWidget {
                   ClipRRect(
                     borderRadius: BorderRadius.circular(999),
                     child: LinearProgressIndicator(
-                      value: (percent.clamp(0, 100)) / 100,
+                      value: safePercent / 100,
                       minHeight: 8,
                     ),
                   ),

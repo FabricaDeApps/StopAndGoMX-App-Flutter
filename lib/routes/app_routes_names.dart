@@ -50,4 +50,5 @@ abstract class Routes {
   static const checkins = '/checkins';
   static const gameDetail = '/gameDetail';
   static const gameGallery = '/gameGallery';
+  static const changeRole = '/changeRole';
 }

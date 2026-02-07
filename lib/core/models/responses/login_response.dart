@@ -36,37 +36,100 @@ class User {
   final String name;
   final String email;
   final String role;
+  final List<String> roles;
+  final String primaryRole;
+  final String activeRole;
   final String? so;
   final String? deviceToken;
+  final String? deviceName;
 
   User({
     required this.id,
     required this.name,
     required this.email,
     required this.role,
+    required this.roles,
+    required this.primaryRole,
+    required this.activeRole,
     this.so,
     this.deviceToken,
+    this.deviceName,
   });
 
   factory User.fromJson(Map<String, dynamic> json) {
+    final parsedRoles = (json['roles'] is List)
+        ? (json['roles'] as List)
+            .map((e) => e.toString().trim())
+            .where((e) => e.isNotEmpty)
+            .toList()
+        : <String>[];
+
+    final roleFromApi = (json['role'] ?? '').toString();
+    final primaryRole = (json['primary_role'] ?? '').toString();
+    final activeRole = (json['active_role'] ?? '').toString();
+
+    final effectiveRole = activeRole.isNotEmpty
+        ? activeRole
+        : (roleFromApi.isNotEmpty
+            ? roleFromApi
+            : (primaryRole.isNotEmpty ? primaryRole : ''));
+
+    final roles = parsedRoles.isNotEmpty
+        ? parsedRoles
+        : (effectiveRole.isNotEmpty ? <String>[effectiveRole] : <String>[]);
+
     return User(
       id: json['id'] ?? 0,
       name: json['name'] ?? '',
       email: json['email'] ?? '',
-      role: json['role'] ?? '',
+      role: effectiveRole,
+      roles: roles,
+      primaryRole: primaryRole.isNotEmpty ? primaryRole : effectiveRole,
+      activeRole: effectiveRole,
       so: json['so'],
       deviceToken: json['device_token'],
+      deviceName: json['device_name'],
+    );
+  }
+
+  User copyWith({
+    int? id,
+    String? name,
+    String? email,
+    String? role,
+    List<String>? roles,
+    String? primaryRole,
+    String? activeRole,
+    String? so,
+    String? deviceToken,
+    String? deviceName,
+  }) {
+    return User(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      email: email ?? this.email,
+      role: role ?? this.role,
+      roles: roles ?? this.roles,
+      primaryRole: primaryRole ?? this.primaryRole,
+      activeRole: activeRole ?? this.activeRole,
+      so: so ?? this.so,
+      deviceToken: deviceToken ?? this.deviceToken,
+      deviceName: deviceName ?? this.deviceName,
     );
   }
 
   Map<String, dynamic> toJson() => {
-    'id': id,
-    'name': name,
-    'email': email,
-    'role': role,
-    if (so != null) 'so': so,
-    if (deviceToken != null) 'device_token': deviceToken,
-  };
+        'id': id,
+        'name': name,
+        'email': email,
+        'role': role,
+        'roles': roles,
+        'primary_role': primaryRole,
+        'active_role': activeRole,
+        if (so != null) 'so': so,
+        if (deviceToken != null) 'device_token': deviceToken,
+        if (deviceName != null) 'device_name': deviceName,
+      };
 }
 
 class Organization {

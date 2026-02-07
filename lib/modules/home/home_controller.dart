@@ -86,7 +86,65 @@ class HomeController extends GetxController with GetTickerProviderStateMixin {
     if (user != null) {
       userName.value = user.name;
       userEmail.value = user.email;
-      userRole.value = user.role;
+      userRole.value = _normalizeRole(
+        user.activeRole.isNotEmpty ? user.activeRole : user.role,
+      );
+    }
+  }
+
+  String _normalizeRole(String role) => role.trim().toLowerCase();
+
+  List<String> get availableRoles {
+    final raw = AppStorage.getAvailableRoles();
+    final supported = raw
+        .map(_normalizeRole)
+        .where((r) => FlavorConfig.I.getTabsForRole(r).isNotEmpty)
+        .toSet()
+        .toList();
+    if (supported.isEmpty) return <String>[userRole.value];
+    if (!supported.contains(userRole.value)) {
+      supported.insert(0, userRole.value);
+    }
+    return supported;
+  }
+
+  Future<void> changeRole(String newRole) async {
+    final nextRole = _normalizeRole(newRole);
+    if (nextRole.isEmpty || nextRole == userRole.value) return;
+
+    if (FlavorConfig.I.getTabsForRole(nextRole).isEmpty) {
+      Get.snackbar(
+        'Rol',
+        'El rol "$nextRole" no está habilitado en esta app.',
+        snackPosition: SnackPosition.BOTTOM,
+      );
+      return;
+    }
+
+    await AppStorage.setActiveRole(nextRole);
+    await AppStorage.setSelectedCategoryId(null);
+    await AppStorage.setSelectedCategoryName(null);
+    await AppStorage.setSelectedPlayerId(null);
+    await AppStorage.setSelectedPlayerName(null);
+    _deletePersistentTabControllers();
+    Get.offAllNamed(
+      Routes.changeRole,
+      arguments: {'role': nextRole},
+    );
+  }
+
+  void _deletePersistentTabControllers() {
+    if (Get.isRegistered<DashboardTabController>()) {
+      Get.delete<DashboardTabController>(force: true);
+    }
+    if (Get.isRegistered<GamesTabController>()) {
+      Get.delete<GamesTabController>(force: true);
+    }
+    if (Get.isRegistered<PaymentsTabController>()) {
+      Get.delete<PaymentsTabController>(force: true);
+    }
+    if (Get.isRegistered<NoticesTabController>()) {
+      Get.delete<NoticesTabController>(force: true);
     }
   }
 

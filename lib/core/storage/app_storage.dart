@@ -40,6 +40,39 @@ class AppStorage {
     return User.fromJson(Map<String, dynamic>.from(data));
   }
 
+  static String? getActiveRole() {
+    final user = getUser();
+    if (user == null) return null;
+    return user.activeRole.isNotEmpty ? user.activeRole : user.role;
+  }
+
+  static List<String> getAvailableRoles() {
+    final user = getUser();
+    if (user == null) return <String>[];
+    return user.roles;
+  }
+
+  static Future<void> setActiveRole(String role) async {
+    final trimmed = role.trim();
+    if (trimmed.isEmpty) return;
+
+    final user = getUser();
+    if (user == null) return;
+
+    final roles = user.roles.contains(trimmed)
+        ? user.roles
+        : <String>[...user.roles, trimmed];
+
+    final updated = user.copyWith(
+      role: trimmed,
+      activeRole: trimmed,
+      roles: roles,
+      primaryRole: user.primaryRole.isNotEmpty ? user.primaryRole : trimmed,
+    );
+
+    await setUser(updated);
+  }
+
   static Future<void> clearUser() async {
     await _box.remove(keyUser);
   }
@@ -147,5 +180,6 @@ class AppStorage {
     await setSelectedCategoryId(null);
     await setSelectedCategoryName(null);
     await setSelectedPlayerId(null);
+    await setSelectedPlayerName(null);
   }
 }
