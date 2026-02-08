@@ -35,6 +35,7 @@ class User {
   final int id;
   final String name;
   final String email;
+  final String? photoUrl;
   final String role;
   final List<String> roles;
   final String primaryRole;
@@ -47,6 +48,7 @@ class User {
     required this.id,
     required this.name,
     required this.email,
+    this.photoUrl,
     required this.role,
     required this.roles,
     required this.primaryRole,
@@ -59,9 +61,9 @@ class User {
   factory User.fromJson(Map<String, dynamic> json) {
     final parsedRoles = (json['roles'] is List)
         ? (json['roles'] as List)
-            .map((e) => e.toString().trim())
-            .where((e) => e.isNotEmpty)
-            .toList()
+              .map((e) => e.toString().trim())
+              .where((e) => e.isNotEmpty)
+              .toList()
         : <String>[];
 
     final roleFromApi = (json['role'] ?? '').toString();
@@ -71,8 +73,8 @@ class User {
     final effectiveRole = activeRole.isNotEmpty
         ? activeRole
         : (roleFromApi.isNotEmpty
-            ? roleFromApi
-            : (primaryRole.isNotEmpty ? primaryRole : ''));
+              ? roleFromApi
+              : (primaryRole.isNotEmpty ? primaryRole : ''));
 
     final roles = parsedRoles.isNotEmpty
         ? parsedRoles
@@ -82,6 +84,7 @@ class User {
       id: json['id'] ?? 0,
       name: json['name'] ?? '',
       email: json['email'] ?? '',
+      photoUrl: json['profile_photo_url'] ?? '',
       role: effectiveRole,
       roles: roles,
       primaryRole: primaryRole.isNotEmpty ? primaryRole : effectiveRole,
@@ -96,6 +99,7 @@ class User {
     int? id,
     String? name,
     String? email,
+    String? photoUrl,
     String? role,
     List<String>? roles,
     String? primaryRole,
@@ -108,6 +112,7 @@ class User {
       id: id ?? this.id,
       name: name ?? this.name,
       email: email ?? this.email,
+      photoUrl: photoUrl ?? this.photoUrl,
       role: role ?? this.role,
       roles: roles ?? this.roles,
       primaryRole: primaryRole ?? this.primaryRole,
@@ -119,17 +124,18 @@ class User {
   }
 
   Map<String, dynamic> toJson() => {
-        'id': id,
-        'name': name,
-        'email': email,
-        'role': role,
-        'roles': roles,
-        'primary_role': primaryRole,
-        'active_role': activeRole,
-        if (so != null) 'so': so,
-        if (deviceToken != null) 'device_token': deviceToken,
-        if (deviceName != null) 'device_name': deviceName,
-      };
+    'id': id,
+    'name': name,
+    'email': email,
+    if (photoUrl != null && photoUrl!.isNotEmpty) 'photo_url': photoUrl,
+    'role': role,
+    'roles': roles,
+    'primary_role': primaryRole,
+    'active_role': activeRole,
+    if (so != null) 'so': so,
+    if (deviceToken != null) 'device_token': deviceToken,
+    if (deviceName != null) 'device_name': deviceName,
+  };
 }
 
 class Organization {

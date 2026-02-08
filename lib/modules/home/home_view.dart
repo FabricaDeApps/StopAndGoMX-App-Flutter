@@ -232,8 +232,9 @@ class HomeView extends GetView<HomeController> {
           final isCoach = role == 'coach';
           final isStaff = role == 'staff';
           final availableRoles = controller.availableRoles;
-          final selectedRole =
-              availableRoles.contains(role) ? role : availableRoles.first;
+          final selectedRole = availableRoles.contains(role)
+              ? role
+              : availableRoles.first;
 
           return Column(
             children: [
@@ -253,21 +254,65 @@ class HomeView extends GetView<HomeController> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    CircleAvatar(
-                      radius: 30,
-                      backgroundColor: theme.colorScheme.secondary.withOpacity(
-                        .1,
-                      ),
-                      child: controller.userAvatar.value != null
-                          ? ClipOval(
-                              child: CachedNetworkImage(
-                                imageUrl: controller.userAvatar.value!,
-                                width: 60,
-                                height: 60,
-                                fit: BoxFit.cover,
+                    Stack(
+                      children: [
+                        CircleAvatar(
+                          radius: 70,
+                          backgroundColor: theme.colorScheme.secondary
+                              .withOpacity(.1),
+                          child: controller.userAvatar.value != null
+                              ? ClipOval(
+                                  child: CachedNetworkImage(
+                                    imageUrl: controller.userAvatar.value!,
+                                    width: 150,
+                                    height: 150,
+                                    fit: BoxFit.cover,
+                                    placeholder: (_, __) => const SizedBox(
+                                      width: 28,
+                                      height: 28,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                    errorWidget: (_, __, ___) =>
+                                        const Icon(Icons.person, size: 56),
+                                  ),
+                                )
+                              : const Icon(Icons.person, size: 56),
+                        ),
+                        Positioned(
+                          right: 0,
+                          bottom: 0,
+                          child: Material(
+                            color: Colors.white,
+                            shape: const CircleBorder(),
+                            child: InkWell(
+                              customBorder: const CircleBorder(),
+                              onTap: controller.isUploadingAvatar.value
+                                  ? null
+                                  : controller.onTapEditAvatar,
+                              child: Padding(
+                                padding: const EdgeInsets.all(6),
+                                child: controller.isUploadingAvatar.value
+                                    ? SizedBox(
+                                        width: 18,
+                                        height: 18,
+                                        child: CircularProgressIndicator(
+                                          strokeWidth: 2,
+                                          color: theme.colorScheme.primary,
+                                        ),
+                                      )
+                                    : Icon(
+                                        Icons.edit,
+                                        size: 18,
+                                        color: theme.colorScheme.primary,
+                                      ),
                               ),
-                            )
-                          : const Icon(Icons.person, size: 36),
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                     const SizedBox(height: 8),
                     Text(
@@ -479,10 +524,10 @@ class HomeView extends GetView<HomeController> {
                     if (role == 'parent') {
                       final picked =
                           await Get.bottomSheet<Map<String, dynamic>?>(
-                        const PlayerPickerSheet(),
-                        isScrollControlled: true,
-                        backgroundColor: Colors.transparent,
-                      );
+                            const PlayerPickerSheet(),
+                            isScrollControlled: true,
+                            backgroundColor: Colors.transparent,
+                          );
 
                       if (picked == null) return;
 

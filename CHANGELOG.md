@@ -4,6 +4,12 @@ Todos los cambios importantes del proyecto **StopAndGoMX** se documentan en este
 El formato sigue las recomendaciones de **Keep a Changelog**  
 y el versionado está basado en **Semantic Versioning (SemVer)**.
 
+## [1.0.42] - 2026-2-8
+• Los usuarios ya pueden subir foto de perfil
+• Roles Mixtos para los usuarios
+• Arreglo en pase de asistencia de Partidos
+
+
 ## [1.0.41] - 2026-2-7
 • Se corrigieron incidencias en la gestión de entrenadores.
 • Mejoras en el módulo de Combines y evaluaciones.

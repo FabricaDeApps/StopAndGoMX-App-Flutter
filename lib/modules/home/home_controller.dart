@@ -1,5 +1,6 @@
 import 'package:get/get.dart';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:stopandgo/core/config/flavor_config.dart';
 import 'package:stopandgo/core/models/category.dart';
 import 'package:stopandgo/core/models/dto/notice_model.dart';
@@ -18,12 +19,14 @@ import 'tabs/dashboard/dashboard_tab_controller.dart';
 
 class HomeController extends GetxController with GetTickerProviderStateMixin {
   final api = Get.find<ApiRepository>();
+  final _picker = ImagePicker();
 
   // sesión
   final userName = 'Usuario'.obs;
   final userEmail = ''.obs;
   final userAvatar = RxnString();
   final userRole = 'player'.obs;
+  final isUploadingAvatar = false.obs;
   final org = Rxn<OrganizationResponse>();
 
   // selects
@@ -76,6 +79,7 @@ class HomeController extends GetxController with GetTickerProviderStateMixin {
   @override
   Future<void> onReady() async {
     super.onReady();
+    await refreshAccount();
     await _bootstrapSelectorsByRole();
     await _syncTabContext();
     await dashboardCtrl.refresh();
@@ -86,9 +90,111 @@ class HomeController extends GetxController with GetTickerProviderStateMixin {
     if (user != null) {
       userName.value = user.name;
       userEmail.value = user.email;
+      userAvatar.value = user.photoUrl;
       userRole.value = _normalizeRole(
         user.activeRole.isNotEmpty ? user.activeRole : user.role,
       );
+    }
+  }
+
+  Future<void> refreshAccount() async {
+    try {
+      final account = await api.getAccount();
+
+      final name = account['name']?.toString().trim();
+      if (name != null && name.isNotEmpty) {
+        userName.value = name;
+      }
+
+      final email = account['email']?.toString().trim();
+      if (email != null && email.isNotEmpty) {
+        userEmail.value = email;
+      }
+
+      final profilePhotoUrl = account['profile_photo_url']?.toString().trim();
+      userAvatar.value = (profilePhotoUrl != null && profilePhotoUrl.isNotEmpty)
+          ? profilePhotoUrl
+          : null;
+
+      final sessionUser = AppStorage.getUser();
+      if (sessionUser != null) {
+        await AppStorage.setUser(
+          sessionUser.copyWith(
+            name: userName.value,
+            email: userEmail.value,
+            photoUrl: userAvatar.value,
+          ),
+        );
+      }
+    } catch (_) {
+      // No bloqueamos Home si este request falla.
+    }
+  }
+
+  Future<void> onTapEditAvatar() async {
+    final source = await Get.bottomSheet<ImageSource>(
+      SafeArea(
+        child: Material(
+          color: Colors.white,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                leading: const Icon(Icons.photo_camera_outlined),
+                title: const Text('Tomar foto'),
+                onTap: () => Get.back(result: ImageSource.camera),
+              ),
+              ListTile(
+                leading: const Icon(Icons.photo_library_outlined),
+                title: const Text('Elegir de galería'),
+                onTap: () => Get.back(result: ImageSource.gallery),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+
+    if (source == null) return;
+    await _pickAndUploadAvatar(source);
+  }
+
+  Future<void> _pickAndUploadAvatar(ImageSource source) async {
+    if (isUploadingAvatar.value) return;
+
+    try {
+      final picked = await _picker.pickImage(
+        source: source,
+        imageQuality: 85,
+        maxWidth: 1200,
+      );
+      if (picked == null) return;
+
+      isUploadingAvatar.value = true;
+
+      await api.updateAccountPhoto(filePath: picked.path);
+      await refreshAccount();
+
+      final sessionUser = AppStorage.getUser();
+      if (sessionUser != null) {
+        await AppStorage.setUser(
+          sessionUser.copyWith(photoUrl: userAvatar.value),
+        );
+      }
+
+      Get.snackbar(
+        'Foto de perfil',
+        'Tu foto se actualizó correctamente.',
+        snackPosition: SnackPosition.BOTTOM,
+      );
+    } catch (e) {
+      Get.snackbar(
+        'Foto de perfil',
+        e.toString(),
+        snackPosition: SnackPosition.BOTTOM,
+      );
+    } finally {
+      isUploadingAvatar.value = false;
     }
   }
 
@@ -127,10 +233,7 @@ class HomeController extends GetxController with GetTickerProviderStateMixin {
     await AppStorage.setSelectedPlayerId(null);
     await AppStorage.setSelectedPlayerName(null);
     _deletePersistentTabControllers();
-    Get.offAllNamed(
-      Routes.changeRole,
-      arguments: {'role': nextRole},
-    );
+    Get.offAllNamed(Routes.changeRole, arguments: {'role': nextRole});
   }
 
   void _deletePersistentTabControllers() {
