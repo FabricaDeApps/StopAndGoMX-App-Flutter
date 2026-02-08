@@ -14,6 +14,7 @@ platform :android do
   # __dir__  -> /.../StopAndGoMX-App-Flutter/android/fastlane
   PROJECT_ROOT = File.expand_path('../..', __dir__)   # /.../StopAndGoMX-App-Flutter
   ANDROID_DIR  = File.expand_path('..', __dir__)      # /.../StopAndGoMX-App-Flutter/android
+  METADATA_DIR = File.join(ANDROID_DIR, 'fastlane/metadata/android')
 
   ############################################
   # Helpers
@@ -21,12 +22,11 @@ platform :android do
 
   # 0) Script de logo según flavor
   def run_logo_script(flavor:)
-    # Mapear nombre de flavor a parámetro del script
     logo_arg = case flavor
                when 'mainapp'
-                 'stopandgo'   # lo que corrías a mano
+                 'stopandgo'
                else
-                 flavor        # zorros -> zorros
+                 flavor
                end
 
     UI.message("🎨 Ejecutando script de logo: ./scripts/use_logo.sh #{logo_arg}")
@@ -35,7 +35,7 @@ platform :android do
 
   # 0.1) Leer release notes desde CHANGELOG.md del root (última versión)
   def latest_changelog_from_root
-    changelog_path = File.join(PROJECT_ROOT, "CHANGELOG.md")
+    changelog_path = File.join(PROJECT_ROOT, 'CHANGELOG.md')
     UI.user_error!("No existe CHANGELOG.md en #{changelog_path}") unless File.exist?(changelog_path)
 
     content = File.read(changelog_path)
@@ -48,7 +48,8 @@ platform :android do
 
     # Limpieza: convertir bullets "•" a "-" (Play Console suele verse mejor)
     notes = notes.lines.map { |l|
-      l.strip.start_with?("•") ? "- #{l.strip.sub(/^•\s*/, '')}" : l.rstrip
+      l2 = l.rstrip
+      l2.strip.start_with?('•') ? "- #{l2.strip.sub(/^•\s*/, '')}" : l2
     }.join("\n").strip
 
     UI.message("📝 Release notes detectados desde CHANGELOG.md:")
@@ -58,15 +59,33 @@ platform :android do
   end
 
   # 0.2) Escribir changelog para Google Play como default.txt por locale
-  def write_play_changelog_default(locale: "es-MX", notes:)
-    changelog_dir = File.join(ANDROID_DIR, "fastlane/metadata/android", locale, "changelogs")
+  def write_play_changelog_default(locale:, notes:)
+    changelog_dir = File.join(METADATA_DIR, locale, 'changelogs')
     FileUtils.mkdir_p(changelog_dir)
 
-    out_path = File.join(changelog_dir, "default.txt")
+    out_path = File.join(changelog_dir, 'default.txt')
     File.write(out_path, notes)
 
     UI.message("✅ Escribí changelog en: #{out_path}")
     out_path
+  end
+
+  # 0.3) Preparar changelog con fallback de locales (evita Invalid request por idioma)
+  # Devuelve el locale usado.
+  def write_play_changelog_with_fallback(notes:)
+    locales = ['es-419', 'es-ES', 'en-US']
+
+    locales.each do |loc|
+      begin
+        write_play_changelog_default(locale: loc, notes: notes)
+        UI.message("✅ Usando changelog locale: #{loc}")
+        return loc
+      rescue => e
+        UI.message("⚠️ No pude preparar changelog para #{loc}: #{e.message}")
+      end
+    end
+
+    UI.user_error!("No se pudo preparar changelog para ningún locale (#{locales.join(', ')})")
   end
 
   # 1) Build del AAB usando Flutter
@@ -80,16 +99,24 @@ platform :android do
   # 2) Upload del AAB a Google Play
   def upload_aab_to_play(aab_path:, package_name:, track:)
     UI.message("🚀 Subiendo AAB a Google Play (package=#{package_name}, track=#{track})...")
+
     upload_to_play_store(
       aab: aab_path,
       package_name: package_name,
       track: track,
-      json_key: File.join(__dir__, "playstore.json"),
-      release_status: "completed",
+      json_key: File.join(__dir__, 'playstore.json'),
+      release_status: 'completed',
       changes_not_sent_for_review: false,
+
+      # 🔥 Importante: apuntar metadata explícita
+      metadata_path: METADATA_DIR,
+
+      # No tocamos listing / imágenes / screenshots
       skip_upload_metadata: true,
       skip_upload_images: true,
       skip_upload_screenshots: true,
+
+      # ✅ Sí subimos "What's new" (default.txt)
       skip_upload_changelogs: false
     )
   end
@@ -98,19 +125,18 @@ platform :android do
   # Lane genérica: deploy
   ############################################
 
-  desc "Build & upload a Google Play usando Flutter + flavors (lane genérica)"
+  desc 'Build & upload a Google Play usando Flutter + flavors (lane genérica)'
   lane :deploy do |options|
-    # Parámetros requeridos
     flavor       = options[:flavor]
     target       = options[:target]
     package_name = options[:package_name]
-    track        = options[:track] || "internal"
+    track        = options[:track] || 'internal'
 
-    UI.user_error!("Debes pasar el parámetro flavor")       if flavor.nil? || flavor.empty?
-    UI.user_error!("Debes pasar el parámetro target")       if target.nil? || target.empty?
-    UI.user_error!("Debes pasar el parámetro package_name") if package_name.nil? || package_name.empty?
+    UI.user_error!('Debes pasar el parámetro flavor')       if flavor.nil? || flavor.empty?
+    UI.user_error!('Debes pasar el parámetro target')       if target.nil? || target.empty?
+    UI.user_error!('Debes pasar el parámetro package_name') if package_name.nil? || package_name.empty?
 
-    UI.message("➡️  Deploy Android")
+    UI.message('➡️  Deploy Android')
     UI.message("   PROJECT_ROOT:  #{PROJECT_ROOT}")
     UI.message("   flavor:        #{flavor}")
     UI.message("   target:        #{target}")
@@ -123,20 +149,16 @@ platform :android do
     run_logo_script(flavor: flavor)
 
     ########################################
-    # 0.5) Generar y escribir changelog para Google Play
+    # 0.5) Generar y escribir changelog para Google Play (fallback)
     ########################################
     notes = latest_changelog_from_root
-    write_play_changelog_default(locale: "es-MX", notes: notes)
-    # Si también tienes store listing en inglés, descomenta:
-    # write_play_changelog_default(locale: "en-US", notes: notes)
+    used_locale = write_play_changelog_with_fallback(notes: notes)
+    UI.message("📝 Changelog preparado usando locale: #{used_locale}")
 
     ########################################
     # 1) Build AAB con Flutter
     ########################################
-    build_flutter_aab(
-      flavor: flavor,
-      target: target
-    )
+    build_flutter_aab(flavor: flavor, target: target)
 
     ########################################
     # 2) Ruta ABSOLUTA del AAB generado
@@ -147,10 +169,7 @@ platform :android do
     )
 
     UI.message("🔍 Buscando AAB en: #{aab_path}")
-
-    unless File.exist?(aab_path)
-      UI.user_error!("No se encontró el archivo AAB en: #{aab_path}")
-    end
+    UI.user_error!("No se encontró el archivo AAB en: #{aab_path}") unless File.exist?(aab_path)
 
     ########################################
     # 3) Upload a Google Play
@@ -169,57 +188,57 @@ platform :android do
   ############################################
 
   # MAINAPP (StopAndGo) - PRODUCTION
-  desc "Deploy Android mainapp (StopAndGo) a track PRODUCTION"
+  desc 'Deploy Android mainapp (StopAndGo) a track PRODUCTION'
   lane :deploy_mainapp_production do
     deploy(
-      flavor: "mainapp",
-      target: "lib/main_mainapp.dart",
-      package_name: "app.stopandgomx.main",
-      track: "production"
+      flavor: 'mainapp',
+      target: 'lib/main_mainapp.dart',
+      package_name: 'app.stopandgomx.main',
+      track: 'production'
     )
   end
 
   # ZORROS - PRODUCTION
-  desc "Deploy Android Zorros a track PRODUCTION"
+  desc 'Deploy Android Zorros a track PRODUCTION'
   lane :deploy_zorros_production do
     deploy(
-      flavor: "zorros",
-      target: "lib/main_zorros.dart",
-      package_name: "app.stopandgomx.zorros",
-      track: "production"
+      flavor: 'zorros',
+      target: 'lib/main_zorros.dart',
+      package_name: 'app.stopandgomx.zorros',
+      track: 'production'
     )
   end
 
   # RAIDERS QRO - PRODUCTION
-  desc "Deploy Android RaidersQRO a track PRODUCTION"
+  desc 'Deploy Android RaidersQRO a track PRODUCTION'
   lane :deploy_raidersqro_production do
     deploy(
-      flavor: "raidersqro",
-      target: "lib/main_raidersqro.dart",
-      package_name: "app.stopandgomx.raidersqueretaro",
-      track: "production"
+      flavor: 'raidersqro',
+      target: 'lib/main_raidersqro.dart',
+      package_name: 'app.stopandgomx.raidersqueretaro',
+      track: 'production'
     )
   end
 
   # WOLVERINES QRO - PRODUCTION
-  desc "Deploy Android WOLVERINES QRO a track PRODUCTION"
+  desc 'Deploy Android WOLVERINES QRO a track PRODUCTION'
   lane :deploy_wolverinesqro_production do
     deploy(
-      flavor: "wolverinesqro",
-      target: "lib/main_wolverinesqro.dart",
-      package_name: "app.stopandgomx.wolverinesqro",
-      track: "production"
+      flavor: 'wolverinesqro',
+      target: 'lib/main_wolverinesqro.dart',
+      package_name: 'app.stopandgomx.wolverinesqro',
+      track: 'production'
     )
   end
 
   # BEARS CORREGIDORA - PRODUCTION
-  desc "Deploy Android BEARS CORREGIDORA a track PRODUCTION"
+  desc 'Deploy Android BEARS CORREGIDORA a track PRODUCTION'
   lane :deploy_bearsqro_production do
     deploy(
-      flavor: "bearsqro",
-      target: "lib/main_bearsqro.dart",
-      package_name: "app.stopandgomx.bearsqro",
-      track: "production"
+      flavor: 'bearsqro',
+      target: 'lib/main_bearsqro.dart',
+      package_name: 'app.stopandgomx.bearsqro',
+      track: 'production'
     )
   end
 end

@@ -45,7 +45,7 @@ Deploy iOS Zorros
 [bundle exec] fastlane ios deploy_raidersqro
 ```
 
-Deploy iOS Zorros
+Deploy iOS Raiders Qro
 
 ### ios deploy_wolverinesqro
 
