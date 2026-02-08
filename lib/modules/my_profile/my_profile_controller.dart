@@ -21,7 +21,7 @@ class MyProfileController extends GetxController {
   final isChangingPassword = false.obs;
   final isDeleting = false.obs;
 
-  final roles = ['parent', 'player', 'manager'];
+  final roles = <String>[].obs;
   final selectedRole = RxnString();
 
   @override
@@ -33,13 +33,32 @@ class MyProfileController extends GetxController {
   Future<void> _loadAccount() async {
     try {
       isLoading.value = true;
+      final sessionUser = AppStorage.getUser();
+      if (sessionUser != null && sessionUser.roles.isNotEmpty) {
+        roles.assignAll(sessionUser.roles);
+      }
+
       final data = await _api.getAccount();
 
       // Asumiendo que data es el usuario directamente
       nameCtrl.text = data['name']?.toString() ?? '';
       emailCtrl.text = data['email']?.toString() ?? '';
-      final role = data['role']?.toString();
-      if (role != null && roles.contains(role)) {
+
+      final apiRoles = (data['roles'] is List)
+          ? (data['roles'] as List)
+              .map((e) => e.toString().trim())
+              .where((e) => e.isNotEmpty)
+              .toList()
+          : <String>[];
+      if (apiRoles.isNotEmpty) {
+        roles.assignAll(apiRoles);
+      }
+
+      final role = (data['active_role'] ?? data['role'])?.toString();
+      if (role != null && role.isNotEmpty) {
+        if (!roles.contains(role)) {
+          roles.add(role);
+        }
         selectedRole.value = role;
       }
 
@@ -76,9 +95,15 @@ class MyProfileController extends GetxController {
       );
 
       // Si la API devuelve { message, user }, tomamos el user
-      final userData = (res['user'] is Map)
-          ? Map<String, dynamic>.from(res['user'])
-          : res;
+      final userData =
+          (res['user'] is Map) ? Map<String, dynamic>.from(res['user']) : res;
+
+      final switchedRole =
+          (userData['active_role'] ?? userData['role'])?.toString();
+      if (switchedRole != null && switchedRole.isNotEmpty) {
+        await AppStorage.setActiveRole(switchedRole);
+        selectedRole.value = switchedRole;
+      }
 
       // Si tienes un modelo User y AppStorage.setUser, puedes hacerlo aquí
       // await AppStorage.setUser(User.fromJson(userData));

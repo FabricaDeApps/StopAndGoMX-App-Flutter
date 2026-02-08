@@ -6,6 +6,8 @@ import 'package:stopandgo/modules/auth/login_binding.dart';
 import 'package:stopandgo/modules/auth/login_view.dart';
 import 'package:stopandgo/modules/broadcast_live/broadcast_live_view.dart';
 import 'package:stopandgo/modules/broadcast_live/index.dart';
+import 'package:stopandgo/modules/change_role/change_role_view.dart';
+import 'package:stopandgo/modules/change_role/index.dart';
 import 'package:stopandgo/modules/checkins/checkins_view.dart';
 import 'package:stopandgo/modules/checkins/index.dart';
 import 'package:stopandgo/modules/combine_create/combine_create_view.dart';
@@ -324,6 +326,11 @@ class AppPages {
       name: Routes.gameGallery,
       page: () => const GameGalleryView(),
       binding: GameGalleryBinding(),
+    ),
+    GetPage(
+      name: Routes.changeRole,
+      page: () => const ChangeRoleView(),
+      binding: ChangeRoleBinding(),
     ),
   ];
 }

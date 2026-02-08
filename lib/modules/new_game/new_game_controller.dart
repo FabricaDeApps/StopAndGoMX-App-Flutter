@@ -59,9 +59,6 @@ class NewGameController extends GetxController {
     try {
       final list = await _api.getVenues();
       venues.assignAll(list);
-
-      // Si solo hay 1, autoselecciona
-      if (venues.length == 1) selectedVenue.value = venues.first;
     } catch (e) {
       Get.snackbar(
         'Error',
@@ -111,7 +108,8 @@ class NewGameController extends GetxController {
   Future<void> submit() async {
     if (!(formKey.currentState?.validate() ?? false)) return;
 
-    if (selectedVenue.value == null) {
+    final venue = selectedVenue.value;
+    if (venue == null || venue.id <= 0) {
       Get.snackbar(
         'Falta sede',
         'Selecciona la sede/campo',
@@ -136,10 +134,10 @@ class NewGameController extends GetxController {
         "scheduled_at": _formatForApi(scheduledAt.value!),
 
         // ✅ Enviar ID de venue
-        "venue_id": selectedVenue.value!.id,
+        "venue_id": venue.id,
 
         // (opcional) por compatibilidad o display
-        "venue_name": selectedVenue.value!.name,
+        "venue_name": venue.name,
 
         "is_home": isHome.value,
         "status": "scheduled",

@@ -67,9 +67,8 @@ class ApiRepository {
     if (res.statusCode == 200) {
       final List data = res.data['data'] ?? [];
 
-      final orgs = data
-          .map((json) => OrganizationResponse.fromJson(json))
-          .toList();
+      final orgs =
+          data.map((json) => OrganizationResponse.fromJson(json)).toList();
 
       return orgs;
     } else {
@@ -105,9 +104,8 @@ class ApiRepository {
       // Guarda sesión completa (access + refresh + expiraciones)
       await _tokenStorage.setSession(
         accessToken: loginData.accessToken,
-        tokenType: (loginData.tokenType.isNotEmpty
-            ? loginData.tokenType
-            : 'Bearer'),
+        tokenType:
+            (loginData.tokenType.isNotEmpty ? loginData.tokenType : 'Bearer'),
         refreshToken: loginData.refreshToken,
       );
 
@@ -119,8 +117,8 @@ class ApiRepository {
       // Mensaje más claro para UI
       final msg =
           e.response?.data is Map && (e.response?.data['message'] != null)
-          ? e.response?.data['message'].toString()
-          : e.message ?? 'Error de red';
+              ? e.response?.data['message'].toString()
+              : e.message ?? 'Error de red';
       throw Exception('Login fallido: $msg');
     } catch (e) {
       throw Exception('Login fallido: $e');
@@ -449,11 +447,11 @@ class ApiRepository {
   }
 
   Map<String, dynamic> _headers([Map<String, dynamic>? extra]) => {
-    ..._authHeader,
-    ..._orgHeader,
-    'Accept': 'application/json',
-    if (extra != null) ...extra,
-  };
+        ..._authHeader,
+        ..._orgHeader,
+        'Accept': 'application/json',
+        if (extra != null) ...extra,
+      };
 
   /// GET /api/home/dashboard (ejemplo)
   /// Puedes ajustar a tu ruta real: /api/player/home, etc.
@@ -543,6 +541,54 @@ class ApiRepository {
       throw Exception(msg);
     } catch (e) {
       throw Exception('Error inesperado al actualizar perfil: $e');
+    }
+  }
+
+  /// POST /account/photo
+  Future<Map<String, dynamic>> updateAccountPhoto({
+    required String filePath,
+  }) async {
+    try {
+      final file = File(filePath);
+      if (!file.existsSync()) {
+        throw Exception('La imagen seleccionada no existe.');
+      }
+
+      final filename = file.uri.pathSegments.isNotEmpty
+          ? file.uri.pathSegments.last
+          : 'profile_photo.jpg';
+
+      final formData = FormData.fromMap({
+        'photo': await MultipartFile.fromFile(filePath, filename: filename),
+      });
+
+      final res = await _dio.post(
+        ApiEndpoints.accountPhoto,
+        data: formData,
+        options: Options(
+          headers: _headers(),
+          contentType: 'multipart/form-data',
+        ),
+      );
+
+      if (res.data is Map<String, dynamic>) {
+        return Map<String, dynamic>.from(res.data as Map);
+      }
+
+      throw Exception('Respuesta inesperada al actualizar foto de perfil');
+    } on DioException catch (e) {
+      final payload = e.response?.data;
+      String msg = 'Error al actualizar foto de perfil';
+
+      if (payload is Map && payload['message'] != null) {
+        msg = payload['message'].toString();
+      } else if (e.message != null) {
+        msg = e.message!;
+      }
+
+      throw Exception(msg);
+    } catch (e) {
+      throw Exception('Error inesperado al actualizar foto de perfil: $e');
     }
   }
 

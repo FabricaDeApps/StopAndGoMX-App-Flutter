@@ -25,6 +25,25 @@ class HomeView extends GetView<HomeController> {
     return idx >= 0 ? idx : 0;
   }
 
+  static String _roleLabel(String role) {
+    switch (role) {
+      case 'parent':
+        return 'Padre/Madre';
+      case 'player':
+        return 'Jugador';
+      case 'coach':
+        return 'Entrenador';
+      case 'manager':
+        return 'Manager';
+      case 'staff':
+        return 'Personal';
+      case 'admin':
+        return 'Administrador';
+      default:
+        return role;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -212,34 +231,165 @@ class HomeView extends GetView<HomeController> {
           final isPlayer = role == 'player';
           final isCoach = role == 'coach';
           final isStaff = role == 'staff';
+          final availableRoles = controller.availableRoles;
+          final selectedRole = availableRoles.contains(role)
+              ? role
+              : availableRoles.first;
 
           return Column(
             children: [
-              UserAccountsDrawerHeader(
-                currentAccountPicture: CircleAvatar(
-                  radius: 28,
-                  backgroundColor: theme.colorScheme.secondary.withOpacity(.1),
-                  child: controller.userAvatar.value != null
-                      ? ClipOval(
-                          child: CachedNetworkImage(
-                            imageUrl: controller.userAvatar.value!,
-                            width: 56,
-                            height: 56,
-                            fit: BoxFit.cover,
-                          ),
-                        )
-                      : const Icon(Icons.person, size: 36),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.fromLTRB(16, 12, 16, 14),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      theme.colorScheme.primary,
+                      theme.colorScheme.primary.withOpacity(.85),
+                    ],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
                 ),
-                accountName: Text(controller.userName.value),
-                accountEmail: Text(controller.userEmail.value),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Stack(
+                      children: [
+                        CircleAvatar(
+                          radius: 70,
+                          backgroundColor: theme.colorScheme.secondary
+                              .withOpacity(.1),
+                          child: controller.userAvatar.value != null
+                              ? ClipOval(
+                                  child: CachedNetworkImage(
+                                    imageUrl: controller.userAvatar.value!,
+                                    width: 150,
+                                    height: 150,
+                                    fit: BoxFit.cover,
+                                    placeholder: (_, __) => const SizedBox(
+                                      width: 28,
+                                      height: 28,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                    errorWidget: (_, __, ___) =>
+                                        const Icon(Icons.person, size: 56),
+                                  ),
+                                )
+                              : const Icon(Icons.person, size: 56),
+                        ),
+                        Positioned(
+                          right: 0,
+                          bottom: 0,
+                          child: Material(
+                            color: Colors.white,
+                            shape: const CircleBorder(),
+                            child: InkWell(
+                              customBorder: const CircleBorder(),
+                              onTap: controller.isUploadingAvatar.value
+                                  ? null
+                                  : controller.onTapEditAvatar,
+                              child: Padding(
+                                padding: const EdgeInsets.all(6),
+                                child: controller.isUploadingAvatar.value
+                                    ? SizedBox(
+                                        width: 18,
+                                        height: 18,
+                                        child: CircularProgressIndicator(
+                                          strokeWidth: 2,
+                                          color: theme.colorScheme.primary,
+                                        ),
+                                      )
+                                    : Icon(
+                                        Icons.edit,
+                                        size: 18,
+                                        color: theme.colorScheme.primary,
+                                      ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      controller.userName.value,
+                      textAlign: TextAlign.center,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      controller.userEmail.value,
+                      textAlign: TextAlign.center,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: Colors.white.withOpacity(.9),
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    SizedBox(
+                      width: double.infinity,
+                      child: const Text(
+                        'Rol',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    SizedBox(
+                      width: double.infinity,
+                      height: 42,
+                      child: Material(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(10),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 12),
+                          child: DropdownButtonHideUnderline(
+                            child: DropdownButton<String>(
+                              isExpanded: true,
+                              value: selectedRole,
+                              borderRadius: BorderRadius.circular(10),
+                              icon: const Icon(Icons.keyboard_arrow_down),
+                              style: TextStyle(
+                                color: theme.colorScheme.onSurface,
+                                fontSize: 14,
+                              ),
+                              items: availableRoles
+                                  .map(
+                                    (r) => DropdownMenuItem<String>(
+                                      value: r,
+                                      child: Text(_roleLabel(r)),
+                                    ),
+                                  )
+                                  .toList(),
+                              onChanged: (value) async {
+                                if (value == null || value == role) return;
+                                await controller.changeRole(value);
+                              },
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
-
               ListTile(
                 leading: const Icon(Icons.home_outlined),
                 title: const Text('Inicio'),
                 onTap: () => Get.back(),
               ),
-
               if (isManager || isCoach) ...[
                 ListTile(
                   leading: const Icon(Icons.supervised_user_circle),
@@ -258,7 +408,6 @@ class HomeView extends GetView<HomeController> {
                   },
                 ),
               ],
-
               if (isPlayer || isParent || isCoach) ...[
                 ListTile(
                   leading: const Icon(Icons.fitness_center),
@@ -292,10 +441,7 @@ class HomeView extends GetView<HomeController> {
 
                         Get.toNamed(
                           Routes.combineEvents,
-                          arguments: {
-                            'categoryId': cid,
-                            'categoryName': cname,
-                          },
+                          arguments: {'categoryId': cid, 'categoryName': cname},
                         );
                       });
                       return;
@@ -305,7 +451,6 @@ class HomeView extends GetView<HomeController> {
                   },
                 ),
               ],
-
               if (isPlayer || isParent) ...[
                 ListTile(
                   leading: const Icon(Icons.list_alt_outlined),
@@ -316,7 +461,6 @@ class HomeView extends GetView<HomeController> {
                   },
                 ),
               ],
-
               if (isCoach || isPlayer) ...[
                 Stack(
                   children: [
@@ -353,7 +497,6 @@ class HomeView extends GetView<HomeController> {
                   ],
                 ),
               ],
-
               if (isParent || isPlayer) ...[
                 ListTile(
                   leading: const Icon(Icons.person_outline),
@@ -403,7 +546,6 @@ class HomeView extends GetView<HomeController> {
                   },
                 ),
               ],
-
               if (isPlayer) ...[
                 ListTile(
                   leading: const Icon(Icons.family_restroom),
@@ -411,7 +553,6 @@ class HomeView extends GetView<HomeController> {
                   onTap: () => Get.toNamed(Routes.parentsInfo),
                 ),
               ],
-
               if (isPlayer || isCoach || isManager || isStaff) ...[
                 ListTile(
                   leading: const Icon(Icons.how_to_reg),
@@ -419,7 +560,6 @@ class HomeView extends GetView<HomeController> {
                   onTap: () => Get.toNamed(Routes.checkins),
                 ),
               ],
-
               ListTile(
                 leading: const Icon(Icons.person_outline),
                 title: const Text('Perfil'),
@@ -428,9 +568,7 @@ class HomeView extends GetView<HomeController> {
                   Get.toNamed(Routes.myProfile);
                 },
               ),
-
               const Spacer(),
-
               ListTile(
                 leading: const Icon(Icons.logout),
                 title: const Text('Cerrar sesión'),

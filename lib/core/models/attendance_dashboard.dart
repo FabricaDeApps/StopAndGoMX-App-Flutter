@@ -16,15 +16,20 @@ class AttendanceDashboard {
   });
 
   factory AttendanceDashboard.fromJson(Map<String, dynamic> json) {
+    double _safePercent(dynamic raw) {
+      final value = (raw as num?)?.toDouble() ?? 0.0;
+      if (!value.isFinite) return 0.0;
+      return value.clamp(0.0, 100.0).toDouble();
+    }
+
     return AttendanceDashboard(
       trainingsMarkedTotal:
           (json['trainings_marked_total'] as num?)?.toInt() ?? 0,
       present: (json['present'] as num?)?.toInt() ?? 0,
       absent: (json['absent'] as num?)?.toInt() ?? 0,
       justified: (json['justified'] as num?)?.toInt() ?? 0,
-      percent: (json['percent'] as num?)?.toDouble() ?? 0.0,
-      percentWithJustified:
-          (json['percent_with_justified'] as num?)?.toDouble() ?? 0.0,
+      percent: _safePercent(json['percent']),
+      percentWithJustified: _safePercent(json['percent_with_justified']),
     );
   }
 
