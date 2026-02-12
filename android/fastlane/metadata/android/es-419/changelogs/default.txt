@@ -1,3 +1,2 @@
-- Los usuarios ya pueden subir foto de perfil
-- Roles Mixtos para los usuarios
-- Arreglo en pase de asistencia de Partidos
+- Managers asignar jugadores
+- Seleccion de categorias

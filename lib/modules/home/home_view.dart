@@ -232,9 +232,8 @@ class HomeView extends GetView<HomeController> {
           final isCoach = role == 'coach';
           final isStaff = role == 'staff';
           final availableRoles = controller.availableRoles;
-          final selectedRole = availableRoles.contains(role)
-              ? role
-              : availableRoles.first;
+          final selectedRole =
+              availableRoles.contains(role) ? role : availableRoles.first;
 
           return Column(
             children: [
@@ -258,8 +257,8 @@ class HomeView extends GetView<HomeController> {
                       children: [
                         CircleAvatar(
                           radius: 70,
-                          backgroundColor: theme.colorScheme.secondary
-                              .withOpacity(.1),
+                          backgroundColor:
+                              theme.colorScheme.secondary.withOpacity(.1),
                           child: controller.userAvatar.value != null
                               ? ClipOval(
                                   child: CachedNetworkImage(
@@ -392,18 +391,46 @@ class HomeView extends GetView<HomeController> {
               ),
               if (isManager || isCoach) ...[
                 ListTile(
+                  leading: const Icon(Icons.group_add),
+                  title: const Text('Asignar Jugador a Categoria'),
+                  onTap: () async {
+                    Get.back();
+
+                    if (isManager || isCoach) {
+                      final picked = await _pickCategoryFromSheet();
+                      if (picked == null) return;
+                    }
+
+                    Get.toNamed(Routes.assignPlayer);
+                  },
+                ),
+              ],
+              if (isManager || isCoach) ...[
+                ListTile(
                   leading: const Icon(Icons.supervised_user_circle),
                   title: const Text('Roster'),
-                  onTap: () {
+                  onTap: () async {
                     Get.back();
+
+                    if (isManager || isCoach) {
+                      final picked = await _pickCategoryFromSheet();
+                      if (picked == null) return;
+                    }
+
                     Get.toNamed(Routes.roster);
                   },
                 ),
                 ListTile(
                   leading: const Icon(Icons.list_alt_outlined),
                   title: const Text('Entrenamientos'),
-                  onTap: () {
+                  onTap: () async {
                     Get.back();
+
+                    if (isManager || isCoach) {
+                      final picked = await _pickCategoryFromSheet();
+                      if (picked == null) return;
+                    }
+
                     Get.toNamed(Routes.trainnings);
                   },
                 ),
@@ -524,10 +551,10 @@ class HomeView extends GetView<HomeController> {
                     if (role == 'parent') {
                       final picked =
                           await Get.bottomSheet<Map<String, dynamic>?>(
-                            const PlayerPickerSheet(),
-                            isScrollControlled: true,
-                            backgroundColor: Colors.transparent,
-                          );
+                        const PlayerPickerSheet(),
+                        isScrollControlled: true,
+                        backgroundColor: Colors.transparent,
+                      );
 
                       if (picked == null) return;
 
@@ -602,6 +629,34 @@ class HomeView extends GetView<HomeController> {
         }),
       ),
     );
+  }
+
+  Future<Map<String, dynamic>?> _pickCategoryFromSheet() async {
+    if (controller.categories.isEmpty) {
+      Get.snackbar(
+        'Categorías',
+        'No hay categorías asignadas para mostrar.',
+        snackPosition: SnackPosition.BOTTOM,
+      );
+      return null;
+    }
+
+    final picked = await Get.bottomSheet<Map<String, dynamic>?>(
+      CategoryPickerSheet(categories: controller.categories),
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+    );
+
+    if (picked == null) return null;
+
+    final cid = picked['id'] as int;
+    final cname = picked['name'] as String;
+
+    controller.selectedCategoryId.value = cid;
+    await AppStorage.setSelectedCategoryId(cid);
+    await AppStorage.setSelectedCategoryName(cname);
+
+    return picked;
   }
 }
 

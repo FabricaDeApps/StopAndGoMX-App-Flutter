@@ -9,6 +9,7 @@ class AssignPlayerController extends GetxController {
 
   /// Categoría seleccionada en el AppBar (guardada en AppStorage)
   late final int categoryId;
+  late final String categoryName;
 
   // Estado de carga
   final isLoading = true.obs;
@@ -16,6 +17,7 @@ class AssignPlayerController extends GetxController {
   final error = RxnString();
 
   // Listas
+  final categoryPlayers = <Player>[].obs;
   final players = <Player>[].obs;
   final filteredPlayers = <Player>[].obs;
   final selectedPlayer = Rxn<Player>();
@@ -37,6 +39,7 @@ class AssignPlayerController extends GetxController {
     }
 
     categoryId = selectedCategoryId;
+    categoryName = AppStorage.getSelectedCategoryName() ?? '';
 
     loadInitialData();
 
@@ -50,16 +53,32 @@ class AssignPlayerController extends GetxController {
     error.value = null;
 
     try {
-      final playersList = await _api.managerPlayersForEnroll(
+      final enrolledInCategory = await _api.getGamePlayers(
+        categoryId: categoryId,
+      );
+      final playersForEnroll = await _api.managerPlayersForEnroll(
         categoryId: categoryId,
       );
 
-      final loadedPlayers = playersList
+      categoryPlayers.assignAll(enrolledInCategory);
+
+      final enrolledIds = enrolledInCategory.map((p) => p.id).toSet();
+      final availablePlayers = playersForEnroll
+          .where((p) => !enrolledIds.contains(p.id))
+          .toList();
+
+      final loadedPlayers = availablePlayers
           .map((e) => Player.fromJson(e.toJson()))
           .toList();
 
       players.assignAll(loadedPlayers);
       filteredPlayers.assignAll(loadedPlayers);
+
+      debugPrint(
+        '[AssignPlayerController] categoryId=$categoryId '
+        'enrolled=${categoryPlayers.length} '
+        'available=${players.length}',
+      );
     } catch (e) {
       error.value = 'Ocurrió un error al cargar datos: $e';
     } finally {

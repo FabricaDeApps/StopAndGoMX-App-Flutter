@@ -8,9 +8,13 @@ class AssignPlayerView extends GetView<AssignPlayerController> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final category = controller.categoryName.trim();
+    final title = category.isEmpty
+        ? 'Asignar jugador'
+        : 'Asignar jugador a $category';
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Asignar jugador'), centerTitle: true),
+      appBar: AppBar(title: Text(title), centerTitle: true),
       body: Obx(() {
         if (controller.isLoading.value) {
           return const Center(child: CircularProgressIndicator());
@@ -80,21 +84,22 @@ class AssignPlayerView extends GetView<AssignPlayerController> {
                   ),
                   const SizedBox(height: 8),
 
-                  // Lista de jugadores (usa Rx => OK)
-                  Obx(() {
-                    final players = controller.filteredPlayers;
-                    if (players.isEmpty) {
-                      return Text(
-                        'No se encontraron jugadores con ese nombre.',
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: Colors.grey,
-                        ),
-                      );
-                    }
+                  // Lista de jugadores con altura flexible
+                  Expanded(
+                    child: Obx(() {
+                      final players = controller.filteredPlayers;
+                      if (players.isEmpty) {
+                        return Center(
+                          child: Text(
+                            'No se encontraron jugadores con ese nombre.',
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: Colors.grey,
+                            ),
+                          ),
+                        );
+                      }
 
-                    return SizedBox(
-                      height: 180,
-                      child: ListView.separated(
+                      return ListView.separated(
                         itemCount: players.length,
                         separatorBuilder: (_, __) => const Divider(height: 1),
                         itemBuilder: (_, index) {
@@ -107,8 +112,8 @@ class AssignPlayerView extends GetView<AssignPlayerController> {
                             leading: CircleAvatar(
                               backgroundImage:
                                   (p.photoUrl != null && p.photoUrl!.isNotEmpty)
-                                  ? NetworkImage(p.photoUrl!)
-                                  : null,
+                                      ? NetworkImage(p.photoUrl!)
+                                      : null,
                               child: (p.photoUrl == null || p.photoUrl!.isEmpty)
                                   ? Text(
                                       p.name.isNotEmpty
@@ -129,9 +134,9 @@ class AssignPlayerView extends GetView<AssignPlayerController> {
                                 : const SizedBox.shrink(),
                           );
                         },
-                      ),
-                    );
-                  }),
+                      );
+                    }),
+                  ),
 
                   const SizedBox(height: 16),
 
@@ -151,20 +156,8 @@ class AssignPlayerView extends GetView<AssignPlayerController> {
 
                   const SizedBox(height: 16),
 
-                  // CAPITÁN (usa Rx => OK)
-                  Obx(() {
-                    return Visibility(
-                      visible: false,
-                      child: SwitchListTile(
-                        contentPadding: EdgeInsets.zero,
-                        title: const Text('¿Es capitán?'),
-                        value: controller.isCaptain.value,
-                        onChanged: (v) => controller.isCaptain.value = v,
-                      ),
-                    );
-                  }),
-
-                  const Spacer(),
+                  // CAPITÁN (oculto por negocio actual)
+                  const SizedBox.shrink(),
 
                   // BOTÓN ASIGNAR (usa Rx => OK)
                   Obx(() {

@@ -19,7 +19,7 @@ class ApiEnv {
   static String get baseUrl {
     switch (current) {
       case ApiEnvironment.local:
-        return 'http://192.168.0.194:8000/api';
+        return 'https://sandboxfabapps.com/api';
       case ApiEnvironment.prod:
         return 'https://stopandgomx.app/api';
     }

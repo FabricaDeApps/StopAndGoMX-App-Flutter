@@ -131,7 +131,6 @@ class LoginView extends GetView<LoginController> {
                           );
                         }),
                         const SizedBox(height: 12),
-
                         Text(
                           'Bienvenido',
                           textAlign: TextAlign.center,
@@ -140,7 +139,6 @@ class LoginView extends GetView<LoginController> {
                           ),
                         ),
                         const SizedBox(height: 16),
-
                         TextFormField(
                           controller: controller.emailCtrl,
                           focusNode: controller.emailFocus,
@@ -157,7 +155,6 @@ class LoginView extends GetView<LoginController> {
                           },
                         ),
                         const SizedBox(height: 12),
-
                         Obx(
                           () => TextFormField(
                             controller: controller.passCtrl,
@@ -185,7 +182,6 @@ class LoginView extends GetView<LoginController> {
                           ),
                         ),
                         const SizedBox(height: 20),
-
                         SizedBox(
                           width: double.infinity,
                           child: Obx(
@@ -205,9 +201,7 @@ class LoginView extends GetView<LoginController> {
                             ),
                           ),
                         ),
-
                         const SizedBox(height: 12),
-
                         SizedBox(
                           width: double.infinity,
                           child: OutlinedButton.icon(
@@ -218,10 +212,28 @@ class LoginView extends GetView<LoginController> {
                             label: const Text('Crear cuenta'),
                           ),
                         ),
-                        SizedBox(height: 40),
+                        const SizedBox(height: 24),
+                        Row(
+                          children: [
+                            const Expanded(child: Divider()),
+                            Padding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                              ),
+                              child: Text(
+                                'Zona de jugador',
+                                style: theme.textTheme.labelLarge?.copyWith(
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                            ),
+                            const Expanded(child: Divider()),
+                          ],
+                        ),
+                        const SizedBox(height: 12),
                         SizedBox(
                           width: double.infinity,
-                          child: TextButton(
+                          child: FilledButton.tonalIcon(
                             onPressed: () {
                               final slug =
                                   controller.selectedOrganization.value?.slug;
@@ -235,15 +247,17 @@ class LoginView extends GetView<LoginController> {
                                 ),
                               );
                             },
-                            child: const Text(
-                              'Pre-Registro de Jugador',
-                              style: TextStyle(
-                                decoration: TextDecoration.underline,
-                                decorationStyle: TextDecorationStyle.dotted,
-                                decorationThickness: 1.5,
-                                decorationColor: Colors.blue,
+                            style: FilledButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(
+                                vertical: 14,
+                                horizontal: 16,
+                              ),
+                              textStyle: theme.textTheme.titleMedium?.copyWith(
+                                fontWeight: FontWeight.w700,
                               ),
                             ),
+                            icon: const Icon(Icons.app_registration_rounded),
+                            label: const Text('Pre-Registro de Jugador'),
                           ),
                         ),
                       ],

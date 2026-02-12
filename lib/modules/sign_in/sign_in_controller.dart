@@ -21,7 +21,7 @@ class SignInController extends GetxController {
     'coach': 'Entrenador',
     'manager': 'Manager',
     'player': 'Jugador',
-    'admin': 'Administrador',
+    'staff': 'Staff',
   };
 
   // Valor real que va al backend
