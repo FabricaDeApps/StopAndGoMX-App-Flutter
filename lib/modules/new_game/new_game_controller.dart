@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:stopandgo/core/models/games/games.dart';
 import 'package:stopandgo/core/network/api_repository.dart';
+import 'package:stopandgo/core/storage/app_storage.dart';
 
 class NewGameController extends GetxController {
   final _api = Get.find<ApiRepository>();
@@ -18,12 +19,6 @@ class NewGameController extends GetxController {
   final isLoadingVenues = false.obs;
   final venues = <Venue>[].obs;
   final selectedVenue = Rxn<Venue>();
-  final venueSearchCtrl = TextEditingController(); // opcional (filtrar)
-  List<Venue> get filteredVenues {
-    final q = venueSearchCtrl.text.trim().toLowerCase();
-    if (q.isEmpty) return venues;
-    return venues.where((v) => v.name.toLowerCase().contains(q)).toList();
-  }
 
   // Estado
   final isHome = true.obs;
@@ -40,17 +35,12 @@ class NewGameController extends GetxController {
         (throw ArgumentError('categoryId es requerido en arguments'));
 
     fetchVenues();
-    venueSearchCtrl.addListener(() {
-      // fuerza rebuild del dropdown cuando se filtra
-      venues.refresh();
-    });
   }
 
   @override
   void onClose() {
     opponentCtrl.dispose();
     notesCtrl.dispose();
-    venueSearchCtrl.dispose();
     super.onClose();
   }
 
@@ -59,6 +49,16 @@ class NewGameController extends GetxController {
     try {
       final list = await _api.getVenues();
       venues.assignAll(list);
+
+      final defaultVenueId = AppStorage.getOrganization()?.idVenueDefault;
+      if (defaultVenueId != null && selectedVenue.value == null) {
+        for (final venue in list) {
+          if (venue.id == defaultVenueId) {
+            selectedVenue.value = venue;
+            break;
+          }
+        }
+      }
     } catch (e) {
       Get.snackbar(
         'Error',

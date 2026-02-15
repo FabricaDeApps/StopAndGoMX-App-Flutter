@@ -1,2 +1,5 @@
-- Managers asignar jugadores
-- Seleccion de categorias
+- Ver ordenes en carrito
+- Fix imagenes tienda
+- Notificaciones pedido
+- Avisos detalle
+- Pagos detalle

@@ -26,6 +26,7 @@ class GameDetailController extends GetxController {
   final comments = <GameComment>[].obs;
   final commentCtrl = TextEditingController();
   final lastCommentId = 0.obs;
+  final likingCommentIds = <int>{}.obs;
 
   // Slider images
   final images = <String>[].obs;
@@ -221,6 +222,67 @@ class GameDetailController extends GetxController {
       }
     } catch (_) {
       UiSnackbar.error('Error', 'No se pudo enviar el comentario');
+    }
+  }
+
+  bool isCommentLikeLoading(int commentId) => likingCommentIds.contains(commentId);
+
+  Future<void> toggleCommentLike(GameComment comment) async {
+    final idx = comments.indexWhere((c) => c.id == comment.id);
+    if (idx < 0) return;
+    if (likingCommentIds.contains(comment.id)) return;
+
+    likingCommentIds.add(comment.id);
+    likingCommentIds.refresh();
+
+    final current = comments[idx];
+    final optimisticLiked = !current.isLikedByMe;
+    final int optimisticCount = optimisticLiked
+        ? current.likesCount + 1
+        : (current.likesCount - 1).clamp(0, 1 << 30).toInt();
+
+    comments[idx] = current.copyWith(
+      isLikedByMe: optimisticLiked,
+      likesCount: optimisticCount,
+    );
+    comments.refresh();
+
+    try {
+      final res = await api.toggleCommentLike(
+        gameId: gameId,
+        commentId: comment.id,
+      );
+
+      if (res == null) {
+        comments[idx] = current;
+        comments.refresh();
+        return;
+      }
+
+      final liked = (res['liked'] == true) || (res['is_liked'] == true);
+      final likesCountRaw = res['likes_count'];
+      final likesCount = likesCountRaw is num
+          ? likesCountRaw.toInt()
+          : int.tryParse(likesCountRaw?.toString() ?? '') ??
+                (liked ? current.likesCount + 1 : current.likesCount);
+
+      final latestIdx = comments.indexWhere((c) => c.id == comment.id);
+      if (latestIdx >= 0) {
+        comments[latestIdx] = comments[latestIdx].copyWith(
+          isLikedByMe: liked,
+          likesCount: likesCount,
+        );
+        comments.refresh();
+      }
+    } catch (_) {
+      final rollbackIdx = comments.indexWhere((c) => c.id == comment.id);
+      if (rollbackIdx >= 0) {
+        comments[rollbackIdx] = current;
+        comments.refresh();
+      }
+    } finally {
+      likingCommentIds.remove(comment.id);
+      likingCommentIds.refresh();
     }
   }
 

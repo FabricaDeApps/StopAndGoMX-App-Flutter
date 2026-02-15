@@ -4,6 +4,20 @@ Todos los cambios importantes del proyecto **StopAndGoMX** se documentan en este
 El formato sigue las recomendaciones de **Keep a Changelog**  
 y el versionado está basado en **Semantic Versioning (SemVer)**.
 
+
+## [1.0.44] - 2026-2-15
+• Ver ordenes en carrito
+• Fix imagenes tienda
+• Notificaciones pedido
+• Avisos detalle
+• Pagos detalle
+
+
+## [1.0.43] - 2026-2-10
+• Managers asignar jugadores
+• Seleccion de categorias
+
+
 ## [1.0.42] - 2026-2-8
 • Los usuarios ya pueden subir foto de perfil
 • Roles Mixtos para los usuarios

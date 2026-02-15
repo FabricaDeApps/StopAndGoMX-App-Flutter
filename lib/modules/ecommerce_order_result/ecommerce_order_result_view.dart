@@ -199,21 +199,20 @@ class EcommerceOrderResultView extends GetView<EcommerceOrderResultController> {
                           width: 64,
                           child: img == null
                               ? Container(
-                                  color: Colors.black12,
+                                  color: Colors.white,
                                   alignment: Alignment.center,
                                   child: const Icon(
                                     Icons.image_not_supported_outlined,
                                   ),
                                 )
-                              : Image.network(
-                                  img,
-                                  fit: BoxFit.cover,
-                                  errorBuilder: (_, __, ___) => Container(
-                                    color: Colors.black12,
-                                    alignment: Alignment.center,
-                                    child: const Icon(
-                                      Icons.broken_image_outlined,
-                                    ),
+                              : Container(
+                                  color: Colors.white,
+                                  alignment: Alignment.center,
+                                  child: Image.network(
+                                    img,
+                                    fit: BoxFit.contain,
+                                    errorBuilder: (_, __, ___) =>
+                                        const Icon(Icons.broken_image_outlined),
                                   ),
                                 ),
                         ),

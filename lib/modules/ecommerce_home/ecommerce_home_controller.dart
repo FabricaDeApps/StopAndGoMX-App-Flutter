@@ -71,6 +71,10 @@ class EcommerceHomeController extends GetxController {
     Get.toNamed(Routes.ecommerceCart);
   }
 
+  void openOrders() {
+    Get.toNamed(Routes.ecommerceOrders);
+  }
+
   void openCheckout() {
     Get.snackbar('Checkout', 'Ir a checkout');
   }

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:dropdown_search/dropdown_search.dart';
 import 'package:get/get.dart';
+import 'package:stopandgo/core/models/games/games.dart';
 import 'create_trainning_controller.dart';
 
 class CreateTrainningView extends GetView<CreateTrainningController> {
@@ -129,27 +131,63 @@ class CreateTrainningView extends GetView<CreateTrainningController> {
                         );
                       }
 
-                      return DropdownButtonFormField<int?>(
-                        value: controller.selectedVenueId.value,
-                        items: [
-                          const DropdownMenuItem<int?>(
-                            value: null,
-                            child: Text('Sin sede'),
-                          ),
-                          ...controller.venues.map(
-                            (v) => DropdownMenuItem<int?>(
-                              value: v.id,
-                              child: Text(v.name),
+                      final selectedId = controller.selectedVenueId.value;
+                      Venue? selectedVenue;
+                      if (selectedId != null) {
+                        for (final v in controller.venues) {
+                          if (v.id == selectedId) {
+                            selectedVenue = v;
+                            break;
+                          }
+                        }
+                      }
+
+                      return DropdownSearch<Venue>(
+                        items: (f, cs) => controller.venues.toList(),
+                        selectedItem: selectedVenue,
+                        compareFn: (a, b) => a.id == b.id,
+                        itemAsString: (v) => v.name,
+                        onChanged: (v) =>
+                            controller.selectedVenueId.value = v?.id,
+                        popupProps: PopupProps.menu(
+                          showSearchBox: true,
+                          searchFieldProps: TextFieldProps(
+                            decoration: InputDecoration(
+                              hintText: 'Buscar sede',
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 10,
+                              ),
                             ),
                           ),
-                        ],
-                        onChanged: (val) =>
-                            controller.selectedVenueId.value = val,
-                        decoration: InputDecoration(
-                          hintText: 'Selecciona una sede',
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
+                          itemBuilder: (context, item, isDisabled, isSelected) {
+                            return ListTile(
+                              dense: true,
+                              title: Text(
+                                item.name,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            );
+                          },
+                        ),
+                        decoratorProps: DropDownDecoratorProps(
+                          decoration: InputDecoration(
+                            hintText: 'Selecciona una sede',
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
                           ),
+                        ),
+                        suffixProps: const DropdownSuffixProps(
+                          clearButtonProps: ClearButtonProps(isVisible: true),
+                          dropdownButtonProps: DropdownButtonProps(),
+                        ),
+                        clickProps: const ClickProps(
+                          borderRadius: BorderRadius.all(Radius.circular(12)),
                         ),
                       );
                     }),

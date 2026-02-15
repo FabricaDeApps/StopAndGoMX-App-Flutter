@@ -55,6 +55,18 @@ class CreateTrainningController extends GetxController {
     try {
       final list = await _api.getVenues();
       venues.assignAll(list);
+
+      // Si la organización tiene una sede por defecto y existe en catálogo,
+      // selecciónala automáticamente al abrir el formulario.
+      final org = AppStorage.getOrganization();
+      final defaultVenueId = org?.idVenueDefault;
+      final hasCurrentSelection = selectedVenueId.value != null;
+      if (!hasCurrentSelection && defaultVenueId != null) {
+        final exists = list.any((v) => v.id == defaultVenueId);
+        if (exists) {
+          selectedVenueId.value = defaultVenueId;
+        }
+      }
     } catch (e) {
       venuesError.value = 'Error al cargar sedes: $e';
     } finally {

@@ -60,8 +60,10 @@ import 'package:stopandgo/modules/my_profile/my_profile_view.dart';
 import 'package:stopandgo/modules/new_game/index.dart';
 import 'package:stopandgo/modules/no_category/index.dart';
 import 'package:stopandgo/modules/no_category/no_category_view.dart';
+import 'package:stopandgo/modules/notice_detail/index.dart';
 import 'package:stopandgo/modules/parents_info/index.dart';
 import 'package:stopandgo/modules/parents_info/parents_info_view.dart';
+import 'package:stopandgo/modules/payment_detail/index.dart';
 import 'package:stopandgo/modules/play_book_go/index.dart';
 import 'package:stopandgo/modules/play_book_go/play_book_view.dart';
 import 'package:stopandgo/modules/play_book_create/play_book_create_binding.dart';
@@ -108,6 +110,11 @@ class AppPages {
       binding: LoginBinding(),
     ),
     GetPage(
+      name: Routes.noticeDetail,
+      page: () => const NoticeDetailView(),
+      binding: NoticeDetailBinding(),
+    ),
+    GetPage(
       name: Routes.home,
       page: () => const HomeView(),
       binding: HomeBinding(),
@@ -116,6 +123,11 @@ class AppPages {
       name: Routes.makePayment,
       page: () => const MakePaymentView(),
       binding: MakePaymentBinding(),
+    ),
+    GetPage(
+      name: Routes.paymentDetail,
+      page: () => const PaymentDetailView(),
+      binding: PaymentDetailBinding(),
     ),
     GetPage(
       name: Routes.imageView,

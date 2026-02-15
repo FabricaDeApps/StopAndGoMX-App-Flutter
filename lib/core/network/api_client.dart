@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
 import 'package:stopandgo/core/network/api_env.dart';
+import 'package:stopandgo/core/network/auth_repository.dart';
 import 'package:stopandgo/core/network/interceptors/sentry_interceptor.dart';
 import 'interceptors/auth_interceptor.dart';
 import 'interceptors/org_interceptor.dart';
@@ -28,6 +29,10 @@ class ApiClient {
         headers: const {'Accept': 'application/json'},
       ),
     );
+
+    if (!Get.isRegistered<AuthRepository>()) {
+      Get.put<AuthRepository>(AuthRepository(), permanent: true);
+    }
 
     // Orden IMPORTANTE:
     dio.interceptors.addAll([

@@ -47,6 +47,7 @@ class PaymentsTabController extends GetxController {
 
   // UI states
   final isPayingWithCard = false.obs;
+  final expandedPaymentIds = <int>{}.obs;
 
   void setContext({required String userRole, int? categoryId, int? playerId}) {
     role.value = userRole;
@@ -188,5 +189,16 @@ class PaymentsTabController extends GetxController {
     } finally {
       isPayingWithCard.value = false;
     }
+  }
+
+  bool isExpanded(int paymentId) => expandedPaymentIds.contains(paymentId);
+
+  void setExpanded(int paymentId, bool expanded) {
+    if (expanded) {
+      expandedPaymentIds.add(paymentId);
+    } else {
+      expandedPaymentIds.remove(paymentId);
+    }
+    expandedPaymentIds.refresh();
   }
 }

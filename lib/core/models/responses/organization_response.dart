@@ -21,6 +21,7 @@ class OrganizationResponse {
   // Apps
   final String? androidUrl;
   final String? iosUrl;
+  final int? idVenueDefault;
 
   const OrganizationResponse({
     required this.id,
@@ -35,6 +36,7 @@ class OrganizationResponse {
     required this.ecommerce,
     this.androidUrl,
     this.iosUrl,
+    this.idVenueDefault,
   });
 
   // ✅ Cast seguro para bool (GetStorage/GetBox a veces guarda 1/0 o "true"/"false")
@@ -90,6 +92,9 @@ class OrganizationResponse {
       // Apps
       androidUrl: json['android_url']?.toString(),
       iosUrl: json['ios_url']?.toString(),
+      idVenueDefault: json['id_venue_default'] == null
+          ? null
+          : _asInt(json['id_venue_default'], fallback: 0),
     );
   }
 
@@ -106,6 +111,7 @@ class OrganizationResponse {
     'ecommerce': ecommerce.toJson(),
     'android_url': androidUrl,
     'ios_url': iosUrl,
+    'id_venue_default': idVenueDefault,
   };
 
   /// Si quieres usar UNA sola fuente de verdad en UI, usa este getter:

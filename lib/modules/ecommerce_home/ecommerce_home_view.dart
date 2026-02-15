@@ -15,6 +15,11 @@ class EcommerceHomeView extends GetView<EcommerceHomeController> {
       appBar: AppBar(
         title: const Text('Tienda'),
         actions: [
+          IconButton(
+            onPressed: controller.openOrders,
+            tooltip: 'Mis pedidos',
+            icon: const Icon(Icons.receipt_long_outlined),
+          ),
           Obx(() {
             final count = controller.cartService.cartCount.value;
 

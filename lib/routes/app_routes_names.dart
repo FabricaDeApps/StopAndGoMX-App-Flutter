@@ -6,7 +6,9 @@ abstract class Routes {
   static const home = '/home';
   static const players = '/players';
   static const payments = '/payments';
+  static const paymentDetail = '/paymentDetail';
   static const notices = '/notices';
+  static const noticeDetail = '/noticeDetail';
   static const makePayment = '/makePayment';
   static const imageView = '/imageView';
   static const newGame = '/newGame';

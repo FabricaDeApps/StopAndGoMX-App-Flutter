@@ -107,7 +107,13 @@ class GameDetailView extends GetView<GameDetailController> {
                                 padding: const EdgeInsets.symmetric(
                                   vertical: 6,
                                 ),
-                                child: _CommentTile(c: c),
+                                child: _CommentTile(
+                                  c: c,
+                                  isLiking: controller.isCommentLikeLoading(c.id),
+                                  onToggleLike: () async {
+                                    await controller.toggleCommentLike(c);
+                                  },
+                                ),
                               ),
                             )
                             .toList(),
@@ -406,36 +412,178 @@ class _GameInfoCard extends StatelessWidget {
 
 class _CommentTile extends StatelessWidget {
   final GameComment c;
-  const _CommentTile({required this.c});
+  final Future<void> Function() onToggleLike;
+  final bool isLiking;
+  const _CommentTile({
+    required this.c,
+    required this.onToggleLike,
+    required this.isLiking,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.grey.shade200),
-        boxShadow: [
-          BoxShadow(
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-            color: Colors.black.withOpacity(0.04),
+    final theme = Theme.of(context);
+    final displayName = (c.author?.name ?? c.authorName).trim();
+    final role = c.author?.role.trim() ?? '';
+    final avatarUrl = c.author?.profilePhotoUrl;
+
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        CircleAvatar(
+          radius: 18,
+          backgroundColor: theme.colorScheme.primary.withOpacity(0.14),
+          backgroundImage: (avatarUrl != null && avatarUrl.isNotEmpty)
+              ? NetworkImage(avatarUrl)
+              : null,
+          child: (avatarUrl == null || avatarUrl.isEmpty)
+              ? Text(
+                  _initials(displayName),
+                  style: const TextStyle(fontWeight: FontWeight.w800),
+                )
+              : null,
+        ),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF0F2F5),
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      displayName.isEmpty ? 'Usuario' : displayName,
+                      style: const TextStyle(fontWeight: FontWeight.w800),
+                    ),
+                    if (role.isNotEmpty)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 2),
+                        child: Text(
+                          getLabelRol(role),
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: theme.colorScheme.onSurfaceVariant,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    const SizedBox(height: 6),
+                    Text(c.message),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 6),
+              Row(
+                children: [
+                  InkWell(
+                    borderRadius: BorderRadius.circular(999),
+                    onTap: isLiking
+                        ? null
+                        : () async {
+                            await onToggleLike();
+                          },
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 4,
+                        vertical: 2,
+                      ),
+                      child: Row(
+                        children: [
+                          if (isLiking)
+                            const SizedBox(
+                              width: 14,
+                              height: 14,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                          else
+                            Icon(
+                              c.isLikedByMe
+                                  ? Icons.thumb_up_alt
+                                  : Icons.thumb_up_alt_outlined,
+                              size: 16,
+                              color: c.isLikedByMe
+                                  ? theme.colorScheme.primary
+                                  : theme.colorScheme.onSurfaceVariant,
+                            ),
+                          const SizedBox(width: 4),
+                          Text(
+                            '${c.likesCount}',
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              fontWeight: FontWeight.w800,
+                              color: c.isLikedByMe
+                                  ? theme.colorScheme.primary
+                                  : theme.colorScheme.onSurfaceVariant,
+                            ),
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            'Me gusta',
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              fontWeight: FontWeight.w700,
+                              color: c.isLikedByMe
+                                  ? theme.colorScheme.primary
+                                  : theme.colorScheme.onSurfaceVariant,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    _commentTimeLabel(c.createdAt),
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ],
+              ),
+            ],
           ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            c.authorName,
-            style: const TextStyle(fontWeight: FontWeight.w800),
-          ),
-          const SizedBox(height: 6),
-          Text(c.message),
-        ],
-      ),
+        ),
+      ],
     );
+  }
+
+  static String _initials(String fullName) {
+    final parts = fullName
+        .trim()
+        .split(RegExp(r'\s+'))
+        .where((p) => p.isNotEmpty)
+        .toList();
+    if (parts.isEmpty) return 'U';
+    if (parts.length == 1) return parts.first[0].toUpperCase();
+    return '${parts.first[0]}${parts.last[0]}'.toUpperCase();
+  }
+
+  static String _commentTimeLabel(DateTime createdAt) {
+    final now = DateTime.now();
+    final diff = now.difference(createdAt);
+
+    if (diff.isNegative) {
+      return _fmtClock(createdAt);
+    }
+
+    if (diff.inMinutes < 1) return 'Hace un momento';
+    if (diff.inMinutes < 60) {
+      if (diff.inMinutes == 1) return 'Hace 1 minuto';
+      return 'Hace ${diff.inMinutes} minutos';
+    }
+    if (diff.inHours == 1) return 'Hace una hora';
+
+    return _fmtClock(createdAt);
+  }
+
+  static String _fmtClock(DateTime d) {
+    final hh = d.hour.toString().padLeft(2, '0');
+    final mi = d.minute.toString().padLeft(2, '0');
+    return '$hh:$mi';
   }
 }
 

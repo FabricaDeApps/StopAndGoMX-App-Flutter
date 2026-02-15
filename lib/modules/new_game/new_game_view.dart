@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:dropdown_search/dropdown_search.dart';
 import 'package:get/get.dart';
+import 'package:stopandgo/core/models/games/games.dart';
 import 'new_game_controller.dart';
 
 class NewGameView extends GetView<NewGameController> {
@@ -27,7 +29,7 @@ class NewGameView extends GetView<NewGameController> {
               ),
               const SizedBox(height: 12),
 
-              // Buscador (opcional) + Dropdown venues
+              // Sede / Campo
               Obx(() {
                 if (controller.isLoadingVenues.value) {
                   return const Padding(
@@ -46,41 +48,44 @@ class NewGameView extends GetView<NewGameController> {
                   );
                 }
 
-                final items = controller.filteredVenues;
-
                 return Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    TextFormField(
-                      controller: controller.venueSearchCtrl,
-                      decoration: InputDecoration(
-                        labelText: 'Buscar sede',
-                        hintText: 'Ej. Campo Central',
-                        suffixIcon: controller.venueSearchCtrl.text.isEmpty
-                            ? const Icon(Icons.search)
-                            : IconButton(
-                                icon: const Icon(Icons.clear),
-                                onPressed: () =>
-                                    controller.venueSearchCtrl.clear(),
-                              ),
-                      ),
-                      textInputAction: TextInputAction.done,
-                    ),
-                    const SizedBox(height: 12),
-
-                    DropdownButtonFormField(
-                      value: controller.selectedVenue.value,
-                      decoration: const InputDecoration(
-                        labelText: 'Sede / Campo',
-                      ),
-                      items: items
-                          .map(
-                            (v) =>
-                                DropdownMenuItem(value: v, child: Text(v.name)),
-                          )
-                          .toList(),
+                    DropdownSearch<Venue>(
+                      items: (f, cs) => controller.venues.toList(),
+                      selectedItem: controller.selectedVenue.value,
+                      compareFn: (a, b) => a.id == b.id,
+                      itemAsString: (v) => v.name,
                       onChanged: (v) => controller.selectedVenue.value = v,
                       validator: (v) => v == null ? 'Selecciona la sede' : null,
+                      popupProps: PopupProps.menu(
+                        showSearchBox: true,
+                        searchFieldProps: const TextFieldProps(
+                          decoration: InputDecoration(
+                            labelText: 'Buscar sede',
+                            hintText: 'Ej. Campo Central',
+                          ),
+                        ),
+                        itemBuilder: (context, item, isDisabled, isSelected) {
+                          return ListTile(
+                            dense: true,
+                            title: Text(
+                              item.name,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          );
+                        },
+                      ),
+                      decoratorProps: const DropDownDecoratorProps(
+                        decoration: InputDecoration(
+                          labelText: 'Sede / Campo',
+                        ),
+                      ),
+                      suffixProps: const DropdownSuffixProps(
+                        clearButtonProps: ClearButtonProps(isVisible: false),
+                        dropdownButtonProps: DropdownButtonProps(),
+                      ),
                     ),
 
                     if (controller.venues.isEmpty)

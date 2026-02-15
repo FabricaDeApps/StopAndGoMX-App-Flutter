@@ -107,6 +107,8 @@ class ApiRepository {
         tokenType:
             (loginData.tokenType.isNotEmpty ? loginData.tokenType : 'Bearer'),
         refreshToken: loginData.refreshToken,
+        refreshExpiresAt: loginData.refreshExpiresAt,
+        accessExpiresInMinutes: loginData.accessExpiresInMinutes,
       );
 
       // Persistir usuario y organización
@@ -135,7 +137,7 @@ class ApiRepository {
       );
     } catch (_) {
     } finally {
-      _tokenStorage.clear();
+      await _tokenStorage.clear();
       await AppStorage.clearAll();
     }
   }
@@ -435,7 +437,7 @@ class ApiRepository {
   ////////
 
   String? get _accessToken => _tokenStorage.accessToken;
-  String get _tokenType => _tokenStorage.tokenType!;
+  String get _tokenType => _tokenStorage.tokenType;
 
   Map<String, dynamic> get _authHeader => _accessToken == null
       ? {}

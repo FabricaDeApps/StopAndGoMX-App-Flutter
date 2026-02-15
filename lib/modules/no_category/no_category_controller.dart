@@ -13,8 +13,8 @@ class NoCategoryController extends GetxController {
   Future<void> logout() async {
     try {
       final tokenStorage = Get.find<TokenStorage>();
-      tokenStorage.clear();
-      AppStorage.clearAll();
+      await tokenStorage.clear();
+      await AppStorage.clearAll();
       await _api.logout();
     } catch (_) {
       Get.offAllNamed(Routes.login);

@@ -9,6 +9,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:firebase_remote_config/firebase_remote_config.dart';
 
 import 'package:stopandgo/core/network/api_repository.dart';
+import 'package:stopandgo/core/network/auth_repository.dart';
 import 'package:stopandgo/core/theme/theme_controller.dart';
 import 'package:stopandgo/routes/app_routes.dart';
 import '../../../core/storage/app_storage.dart';
@@ -16,6 +17,7 @@ import 'package:stopandgo/core/models/responses/organization_response.dart';
 
 class SplashController extends GetxController {
   final _api = Get.find<ApiRepository>();
+  final _auth = Get.find<AuthRepository>();
 
   // Estado UI
   final isLoading = true.obs;
@@ -68,7 +70,7 @@ class SplashController extends GetxController {
       Get.find<ThemeController>().refreshTheme();
       await Future.delayed(const Duration(seconds: 3));
 
-      if (!_blockedByUpdate) _goNext();
+      if (!_blockedByUpdate) await _goNext();
     } catch (e) {
       error.value = 'Error cargando la aplicación';
       debugPrint('❌ Splash error: $e');
@@ -207,12 +209,17 @@ class SplashController extends GetxController {
     secondaryColor.value = _hexToColor(org.secondaryColor);
   }
 
-  void _goNext() {
+  Future<void> _goNext() async {
     if (_navigated) return;
     _navigated = true;
 
-    final hasUser = AppStorage.getUser() != null;
-    Get.offAllNamed(hasUser ? Routes.home : Routes.login);
+    final result = await _auth.restoreSession();
+    final next = result.isAuthenticated ? Routes.home : Routes.login;
+    debugPrint('session bootstrap: ${result.reason}');
+    if (!result.isAuthenticated) {
+      debugPrint('navigating to login कारण ${result.reason}');
+    }
+    Get.offAllNamed(next);
   }
 
   Color _hexToColor(String hex) {

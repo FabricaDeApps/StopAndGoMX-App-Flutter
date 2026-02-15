@@ -478,19 +478,17 @@ class HomeController extends GetxController with GetTickerProviderStateMixin {
   }
 
   void onTapNotice(Notice n) {
-    final idx = tabs.indexOf('notices');
-    if (idx < 0) return;
-    tabController.index = idx;
-    if (Get.isRegistered<NoticesTabController>()) {
-      Get.find<NoticesTabController>().refresh();
-    }
+    Get.toNamed(
+      Routes.noticeDetail,
+      arguments: {'notice': n},
+    );
   }
 
   Future<void> logout() async {
     try {
       final tokenStorage = Get.find<TokenStorage>();
-      tokenStorage.clear();
-      AppStorage.clearAll();
+      await tokenStorage.clear();
+      await AppStorage.clearAll();
       await api.logout();
     } catch (_) {
       Get.offAllNamed(Routes.splash);

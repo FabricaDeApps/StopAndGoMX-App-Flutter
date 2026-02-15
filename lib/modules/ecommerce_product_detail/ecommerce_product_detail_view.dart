@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:stopandgo/core/widgets/ecommerce_checkout_bar.dart';
+import 'package:stopandgo/routes/app_routes.dart';
 import 'ecommerce_product_detail_controller.dart';
 
 class EcommerceProductDetailView
@@ -64,20 +65,20 @@ class EcommerceProductDetailView
                   height: 230,
                   child: (p.imageUrl == null)
                       ? Container(
-                          color: Colors.black12,
+                          color: Colors.white,
                           alignment: Alignment.center,
                           child: const Icon(
                             Icons.image_not_supported_outlined,
                             size: 48,
                           ),
                         )
-                      : Image.network(
-                          p.imageUrl!,
-                          fit: BoxFit.cover,
-                          errorBuilder: (_, __, ___) => Container(
-                            color: Colors.black12,
-                            alignment: Alignment.center,
-                            child: const Icon(
+                      : Container(
+                          color: Colors.white,
+                          alignment: Alignment.center,
+                          child: Image.network(
+                            p.imageUrl!,
+                            fit: BoxFit.contain,
+                            errorBuilder: (_, __, ___) => const Icon(
                               Icons.broken_image_outlined,
                               size: 48,
                             ),
@@ -85,6 +86,20 @@ class EcommerceProductDetailView
                         ),
                 ),
               ),
+              if (p.imageUrl != null && p.imageUrl!.trim().isNotEmpty) ...[
+                const SizedBox(height: 8),
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: TextButton.icon(
+                    onPressed: () => Get.toNamed(
+                      Routes.imageView,
+                      arguments: {'url': p.imageUrl},
+                    ),
+                    icon: const Icon(Icons.open_in_full, size: 18),
+                    label: const Text('Ver imagen grande'),
+                  ),
+                ),
+              ],
               const SizedBox(height: 14),
               Text(
                 p.name,

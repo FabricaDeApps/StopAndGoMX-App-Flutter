@@ -180,6 +180,8 @@ class PaymentsTabView extends GetView<PaymentsTabController> {
                           borderRadius: BorderRadius.circular(16),
                         ),
                         child: ExpansionTile(
+                          onExpansionChanged: (expanded) =>
+                              controller.setExpanded(p.id, expanded),
                           tilePadding: const EdgeInsets.symmetric(
                             horizontal: 16,
                             vertical: 8,
@@ -195,9 +197,52 @@ class PaymentsTabView extends GetView<PaymentsTabController> {
                                 .withOpacity(.12),
                             child: const Icon(Icons.receipt_long),
                           ),
-                          title: Text(
-                            p.concept,
-                            style: const TextStyle(fontWeight: FontWeight.w600),
+                          title: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Container(
+                                margin: const EdgeInsets.only(bottom: 6),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 10,
+                                  vertical: 6,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: chipColor.withOpacity(0.12),
+                                  borderRadius: BorderRadius.circular(999),
+                                  border: Border.all(
+                                    color: chipColor.withOpacity(0.45),
+                                  ),
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Container(
+                                      width: 8,
+                                      height: 8,
+                                      decoration: BoxDecoration(
+                                        color: chipColor,
+                                        shape: BoxShape.circle,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 6),
+                                    Text(
+                                      chipText,
+                                      style: TextStyle(
+                                        color: chipColor,
+                                        fontWeight: FontWeight.w700,
+                                        fontSize: 12,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              Text(
+                                p.concept,
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ],
                           ),
                           subtitle: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -219,7 +264,9 @@ class PaymentsTabView extends GetView<PaymentsTabController> {
                                     : 'Monto: ${money(p.amount)} \n'
                                           'Pagado: ${money(totalRecibido)} \n'
                                           'Saldo: ${money(balance)}',
-                                style: theme.textTheme.bodySmall,
+                                style: theme.textTheme.bodySmall?.copyWith(
+                                  fontWeight: FontWeight.w700,
+                                ),
                               ),
 
                               if (p.hasDiscount) ...[
@@ -242,14 +289,35 @@ class PaymentsTabView extends GetView<PaymentsTabController> {
                                   ),
                                 ),
                               ],
+                              const SizedBox(height: 8),
+                              Obx(
+                                () => Center(
+                                  child: AnimatedRotation(
+                                    turns:
+                                        controller.isExpanded(p.id) ? 0.5 : 0.0,
+                                    duration: const Duration(milliseconds: 180),
+                                    child: Icon(
+                                      Icons.expand_more,
+                                      color: theme.colorScheme.onSurfaceVariant,
+                                    ),
+                                  ),
+                                ),
+                              ),
                             ],
                           ),
-                          trailing: Chip(
-                            label: Text(
-                              chipText,
-                              style: const TextStyle(color: Colors.white),
-                            ),
-                            backgroundColor: chipColor,
+                          trailing: IconButton(
+                            tooltip: 'Ver detalle',
+                            icon: const Icon(Icons.chevron_right, size: 24),
+                            onPressed: () async {
+                              await Get.toNamed(
+                                Routes.paymentDetail,
+                                arguments: {
+                                  'paymentId': p.id,
+                                  'payment': p,
+                                },
+                              );
+                              await controller.loadPayments();
+                            },
                           ),
                           children: [
                             if (p.hasDiscount && p.discounts.isNotEmpty) ...[
@@ -332,7 +400,6 @@ class PaymentsTabView extends GetView<PaymentsTabController> {
                                           await controller.loadPayments();
                                         },
                                       ),
-
                                       if (canPayCard)
                                         Obx(
                                           () => FilledButton.icon(
