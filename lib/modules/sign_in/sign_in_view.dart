@@ -1,4 +1,5 @@
 // lib/modules/signin/sign_in_view.dart
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:stopandgo/modules/sign_in/sign_in_controller.dart';
@@ -21,6 +22,47 @@ class SignInView extends GetView<SignInController> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
+                      Obx(() {
+                        final logoUrl = controller.organizationLogoUrl;
+                        return Column(
+                          children: [
+                            if (logoUrl.isNotEmpty)
+                              CachedNetworkImage(
+                                key: ValueKey(logoUrl),
+                                imageUrl: logoUrl,
+                                width: 120,
+                                height: 120,
+                                fit: BoxFit.contain,
+                                placeholder: (context, _) => const SizedBox(
+                                  width: 28,
+                                  height: 28,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                  ),
+                                ),
+                                errorWidget: (context, _, __) =>
+                                    const Icon(Icons.shield_outlined, size: 52),
+                              )
+                            else
+                              const Icon(Icons.shield_outlined, size: 52),
+                            const SizedBox(height: 8),
+                            Text(
+                              controller.organizationName,
+                              style: Theme.of(context).textTheme.titleMedium
+                                  ?.copyWith(fontWeight: FontWeight.w700),
+                              textAlign: TextAlign.center,
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              'Asegúrate de que este sea tu equipo',
+                              style: Theme.of(context).textTheme.bodySmall,
+                              textAlign: TextAlign.center,
+                            ),
+                            const SizedBox(height: 16),
+                          ],
+                        );
+                      }),
+
                       TextFormField(
                         controller: controller.nameCtrl,
                         decoration: const InputDecoration(
@@ -80,6 +122,42 @@ class SignInView extends GetView<SignInController> {
                         ),
                       ),
                       const SizedBox(height: 12),
+
+                      Obx(
+                        () => TextFormField(
+                          controller: controller.confirmPassCtrl,
+                          obscureText: controller.isConfirmObscure.value,
+                          decoration: InputDecoration(
+                            labelText: 'Confirmar contraseña',
+                            border: const OutlineInputBorder(),
+                            suffixIcon: IconButton(
+                              onPressed: () =>
+                                  controller.isConfirmObscure.toggle(),
+                              icon: Icon(
+                                controller.isConfirmObscure.value
+                                    ? Icons.visibility
+                                    : Icons.visibility_off,
+                              ),
+                            ),
+                          ),
+                          validator: controller.validateConfirmPassword,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+
+                      Obx(
+                        () => CheckboxListTile(
+                          value: controller.teamConfirmed.value,
+                          onChanged: (v) =>
+                              controller.teamConfirmed.value = v ?? false,
+                          controlAffinity: ListTileControlAffinity.leading,
+                          contentPadding: EdgeInsets.zero,
+                          title: Text(
+                            'Confirmo que mi equipo es ${controller.organizationName}',
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 8),
 
                       Obx(() {
                         return DropdownButtonFormField<String>(

@@ -2,7 +2,9 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:stopandgo/core/config/flavor_config.dart';
+import 'package:stopandgo/core/models/responses/organization_response.dart';
 import 'package:stopandgo/core/network/api_repository.dart';
+import 'package:stopandgo/core/storage/app_storage.dart';
 
 class SignInController extends GetxController {
   final _api = Get.find<ApiRepository>();
@@ -14,6 +16,7 @@ class SignInController extends GetxController {
   final nameCtrl = TextEditingController();
   final emailCtrl = TextEditingController();
   final passCtrl = TextEditingController();
+  final confirmPassCtrl = TextEditingController();
 
   // 👇 Debe ser static const (o final) para que compile bien
   static const Map<String, String> roleLabelsEs = {
@@ -34,12 +37,16 @@ class SignInController extends GetxController {
   String roleLabel(String value) => roleLabelsEs[value] ?? value;
 
   final isObscure = true.obs;
+  final isConfirmObscure = true.obs;
   final isLoading = false.obs;
+  final teamConfirmed = false.obs;
+  final organization = Rxn<OrganizationResponse>();
 
   @override
   void onInit() {
     super.onInit();
     orgId = FlavorConfig.I.organizationId!;
+    organization.value = AppStorage.getOrganization();
   }
 
   String? _validateEmail(String? v) {
@@ -63,10 +70,42 @@ class SignInController extends GetxController {
     return null;
   }
 
+  String? validateConfirmPassword(String? v) {
+    final confirm = v?.trim() ?? '';
+    if (confirm.isEmpty) return 'Confirma tu contraseña';
+    if (confirm != passCtrl.text.trim()) {
+      return 'Las contraseñas no coinciden';
+    }
+    return null;
+  }
+
+  String get organizationName {
+    final org = organization.value;
+    if (org == null) return 'Tu organización';
+    return org.name;
+  }
+
+  String get organizationLogoUrl {
+    final raw = organization.value?.logo.trim() ?? '';
+    if (raw.isEmpty) return '';
+    if (raw.startsWith('http')) return raw;
+    final cleanPath = raw.startsWith('/') ? raw.substring(1) : raw;
+    return 'https://stopandgomx.app/storage/$cleanPath';
+  }
+
   Future<void> submit() async {
     final currentRole = role.value;
 
     if (!formKey.currentState!.validate()) return;
+
+    if (!teamConfirmed.value) {
+      Get.snackbar(
+        'Registro',
+        'Confirma que este es tu equipo antes de continuar',
+        snackPosition: SnackPosition.BOTTOM,
+      );
+      return;
+    }
 
     if (currentRole == null || currentRole.isEmpty) {
       Get.snackbar(
@@ -76,6 +115,26 @@ class SignInController extends GetxController {
       );
       return;
     }
+
+    final confirm = await Get.dialog<bool>(
+      AlertDialog(
+        title: const Text('Confirmar equipo'),
+        content: Text(
+          'Vas a crear tu cuenta para "$organizationName". ¿Es correcto?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Get.back(result: false),
+            child: const Text('Cancelar'),
+          ),
+          FilledButton(
+            onPressed: () => Get.back(result: true),
+            child: const Text('Sí, continuar'),
+          ),
+        ],
+      ),
+    );
+    if (confirm != true) return;
 
     isLoading.value = true;
     try {
@@ -120,6 +179,7 @@ class SignInController extends GetxController {
     nameCtrl.dispose();
     emailCtrl.dispose();
     passCtrl.dispose();
+    confirmPassCtrl.dispose();
     super.onClose();
   }
 }

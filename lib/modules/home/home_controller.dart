@@ -80,7 +80,8 @@ class HomeController extends GetxController with GetTickerProviderStateMixin {
   Future<void> onReady() async {
     super.onReady();
     await refreshAccount();
-    await _bootstrapSelectorsByRole();
+    final hasValidAccess = await _bootstrapSelectorsByRole();
+    if (!hasValidAccess) return;
     await _syncTabContext();
     await dashboardCtrl.refresh();
   }
@@ -251,30 +252,42 @@ class HomeController extends GetxController with GetTickerProviderStateMixin {
     }
   }
 
-  Future<void> _bootstrapSelectorsByRole() async {
+  Future<bool> _bootstrapSelectorsByRole() async {
     final role = userRole.value;
 
     if (role == 'manager') {
       await _loadManagerCategories();
-      if (categories.isEmpty) return;
+      if (categories.isEmpty) {
+        Get.offAllNamed(Routes.noCategory);
+        return false;
+      }
 
       selectedCategoryId.value ??=
           AppStorage.getSelectedCategoryId() ?? categories.first.id;
       await AppStorage.setSelectedCategoryId(selectedCategoryId.value!);
+      return true;
     } else if (role == 'coach') {
       await _loadCoachCategories();
-      if (categories.isEmpty) return;
+      if (categories.isEmpty) {
+        Get.offAllNamed(Routes.noCategory);
+        return false;
+      }
 
       selectedCategoryId.value ??=
           AppStorage.getSelectedCategoryId() ?? categories.first.id;
       await AppStorage.setSelectedCategoryId(selectedCategoryId.value!);
+      return true;
     } else if (role == 'parent') {
       await _loadMyPlayers();
-      if (myPlayers.isEmpty) return;
+      if (myPlayers.isEmpty) {
+        Get.offAllNamed(Routes.noPlayer);
+        return false;
+      }
 
       selectedPlayerId.value ??=
           AppStorage.getSelectedPlayerId() ?? myPlayers.first.id;
       await AppStorage.setSelectedPlayerId(selectedPlayerId.value!);
+      return true;
     } else if (role == 'player') {
       // setea el playerId del user en storage si aplica
       final user = AppStorage.getUser();
@@ -283,15 +296,21 @@ class HomeController extends GetxController with GetTickerProviderStateMixin {
       }
 
       await _loadPlayerCategories();
-      if (myCategories.isEmpty) return;
+      if (myCategories.isEmpty) {
+        Get.offAllNamed(Routes.noCategory);
+        return false;
+      }
 
       selectedPlayerCategoryId.value ??=
           AppStorage.getSelectedCategoryId() ?? myCategories.first.id;
       await AppStorage.setSelectedCategoryId(selectedPlayerCategoryId.value!);
+      return true;
     } else if (role == 'staff') {
       // staff no necesita selectors
-      return;
+      return true;
     }
+
+    return true;
   }
 
   Future<void> _loadManagerCategories() async {
@@ -478,10 +497,7 @@ class HomeController extends GetxController with GetTickerProviderStateMixin {
   }
 
   void onTapNotice(Notice n) {
-    Get.toNamed(
-      Routes.noticeDetail,
-      arguments: {'notice': n},
-    );
+    Get.toNamed(Routes.noticeDetail, arguments: {'notice': n});
   }
 
   Future<void> logout() async {

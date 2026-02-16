@@ -60,6 +60,7 @@ import 'package:stopandgo/modules/my_profile/my_profile_view.dart';
 import 'package:stopandgo/modules/new_game/index.dart';
 import 'package:stopandgo/modules/no_category/index.dart';
 import 'package:stopandgo/modules/no_category/no_category_view.dart';
+import 'package:stopandgo/modules/no_player/index.dart';
 import 'package:stopandgo/modules/notice_detail/index.dart';
 import 'package:stopandgo/modules/parents_info/index.dart';
 import 'package:stopandgo/modules/parents_info/parents_info_view.dart';
@@ -183,6 +184,11 @@ class AppPages {
       name: Routes.noCategory,
       page: () => const NoCategoryView(),
       binding: NoCategoryBinding(),
+    ),
+    GetPage(
+      name: Routes.noPlayer,
+      page: () => const NoPlayerView(),
+      binding: NoPlayerBinding(),
     ),
     GetPage(
       name: Routes.roster,

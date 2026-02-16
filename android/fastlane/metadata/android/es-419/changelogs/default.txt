@@ -1,5 +1,2 @@
-- Ver ordenes en carrito
-- Fix imagenes tienda
-- Notificaciones pedido
-- Avisos detalle
-- Pagos detalle
+- Confirmar club
+- Login, no category, no player

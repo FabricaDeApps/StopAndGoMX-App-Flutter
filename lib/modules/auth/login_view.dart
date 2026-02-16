@@ -234,9 +234,49 @@ class LoginView extends GetView<LoginController> {
                         SizedBox(
                           width: double.infinity,
                           child: FilledButton.tonalIcon(
-                            onPressed: () {
-                              final slug =
-                                  controller.selectedOrganization.value?.slug;
+                            onPressed: () async {
+                              final orgName =
+                                  controller.selectedOrganization.value?.name;
+                              final clubLabel =
+                                  (orgName != null && orgName.trim().isNotEmpty)
+                                  ? orgName
+                                  : 'este club';
+
+                              final confirm = await Get.dialog<bool>(
+                                AlertDialog(
+                                  title: const Text('Confirmar club'),
+                                  content: Text(
+                                    '¿Confirmas que "$clubLabel" es tu club?',
+                                  ),
+                                  actions: [
+                                    TextButton(
+                                      onPressed: () => Get.back(result: false),
+                                      child: const Text('No'),
+                                    ),
+                                    FilledButton(
+                                      onPressed: () => Get.back(result: true),
+                                      child: const Text('Sí'),
+                                    ),
+                                  ],
+                                ),
+                              );
+
+                              if (confirm != true) return;
+
+                              final slug = controller
+                                  .selectedOrganization
+                                  .value
+                                  ?.slug
+                                  .trim();
+                              if (slug == null || slug.isEmpty) {
+                                Get.snackbar(
+                                  'Pre-registro',
+                                  'No se encontró el club. Selecciónalo de nuevo.',
+                                  snackPosition: SnackPosition.BOTTOM,
+                                );
+                                return;
+                              }
+
                               final url =
                                   'https://$slug.stopandgomx.app/pre-register';
 

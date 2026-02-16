@@ -4,6 +4,9 @@ Todos los cambios importantes del proyecto **StopAndGoMX** se documentan en este
 El formato sigue las recomendaciones de **Keep a Changelog**  
 y el versionado está basado en **Semantic Versioning (SemVer)**.
 
+## [1.0.45] - 2026-2-15
+• Confirmar club
+• Login, no category, no player
 
 ## [1.0.44] - 2026-2-15
 • Ver ordenes en carrito

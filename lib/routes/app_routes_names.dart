@@ -21,6 +21,7 @@ abstract class Routes {
   static const trainingAttendance = '/trainingAttendance';
   static const myProfile = '/myProfile';
   static const noCategory = '/noCategory';
+  static const noPlayer = '/noPlayer';
   static const roster = '/roster';
   static const documents = '/documents';
   static const playbook = '/playbook';
