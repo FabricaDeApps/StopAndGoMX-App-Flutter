@@ -41,6 +41,7 @@ class SignInController extends GetxController {
   final isLoading = false.obs;
   final teamConfirmed = false.obs;
   final organization = Rxn<OrganizationResponse>();
+  bool get requiresTeamConfirmation => !FlavorConfig.I.isCustom;
 
   @override
   void onInit() {
@@ -93,12 +94,18 @@ class SignInController extends GetxController {
     return 'https://stopandgomx.app/storage/$cleanPath';
   }
 
+  String get privacyPolicyUrl {
+    final slug = organization.value?.slug.trim() ?? '';
+    if (slug.isEmpty) return '';
+    return 'https://$slug.stopandgomx.app/privacy-policy';
+  }
+
   Future<void> submit() async {
     final currentRole = role.value;
 
     if (!formKey.currentState!.validate()) return;
 
-    if (!teamConfirmed.value) {
+    if (requiresTeamConfirmation && !teamConfirmed.value) {
       Get.snackbar(
         'Registro',
         'Confirma que este es tu equipo antes de continuar',
@@ -116,25 +123,27 @@ class SignInController extends GetxController {
       return;
     }
 
-    final confirm = await Get.dialog<bool>(
-      AlertDialog(
-        title: const Text('Confirmar equipo'),
-        content: Text(
-          'Vas a crear tu cuenta para "$organizationName". ¿Es correcto?',
+    if (requiresTeamConfirmation) {
+      final confirm = await Get.dialog<bool>(
+        AlertDialog(
+          title: const Text('Confirmar equipo'),
+          content: Text(
+            'Vas a crear tu cuenta para "$organizationName". ¿Es correcto?',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Get.back(result: false),
+              child: const Text('Cancelar'),
+            ),
+            FilledButton(
+              onPressed: () => Get.back(result: true),
+              child: const Text('Sí, continuar'),
+            ),
+          ],
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Get.back(result: false),
-            child: const Text('Cancelar'),
-          ),
-          FilledButton(
-            onPressed: () => Get.back(result: true),
-            child: const Text('Sí, continuar'),
-          ),
-        ],
-      ),
-    );
-    if (confirm != true) return;
+      );
+      if (confirm != true) return;
+    }
 
     isLoading.value = true;
     try {

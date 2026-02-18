@@ -3,6 +3,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:stopandgo/modules/sign_in/sign_in_controller.dart';
+import 'package:stopandgo/modules/webview/webview_page.dart';
 
 class SignInView extends GetView<SignInController> {
   const SignInView({super.key});
@@ -52,12 +53,14 @@ class SignInView extends GetView<SignInController> {
                                   ?.copyWith(fontWeight: FontWeight.w700),
                               textAlign: TextAlign.center,
                             ),
-                            const SizedBox(height: 4),
-                            Text(
-                              'Asegúrate de que este sea tu equipo',
-                              style: Theme.of(context).textTheme.bodySmall,
-                              textAlign: TextAlign.center,
-                            ),
+                            if (controller.requiresTeamConfirmation) ...[
+                              const SizedBox(height: 4),
+                              Text(
+                                'Asegúrate de que este sea tu equipo',
+                                style: Theme.of(context).textTheme.bodySmall,
+                                textAlign: TextAlign.center,
+                              ),
+                            ],
                             const SizedBox(height: 16),
                           ],
                         );
@@ -145,19 +148,21 @@ class SignInView extends GetView<SignInController> {
                       ),
                       const SizedBox(height: 12),
 
-                      Obx(
-                        () => CheckboxListTile(
-                          value: controller.teamConfirmed.value,
-                          onChanged: (v) =>
-                              controller.teamConfirmed.value = v ?? false,
-                          controlAffinity: ListTileControlAffinity.leading,
-                          contentPadding: EdgeInsets.zero,
-                          title: Text(
-                            'Confirmo que mi equipo es ${controller.organizationName}',
+                      if (controller.requiresTeamConfirmation) ...[
+                        Obx(
+                          () => CheckboxListTile(
+                            value: controller.teamConfirmed.value,
+                            onChanged: (v) =>
+                                controller.teamConfirmed.value = v ?? false,
+                            controlAffinity: ListTileControlAffinity.leading,
+                            contentPadding: EdgeInsets.zero,
+                            title: Text(
+                              'Confirmo que mi equipo es ${controller.organizationName}',
+                            ),
                           ),
                         ),
-                      ),
-                      const SizedBox(height: 8),
+                        const SizedBox(height: 8),
+                      ],
 
                       Obx(() {
                         return DropdownButtonFormField<String>(
@@ -180,6 +185,35 @@ class SignInView extends GetView<SignInController> {
                       }),
 
                       const SizedBox(height: 20),
+                      Center(
+                        child: TextButton(
+                          onPressed: () {
+                            final url = controller.privacyPolicyUrl;
+                            if (url.isEmpty) {
+                              Get.snackbar(
+                                'Privacidad',
+                                'No se pudo obtener la organización actual.',
+                                snackPosition: SnackPosition.BOTTOM,
+                              );
+                              return;
+                            }
+
+                            Get.to(
+                              () => AppWebViewPage(
+                                title: 'Políticas de privacidad',
+                                url: url,
+                              ),
+                            );
+                          },
+                          child: const Text(
+                            'Ver Políticas de Privacidad',
+                            style: TextStyle(
+                              decoration: TextDecoration.underline,
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 8),
 
                       FilledButton.icon(
                         onPressed: controller.isLoading.value

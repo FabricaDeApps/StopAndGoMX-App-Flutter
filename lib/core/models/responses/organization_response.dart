@@ -2,6 +2,7 @@ class OrganizationResponse {
   final int id;
   final String name;
   final String slug;
+  final String bankDetailsHtml;
   final String logo;
   final String primaryColor;
   final String secondaryColor;
@@ -27,6 +28,7 @@ class OrganizationResponse {
     required this.id,
     required this.name,
     required this.slug,
+    required this.bankDetailsHtml,
     required this.logo,
     required this.primaryColor,
     required this.secondaryColor,
@@ -77,6 +79,7 @@ class OrganizationResponse {
       id: _asInt(json['id'], fallback: 0),
       name: (json['name'] ?? '').toString(),
       slug: (json['slug'] ?? '').toString(),
+      bankDetailsHtml: (json['bank_details_html'] ?? '').toString(),
       logo: (json['logo'] ?? '').toString(),
       primaryColor: (json['primary_color'] ?? '#000000').toString(),
       secondaryColor: (json['secondary_color'] ?? '#FFFFFF').toString(),
@@ -102,6 +105,7 @@ class OrganizationResponse {
     'id': id,
     'name': name,
     'slug': slug,
+    'bank_details_html': bankDetailsHtml,
     'logo': logo,
     'primary_color': primaryColor,
     'secondary_color': secondaryColor,

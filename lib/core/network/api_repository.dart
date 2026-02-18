@@ -10,6 +10,7 @@ import 'package:stopandgo/core/models/checkin_response.dart';
 import 'package:stopandgo/core/models/combines/combine_event.dart';
 import 'package:stopandgo/core/models/combines/combine_event_results_response.dart';
 import 'package:stopandgo/core/models/dashboard_models.dart';
+import 'package:stopandgo/core/models/documents_compliance.dart';
 import 'package:stopandgo/core/models/dto/notice_model.dart';
 import 'package:stopandgo/core/models/dto/payment_dto.dart';
 import 'package:stopandgo/core/models/dto/payment_provider_intent_dto.dart';
@@ -19,6 +20,8 @@ import 'package:stopandgo/core/models/ecommerce/ecommerce_order_list_item_model.
 import 'package:stopandgo/core/models/games/game_comment.dart';
 import 'package:stopandgo/core/models/games/games.dart';
 import 'package:stopandgo/core/models/player_document.dart';
+import 'package:stopandgo/core/models/player_file.dart';
+import 'package:stopandgo/core/models/player_documents_checklist.dart';
 import 'package:stopandgo/core/models/players.dart';
 import 'package:stopandgo/core/models/players/parents_model.dart';
 import 'package:stopandgo/core/models/responses/generic_response.dart';
@@ -67,8 +70,9 @@ class ApiRepository {
     if (res.statusCode == 200) {
       final List data = res.data['data'] ?? [];
 
-      final orgs =
-          data.map((json) => OrganizationResponse.fromJson(json)).toList();
+      final orgs = data
+          .map((json) => OrganizationResponse.fromJson(json))
+          .toList();
 
       return orgs;
     } else {
@@ -104,8 +108,9 @@ class ApiRepository {
       // Guarda sesión completa (access + refresh + expiraciones)
       await _tokenStorage.setSession(
         accessToken: loginData.accessToken,
-        tokenType:
-            (loginData.tokenType.isNotEmpty ? loginData.tokenType : 'Bearer'),
+        tokenType: (loginData.tokenType.isNotEmpty
+            ? loginData.tokenType
+            : 'Bearer'),
         refreshToken: loginData.refreshToken,
         refreshExpiresAt: loginData.refreshExpiresAt,
         accessExpiresInMinutes: loginData.accessExpiresInMinutes,
@@ -119,8 +124,8 @@ class ApiRepository {
       // Mensaje más claro para UI
       final msg =
           e.response?.data is Map && (e.response?.data['message'] != null)
-              ? e.response?.data['message'].toString()
-              : e.message ?? 'Error de red';
+          ? e.response?.data['message'].toString()
+          : e.message ?? 'Error de red';
       throw Exception('Login fallido: $msg');
     } catch (e) {
       throw Exception('Login fallido: $e');
@@ -449,11 +454,11 @@ class ApiRepository {
   }
 
   Map<String, dynamic> _headers([Map<String, dynamic>? extra]) => {
-        ..._authHeader,
-        ..._orgHeader,
-        'Accept': 'application/json',
-        if (extra != null) ...extra,
-      };
+    ..._authHeader,
+    ..._orgHeader,
+    'Accept': 'application/json',
+    if (extra != null) ...extra,
+  };
 
   /// GET /api/home/dashboard (ejemplo)
   /// Puedes ajustar a tu ruta real: /api/player/home, etc.
@@ -1021,32 +1026,76 @@ class ApiRepository {
   }
 
   Future<List<PlayerDocument>> getPlayerDocuments(int playerId) async {
-    final response = await _dio.get('/player/$playerId/documents');
+    final activeRole = AppStorage.getActiveRole()?.trim().toLowerCase();
+    final response = await _dio.get(
+      '/player/$playerId/documents',
+      options: Options(
+        headers: _headers({
+          if (activeRole != null && activeRole.isNotEmpty)
+            'X-Active-Role': activeRole,
+        }),
+      ),
+    );
 
     final data = response.data['data'] as List<dynamic>? ?? [];
 
     return data
-        .map((item) => PlayerDocument.fromJson(item as Map<String, dynamic>))
+        .whereType<Map>()
+        .map((item) => PlayerDocument.fromJson(Map<String, dynamic>.from(item)))
         .toList();
+  }
+
+  Future<PlayerDocumentsChecklist> getPlayerDocumentsChecklist(
+    int playerId,
+  ) async {
+    final activeRole = AppStorage.getActiveRole()?.trim().toLowerCase();
+    final response = await _dio.get(
+      '/player/$playerId/documents/checklist',
+      options: Options(
+        headers: _headers({
+          if (activeRole != null && activeRole.isNotEmpty)
+            'X-Active-Role': activeRole,
+        }),
+      ),
+    );
+
+    final map = response.data['data'] is Map
+        ? Map<String, dynamic>.from(response.data['data'] as Map)
+        : Map<String, dynamic>.from(response.data as Map);
+
+    return PlayerDocumentsChecklist.fromJson(map);
   }
 
   Future<PlayerDocument> uploadPlayerDocument({
     required int playerId,
     required File file,
+    int? requiredDocumentId,
   }) async {
+    final activeRole = AppStorage.getActiveRole()?.trim().toLowerCase();
     final fileName = file.path.split('/').last;
 
     final formData = FormData.fromMap({
+      if (requiredDocumentId != null)
+        'required_document_id': requiredDocumentId,
       'file': await MultipartFile.fromFile(file.path, filename: fileName),
     });
 
     final response = await _dio.post(
       '/player/$playerId/documents',
       data: formData,
-      options: Options(contentType: 'multipart/form-data'),
+      options: Options(
+        headers: _headers({
+          if (activeRole != null && activeRole.isNotEmpty)
+            'X-Active-Role': activeRole,
+        }),
+        contentType: 'multipart/form-data',
+      ),
     );
 
-    final docJson = response.data['document'] as Map<String, dynamic>;
+    final rawDoc = response.data['document'] ?? response.data['data'];
+    final docJson = rawDoc is Map
+        ? Map<String, dynamic>.from(rawDoc)
+        : <String, dynamic>{};
     return PlayerDocument.fromJson(docJson);
   }
 
@@ -1054,10 +1103,65 @@ class ApiRepository {
     required int playerId,
     required int documentId,
   }) async {
+    final activeRole = AppStorage.getActiveRole()?.trim().toLowerCase();
     final response = await _dio.delete(
       '/player/$playerId/documents/$documentId',
+      options: Options(
+        headers: _headers({
+          if (activeRole != null && activeRole.isNotEmpty)
+            'X-Active-Role': activeRole,
+        }),
+      ),
     );
-    return response.data['ok'] == true;
+    if (response.data is Map<String, dynamic>) {
+      return response.data['ok'] != false;
+    }
+    return (response.statusCode ?? 500) >= 200 &&
+        (response.statusCode ?? 500) < 300;
+  }
+
+  Future<PlayerFileResponse> fetchPlayerFile({
+    required int playerId,
+    required String tab,
+    int page = 1,
+    int perPage = 25,
+  }) async {
+    final response = await _dio.get(
+      '/manager/players/$playerId/file',
+      queryParameters: {'tab': tab, 'page': page, 'per_page': perPage},
+      options: Options(headers: _headers()),
+    );
+
+    final map = response.data is Map
+        ? Map<String, dynamic>.from(response.data as Map)
+        : <String, dynamic>{};
+
+    return PlayerFileResponse.fromJson(map, tab: tab);
+  }
+
+  Future<DocumentsComplianceResponse> fetchDocumentsCompliance({
+    required int categoryId,
+    String q = '',
+    String status = 'all',
+    int page = 1,
+    int perPage = 15,
+  }) async {
+    final response = await _dio.get(
+      '/manager/$categoryId/documents-compliance',
+      queryParameters: {
+        'q': q,
+        'status': status,
+        'page': page,
+        'per_page': perPage,
+      },
+      options: Options(headers: _headers()),
+    );
+
+    final map = response.data is Map
+        ? Map<String, dynamic>.from(response.data as Map)
+        : <String, dynamic>{};
+
+    return DocumentsComplianceResponse.fromJson(map);
   }
 
   Future<ManagerDashboardResponse> getManagerDashboard() async {

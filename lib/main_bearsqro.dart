@@ -11,6 +11,7 @@ Future<void> main() async {
         flavor: AppFlavor.bearsqro,
         appName: 'Bears Querétaro',
         bundleId: 'app.stopandgomx.bearsqro',
+        isCustom: true,
         organizationId: 18,
         paymentProvider: 'mercadopago',
       );

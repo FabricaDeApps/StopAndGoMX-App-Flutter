@@ -4,6 +4,7 @@ class FlavorConfig {
   final AppFlavor flavor;
   final String appName;
   final String bundleId;
+  final bool isCustom;
   int? organizationId;
   final String? paymentProvider;
 
@@ -14,6 +15,7 @@ class FlavorConfig {
     required this.flavor,
     required this.appName,
     required this.bundleId,
+    required this.isCustom,
     this.organizationId,
     this.paymentProvider,
   });
@@ -22,6 +24,7 @@ class FlavorConfig {
     required AppFlavor flavor,
     required String appName,
     required String bundleId,
+    bool isCustom = false,
     int? organizationId,
     String? paymentProvider,
   }) {
@@ -29,6 +32,7 @@ class FlavorConfig {
       flavor: flavor,
       appName: appName,
       bundleId: bundleId,
+      isCustom: isCustom,
       organizationId: organizationId,
       paymentProvider: paymentProvider?.toLowerCase().trim(),
     );

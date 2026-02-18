@@ -1,6 +1,7 @@
 // lib/modules/payments/make_payment_view.dart
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter_html/flutter_html.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 import 'make_payment_controller.dart';
@@ -55,6 +56,61 @@ class MakePaymentView extends GetView<MakePaymentController> {
                     ],
                     onChanged: (v) => controller.method.value = v ?? 'transfer',
                   ),
+                  if (controller.method.value == 'transfer' &&
+                      controller.hasBankDetailsHtml) ...[
+                    const SizedBox(height: 12),
+                    Card(
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.fromLTRB(12, 12, 12, 8),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: Text(
+                                    'Datos bancarios',
+                                    style: theme.textTheme.titleSmall?.copyWith(
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                                  ),
+                                ),
+                                IconButton(
+                                  tooltip: 'Copiar',
+                                  onPressed:
+                                      controller.copyBankDetailsToClipboard,
+                                  icon: const Icon(Icons.content_copy_outlined),
+                                ),
+                              ],
+                            ),
+                            Html(
+                              data: controller.bankDetailsHtml,
+                              style: {
+                                'body': Style(
+                                  margin: Margins.zero,
+                                  padding: HtmlPaddings.zero,
+                                  fontSize: FontSize(
+                                    theme.textTheme.bodyMedium?.fontSize ?? 14,
+                                  ),
+                                  color: theme.textTheme.bodyMedium?.color,
+                                ),
+                                'p': Style(margin: Margins.only(bottom: 8)),
+                                'ul': Style(margin: Margins.only(bottom: 8)),
+                                'ol': Style(margin: Margins.only(bottom: 8)),
+                                'a': Style(
+                                  color: theme.colorScheme.primary,
+                                  textDecoration: TextDecoration.underline,
+                                ),
+                              },
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
                   const SizedBox(height: 12),
 
                   // Referencia (opcional)

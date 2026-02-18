@@ -1,2 +1,4 @@
-- Confirmar club
-- Login, no category, no player
+- Fix login en custom
+- Politicas de privacidad en menu
+- Documentos requeridos para jugador
+- Vista de Fichero de jugador

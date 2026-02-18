@@ -5,6 +5,7 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:stopandgo/core/models/players.dart';
 import 'package:stopandgo/core/network/api_repository.dart';
 import 'package:stopandgo/core/storage/app_storage.dart';
+import 'package:stopandgo/routes/app_routes.dart';
 
 class RosterController extends GetxController {
   final _api = Get.find<ApiRepository>();
@@ -96,6 +97,20 @@ class RosterController extends GetxController {
   }
 
   Future<void> refreshPlayers() => _loadPlayers();
+
+  void openDocumentsCompliance() {
+    Get.toNamed(
+      Routes.documentsCompliance,
+      arguments: {'categoryId': categoryId, 'categoryName': categoryName},
+    );
+  }
+
+  void openPlayerFile(Player player) {
+    Get.toNamed(
+      Routes.managerPlayerFile.replaceFirst(':playerId', '${player.id}'),
+      arguments: {'playerId': player.id, 'playerName': player.name},
+    );
+  }
 
   void setSearch(String value) => searchText.value = value;
 

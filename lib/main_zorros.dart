@@ -11,6 +11,7 @@ Future<void> main() async {
         flavor: AppFlavor.zorros,
         appName: 'Zorros Football Academy',
         bundleId: 'app.stopandgomx.zorros',
+        isCustom: true,
         organizationId: 2,
       );
     },

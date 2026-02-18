@@ -1,6 +1,7 @@
 // lib/core/models/player_document.dart
 class PlayerDocument {
   final int id;
+  final int? requiredDocumentId;
   final String originalName;
   final String mimeType;
   final int size;
@@ -9,6 +10,7 @@ class PlayerDocument {
 
   PlayerDocument({
     required this.id,
+    this.requiredDocumentId,
     required this.originalName,
     required this.mimeType,
     required this.size,
@@ -24,6 +26,7 @@ class PlayerDocument {
 
     return PlayerDocument(
       id: json['id'] as int,
+      requiredDocumentId: json['required_document_id'] as int?,
       originalName: json['original_name']?.toString() ?? '',
       mimeType: json['mime_type']?.toString() ?? '',
       size: (json['size'] ?? 0) as int,
@@ -35,6 +38,7 @@ class PlayerDocument {
   Map<String, dynamic> toJson() {
     return {
       'id': id,
+      'required_document_id': requiredDocumentId,
       'original_name': originalName,
       'mime_type': mimeType,
       'size': size,

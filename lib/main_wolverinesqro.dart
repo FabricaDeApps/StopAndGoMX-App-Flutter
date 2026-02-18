@@ -11,6 +11,7 @@ Future<void> main() async {
         flavor: AppFlavor.wolverinesqro,
         appName: 'Wolverines',
         bundleId: 'app.stopandgomx.wolverinesqro',
+        isCustom: true,
         organizationId: 17,
       );
     },

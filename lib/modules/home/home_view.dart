@@ -7,6 +7,7 @@ import 'package:stopandgo/core/services/ecommerce_cart_service.dart';
 import 'package:stopandgo/core/storage/app_storage.dart';
 import 'package:stopandgo/core/widgets/category_picker_sheet.dart';
 import 'package:stopandgo/core/widgets/player_picker_sheet.dart';
+import 'package:stopandgo/modules/webview/webview_page.dart';
 import 'package:stopandgo/routes/app_routes.dart';
 
 import 'home_controller.dart';
@@ -231,9 +232,11 @@ class HomeView extends GetView<HomeController> {
           final isPlayer = role == 'player';
           final isCoach = role == 'coach';
           final isStaff = role == 'staff';
+          final orgSlug = (controller.org.value?.slug ?? '').trim();
           final availableRoles = controller.availableRoles;
-          final selectedRole =
-              availableRoles.contains(role) ? role : availableRoles.first;
+          final selectedRole = availableRoles.contains(role)
+              ? role
+              : availableRoles.first;
 
           return Column(
             children: [
@@ -257,8 +260,8 @@ class HomeView extends GetView<HomeController> {
                       children: [
                         CircleAvatar(
                           radius: 70,
-                          backgroundColor:
-                              theme.colorScheme.secondary.withOpacity(.1),
+                          backgroundColor: theme.colorScheme.secondary
+                              .withOpacity(.1),
                           child: controller.userAvatar.value != null
                               ? ClipOval(
                                   child: CachedNetworkImage(
@@ -420,6 +423,30 @@ class HomeView extends GetView<HomeController> {
                     Get.toNamed(Routes.roster);
                   },
                 ),
+                if (isManager)
+                  ListTile(
+                    leading: const Icon(Icons.fact_check_outlined),
+                    title: const Text('Cumplimiento de documentos'),
+                    onTap: () async {
+                      Get.back();
+
+                      final picked = await _pickCategoryFromSheet();
+                      if (picked == null) return;
+
+                      final categoryId =
+                          AppStorage.getSelectedCategoryId() ?? 0;
+                      final categoryName =
+                          AppStorage.getSelectedCategoryName() ?? 'Categoría';
+
+                      Get.toNamed(
+                        Routes.documentsCompliance,
+                        arguments: {
+                          'categoryId': categoryId,
+                          'categoryName': categoryName,
+                        },
+                      );
+                    },
+                  ),
                 ListTile(
                   leading: const Icon(Icons.list_alt_outlined),
                   title: const Text('Entrenamientos'),
@@ -551,10 +578,10 @@ class HomeView extends GetView<HomeController> {
                     if (role == 'parent') {
                       final picked =
                           await Get.bottomSheet<Map<String, dynamic>?>(
-                        const PlayerPickerSheet(),
-                        isScrollControlled: true,
-                        backgroundColor: Colors.transparent,
-                      );
+                            const PlayerPickerSheet(),
+                            isScrollControlled: true,
+                            backgroundColor: Colors.transparent,
+                          );
 
                       if (picked == null) return;
 
@@ -593,6 +620,30 @@ class HomeView extends GetView<HomeController> {
                 onTap: () {
                   Get.back();
                   Get.toNamed(Routes.myProfile);
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.privacy_tip_outlined),
+                title: const Text('Ver políticas de privacidad'),
+                onTap: () {
+                  if (orgSlug.isEmpty) {
+                    Get.snackbar(
+                      'Privacidad',
+                      'No se pudo obtener la organización actual.',
+                      snackPosition: SnackPosition.BOTTOM,
+                    );
+                    return;
+                  }
+
+                  final url = 'https://$orgSlug.stopandgomx.app/privacy-policy';
+
+                  Get.back();
+                  Get.to(
+                    () => AppWebViewPage(
+                      title: 'Políticas de privacidad',
+                      url: url,
+                    ),
+                  );
                 },
               ),
               const Spacer(),

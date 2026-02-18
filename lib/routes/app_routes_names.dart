@@ -23,6 +23,8 @@ abstract class Routes {
   static const noCategory = '/noCategory';
   static const noPlayer = '/noPlayer';
   static const roster = '/roster';
+  static const managerPlayerFile = '/manager/player-file/:playerId';
+  static const documentsCompliance = '/manager/documents-compliance';
   static const documents = '/documents';
   static const playbook = '/playbook';
   static const playbookCreate = '/playbookCreate';

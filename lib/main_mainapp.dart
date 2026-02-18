@@ -11,6 +11,7 @@ Future<void> main() async {
         flavor: AppFlavor.main,
         appName: 'StopAndGoMX',
         bundleId: 'app.stopandgomx.main',
+        isCustom: false,
         organizationId: 1,
         paymentProvider: 'mercadopago',
       );

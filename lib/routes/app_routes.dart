@@ -27,6 +27,8 @@ import 'package:stopandgo/modules/complete_game/complete_game_view.dart';
 import 'package:stopandgo/modules/create_metric/create_metric_view.dart';
 import 'package:stopandgo/modules/create_metric/index.dart';
 import 'package:stopandgo/modules/create_trainning/index.dart';
+import 'package:stopandgo/modules/documents_compliance/documents_compliance_binding.dart';
+import 'package:stopandgo/modules/documents_compliance/documents_compliance_view.dart';
 import 'package:stopandgo/modules/ecommerce_cart/ecommerce_cart_binding.dart';
 import 'package:stopandgo/modules/ecommerce_cart/ecommerce_cart_view.dart';
 import 'package:stopandgo/modules/ecommerce_checkout/ecommerce_checkout_binding.dart';
@@ -75,6 +77,8 @@ import 'package:stopandgo/modules/play_book_read/index.dart';
 import 'package:stopandgo/modules/play_book_read/play_book_read_view.dart';
 import 'package:stopandgo/modules/player_documents/player_documents_binding.dart';
 import 'package:stopandgo/modules/player_documents/player_documents_view.dart';
+import 'package:stopandgo/modules/player_file/player_file_binding.dart';
+import 'package:stopandgo/modules/player_file/player_file_view.dart';
 import 'package:stopandgo/modules/player_trainings/player_trainings_binding.dart';
 import 'package:stopandgo/modules/player_trainings/player_trainings_view.dart';
 import 'package:stopandgo/modules/roster/roster_binding.dart';
@@ -194,6 +198,16 @@ class AppPages {
       name: Routes.roster,
       page: () => const RosterView(),
       binding: RosterBinding(),
+    ),
+    GetPage(
+      name: Routes.managerPlayerFile,
+      page: () => const FicheroDeJugadorScreen(),
+      binding: PlayerFileBinding(),
+    ),
+    GetPage(
+      name: Routes.documentsCompliance,
+      page: () => const DocumentsComplianceView(),
+      binding: DocumentsComplianceBinding(),
     ),
     GetPage(
       name: Routes.documents,

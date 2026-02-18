@@ -8,7 +8,21 @@ class RosterView extends GetView<RosterController> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(controller.categoryName)),
+      appBar: AppBar(
+        title: Text(controller.categoryName),
+        actions: [
+          Obx(() {
+            if (controller.userRole.value != 'manager') {
+              return const SizedBox.shrink();
+            }
+            return IconButton(
+              tooltip: 'Cumplimiento de documentos',
+              icon: const Icon(Icons.fact_check_outlined),
+              onPressed: controller.openDocumentsCompliance,
+            );
+          }),
+        ],
+      ),
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: Obx(() {
@@ -70,6 +84,7 @@ class RosterView extends GetView<RosterController> {
                             return Card(
                               margin: const EdgeInsets.symmetric(vertical: 6),
                               child: ListTile(
+                                onTap: () => controller.openPlayerFile(player),
                                 leading: SizedBox(
                                   width: 79, // ancho fijo para que no brinque
                                   child: Row(

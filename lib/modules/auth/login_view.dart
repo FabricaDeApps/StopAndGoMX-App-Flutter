@@ -242,26 +242,29 @@ class LoginView extends GetView<LoginController> {
                                   ? orgName
                                   : 'este club';
 
-                              final confirm = await Get.dialog<bool>(
-                                AlertDialog(
-                                  title: const Text('Confirmar club'),
-                                  content: Text(
-                                    '¿Confirmas que "$clubLabel" es tu club?',
+                              if (!FlavorConfig.I.isCustom) {
+                                final confirm = await Get.dialog<bool>(
+                                  AlertDialog(
+                                    title: const Text('Confirmar club'),
+                                    content: Text(
+                                      '¿Confirmas que "$clubLabel" es tu club?',
+                                    ),
+                                    actions: [
+                                      TextButton(
+                                        onPressed: () =>
+                                            Get.back(result: false),
+                                        child: const Text('No'),
+                                      ),
+                                      FilledButton(
+                                        onPressed: () => Get.back(result: true),
+                                        child: const Text('Sí'),
+                                      ),
+                                    ],
                                   ),
-                                  actions: [
-                                    TextButton(
-                                      onPressed: () => Get.back(result: false),
-                                      child: const Text('No'),
-                                    ),
-                                    FilledButton(
-                                      onPressed: () => Get.back(result: true),
-                                      child: const Text('Sí'),
-                                    ),
-                                  ],
-                                ),
-                              );
+                                );
 
-                              if (confirm != true) return;
+                                if (confirm != true) return;
+                              }
 
                               final slug = controller
                                   .selectedOrganization
