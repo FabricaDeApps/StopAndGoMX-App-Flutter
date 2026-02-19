@@ -234,11 +234,11 @@ class HomeView extends GetView<HomeController> {
           final isStaff = role == 'staff';
           final orgSlug = (controller.org.value?.slug ?? '').trim();
           final availableRoles = controller.availableRoles;
-          final selectedRole = availableRoles.contains(role)
-              ? role
-              : availableRoles.first;
+          final selectedRole =
+              availableRoles.contains(role) ? role : availableRoles.first;
 
-          return Column(
+          return ListView(
+            padding: EdgeInsets.zero,
             children: [
               Container(
                 width: double.infinity,
@@ -260,8 +260,8 @@ class HomeView extends GetView<HomeController> {
                       children: [
                         CircleAvatar(
                           radius: 70,
-                          backgroundColor: theme.colorScheme.secondary
-                              .withOpacity(.1),
+                          backgroundColor:
+                              theme.colorScheme.secondary.withOpacity(.1),
                           child: controller.userAvatar.value != null
                               ? ClipOval(
                                   child: CachedNetworkImage(
@@ -578,10 +578,10 @@ class HomeView extends GetView<HomeController> {
                     if (role == 'parent') {
                       final picked =
                           await Get.bottomSheet<Map<String, dynamic>?>(
-                            const PlayerPickerSheet(),
-                            isScrollControlled: true,
-                            backgroundColor: Colors.transparent,
-                          );
+                        const PlayerPickerSheet(),
+                        isScrollControlled: true,
+                        backgroundColor: Colors.transparent,
+                      );
 
                       if (picked == null) return;
 
@@ -646,7 +646,7 @@ class HomeView extends GetView<HomeController> {
                   );
                 },
               ),
-              const Spacer(),
+              const SizedBox(height: 12),
               ListTile(
                 leading: const Icon(Icons.logout),
                 title: const Text('Cerrar sesión'),

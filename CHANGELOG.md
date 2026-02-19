@@ -4,7 +4,11 @@ Todos los cambios importantes del proyecto **StopAndGoMX** se documentan en este
 El formato sigue las recomendaciones de **Keep a Changelog**  
 y el versionado está basado en **Semantic Versioning (SemVer)**.
 
-## [1.0.50] - 2026-2-17
+
+## [1.0.52] - 2026-2-18
+• Fix menu scroll
+
+## [1.0.51] - 2026-2-17
 • Fix login en custom
 • Politicas de privacidad en menu
 • Documentos requeridos para jugador
