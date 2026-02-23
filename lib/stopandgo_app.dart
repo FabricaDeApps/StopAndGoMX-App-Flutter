@@ -6,6 +6,7 @@ import 'package:sentry_flutter/sentry_flutter.dart';
 
 import 'package:stopandgo/app_binding.dart';
 import 'package:stopandgo/core/config/flavor_config.dart';
+import 'package:stopandgo/core/services/clarity_service.dart';
 import 'package:stopandgo/core/theme/theme_controller.dart';
 import 'package:stopandgo/routes/app_routes.dart';
 import 'package:stopandgo/bootstrap/app_bootstrap.dart'; // para firebaseObserver
@@ -37,6 +38,10 @@ class StopAndGoApp extends StatelessWidget {
           firebaseObserver,
           if (kReleaseMode) SentryNavigatorObserver(),
         ],
+        routingCallback: (routing) {
+          final currentRoute = routing?.current;
+          ClarityService.trackScreen(currentRoute);
+        },
       );
     });
   }

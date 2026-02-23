@@ -28,6 +28,7 @@ extension PaymentDueFilterX on PaymentDueFilter {
 
 class PaymentsTabController extends GetxController {
   final ApiRepository _api = Get.find<ApiRepository>();
+  bool get canPayWithCard => AppStorage.getOrganization()?.payCardEnabled ?? false;
 
   // Contexto (lo setea HomeController)
   final role = ''.obs; // manager/parent/player/coach/staff...

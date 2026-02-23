@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 import 'package:stopandgo/core/config/flavor_config.dart';
 import 'package:stopandgo/core/models/responses/organization_response.dart';
 import 'package:stopandgo/core/network/api_repository.dart';
+import 'package:stopandgo/core/services/clarity_service.dart';
 import 'package:stopandgo/core/storage/app_storage.dart';
 
 class SignInController extends GetxController {
@@ -147,6 +148,7 @@ class SignInController extends GetxController {
 
     isLoading.value = true;
     try {
+      ClarityService.trackEvent('signup_attempt');
       final resp = await _api.registerPublicUser(
         organizationId: orgId,
         name: nameCtrl.text.trim(),
@@ -159,6 +161,7 @@ class SignInController extends GetxController {
       final msg = (resp['message'] ?? 'Operación realizada').toString();
 
       if (success) {
+        ClarityService.trackEvent('signup_success');
         Get.back(result: true);
         Get.snackbar(
           'Registro',
@@ -166,6 +169,7 @@ class SignInController extends GetxController {
           snackPosition: SnackPosition.BOTTOM,
         );
       } else {
+        ClarityService.trackEvent('signup_failed');
         Get.snackbar(
           'Registro',
           msg.isEmpty ? 'No se pudo registrar' : msg,
@@ -173,6 +177,7 @@ class SignInController extends GetxController {
         );
       }
     } catch (e) {
+      ClarityService.trackEvent('signup_failed');
       Get.snackbar(
         'Registro',
         'Error: $e',

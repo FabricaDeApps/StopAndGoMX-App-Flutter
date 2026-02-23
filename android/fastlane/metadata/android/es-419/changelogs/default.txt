@@ -1,1 +1,2 @@
-- Fix menu scroll
+- Game Notifications
+- Boton de guardar en Entrenamientos y Juegos Asistencia

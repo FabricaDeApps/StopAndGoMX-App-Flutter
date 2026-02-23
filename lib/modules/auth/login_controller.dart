@@ -4,6 +4,7 @@ import 'package:stopandgo/core/config/flavor_config.dart';
 import 'package:stopandgo/core/models/responses/login_response.dart';
 import 'package:stopandgo/core/models/responses/organization_response.dart';
 import 'package:stopandgo/core/network/api_repository.dart';
+import 'package:stopandgo/core/services/clarity_service.dart';
 import 'package:stopandgo/core/storage/app_storage.dart';
 import 'package:stopandgo/core/theme/theme_controller.dart';
 import 'package:stopandgo/routes/app_routes.dart';
@@ -11,7 +12,7 @@ import 'package:stopandgo/routes/app_routes.dart';
 class LoginController extends GetxController {
   final _api = Get.find<ApiRepository>();
 
-  final bool isMultiOrg = FlavorConfig.I.organizationId == 1;
+  final bool isMultiOrg = !FlavorConfig.I.isCustom;
 
   final organizations = <OrganizationResponse>[].obs;
   final selectedOrganization = Rxn<OrganizationResponse>();
@@ -126,6 +127,7 @@ class LoginController extends GetxController {
 
     isLoading.value = true;
     try {
+      ClarityService.trackEvent('login_attempt');
       final res = await _api.login(
         email: emailCtrl.text.trim(),
         password: passCtrl.text.trim(),
@@ -148,8 +150,18 @@ class LoginController extends GetxController {
         duration: const Duration(seconds: 2),
       );
 
+      ClarityService.setUserContext(
+        userId: res.user.id,
+        role: res.user.activeRole.isNotEmpty
+            ? res.user.activeRole
+            : res.user.role,
+        organizationId: FlavorConfig.I.organizationId,
+      );
+      ClarityService.trackEvent('login_success');
+
       Get.offAllNamed(Routes.home);
     } catch (e) {
+      ClarityService.trackEvent('login_failed');
       Get.snackbar(
         'Error de autenticación',
         e.toString(),

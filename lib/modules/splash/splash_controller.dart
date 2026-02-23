@@ -8,6 +8,7 @@ import 'package:package_info_plus/package_info_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:firebase_remote_config/firebase_remote_config.dart';
 
+import 'package:stopandgo/core/config/flavor_config.dart';
 import 'package:stopandgo/core/network/api_repository.dart';
 import 'package:stopandgo/core/network/auth_repository.dart';
 import 'package:stopandgo/core/theme/theme_controller.dart';
@@ -55,18 +56,29 @@ class SplashController extends GetxController {
       // 1) Remote Config init/fetch (en paralelo)
       final rcFuture = _initRemoteConfig();
 
-      // 2) ORG SIEMPRE REMOTA (sin cache)
+      // 2) Multi-org: restaura org cacheada para que el fetch remoto use ese id
+      if (!FlavorConfig.I.isCustom) {
+        final cachedOrg = AppStorage.getOrganization();
+        final cachedOrgId = cachedOrg?.id;
+        if (cachedOrgId != null) {
+          FlavorConfig.I.updateOrganizationId(cachedOrgId);
+          _org = cachedOrg;
+          _applyBranding(cachedOrg!);
+        }
+      }
+
+      // 3) ORG remota según el orgId activo (flavor fijo o selección previa)
       _org = await _api.getOrganization();
       await AppStorage.setOrganization(_org!);
       _applyBranding(_org!);
 
-      // 3) Espera RC
+      // 4) Espera RC
       await rcFuture;
 
-      // 4) Check update (usa links de org)
+      // 5) Check update (usa links de org)
       await _checkUpdate(_org);
 
-      // 5) Aplica theme + espera splash mínimo
+      // 6) Aplica theme + espera splash mínimo
       Get.find<ThemeController>().refreshTheme();
       await Future.delayed(const Duration(seconds: 3));
 

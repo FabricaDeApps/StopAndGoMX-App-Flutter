@@ -1,5 +1,4 @@
 import 'package:get/get.dart';
-import 'package:stopandgo/core/config/flavor_config.dart';
 import 'package:stopandgo/core/models/dto/payment_dto.dart';
 import 'package:stopandgo/core/network/api_repository.dart';
 import 'package:stopandgo/core/storage/app_storage.dart';
@@ -15,7 +14,7 @@ class PaymentDetailController extends GetxController {
   final error = RxnString();
   final isPayingWithCard = false.obs;
 
-  bool get canPayWithCard => FlavorConfig.I.isPaymentProvider('mercadopago');
+  bool get canPayWithCard => AppStorage.getOrganization()?.payCardEnabled ?? false;
 
   bool get isPaid => payment.value?.status == 'paid';
 

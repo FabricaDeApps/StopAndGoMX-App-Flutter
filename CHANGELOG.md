@@ -4,6 +4,17 @@ Todos los cambios importantes del proyecto **StopAndGoMX** se documentan en este
 El formato sigue las recomendaciones de **Keep a Changelog**  
 y el versionado está basado en **Semantic Versioning (SemVer)**.
 
+## [1.0.55] - 2026-2-20
+• Game Notifications
+• Boton de guardar en Entrenamientos y Juegos Asistencia
+
+
+## [1.0.54] - 2026-2-20
+• Ajuste Club Seleccionado
+
+## [1.0.53] - 2026-2-20
+• Fix Games Filter
+• Get Org Public
 
 ## [1.0.52] - 2026-2-18
 • Fix menu scroll

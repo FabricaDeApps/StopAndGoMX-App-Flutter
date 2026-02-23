@@ -15,6 +15,7 @@ class OrganizationResponse {
   /// - Si NO existe -> cae a ecommerce.enabled
   final bool isEcommerceAvailable;
   final bool streamingEnabled;
+  final bool payCardEnabled;
 
   // Ecommerce
   final EcommerceConfig ecommerce;
@@ -35,6 +36,7 @@ class OrganizationResponse {
     required this.isActive,
     required this.isEcommerceAvailable,
     required this.streamingEnabled,
+    required this.payCardEnabled,
     required this.ecommerce,
     this.androidUrl,
     this.iosUrl,
@@ -88,6 +90,7 @@ class OrganizationResponse {
       isActive: _asBool(json['is_active'], fallback: true),
       isEcommerceAvailable: isEcomAvailable,
       streamingEnabled: _asBool(json['streaming_enabled'], fallback: false),
+      payCardEnabled: _asBool(json['pay_card_enabled'], fallback: false),
 
       // Ecommerce
       ecommerce: ecommerce,
@@ -112,6 +115,7 @@ class OrganizationResponse {
     'is_active': isActive,
     'is_ecommerce_available': isEcommerceAvailable,
     'streaming_enabled': streamingEnabled,
+    'pay_card_enabled': payCardEnabled,
     'ecommerce': ecommerce.toJson(),
     'android_url': androidUrl,
     'ios_url': iosUrl,

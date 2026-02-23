@@ -2,13 +2,16 @@ import 'dart:developer' as developer;
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:get/get.dart';
 
 import 'package:stopandgo/core/storage/app_storage.dart';
+import 'package:stopandgo/routes/app_routes.dart';
 
 class NotificationService {
   static final FirebaseMessaging _messaging = FirebaseMessaging.instance;
   static final FlutterLocalNotificationsPlugin _local =
       FlutterLocalNotificationsPlugin();
+  static int? _pendingGameId;
 
   static Future<void> initialize() async {
     // 1) Permisos FCM (Android/iOS)
@@ -59,8 +62,18 @@ class NotificationService {
         '📲 App abierta desde notif: ${message.messageId}',
         name: 'FCM',
       );
-      // Aquí navegas según message.data si quieres
+      _handleNavigationMessage(message);
     });
+
+    // 4.1) Cuando la app estaba terminada y la abrieron desde notif
+    final initialMessage = await _messaging.getInitialMessage();
+    if (initialMessage != null) {
+      developer.log(
+        '🚀 App iniciada desde notif: ${initialMessage.messageId}',
+        name: 'FCM',
+      );
+      _handleNavigationMessage(initialMessage);
+    }
 
     // 5) Token FCM
     final token = await _messaging.getToken();
@@ -83,10 +96,11 @@ class NotificationService {
   }
 
   static void _onForegroundMessage(RemoteMessage message) {
+    final handledByNavigation = _handleNavigationMessage(message);
+    if (handledByNavigation) return;
+
     final notification = message.notification;
     if (notification == null) return;
-
-    final android = message.notification?.android;
 
     developer.log(
       '🔔 (FG) Notif: ${notification.title} - ${notification.body}',
@@ -107,6 +121,64 @@ class NotificationService {
         // Si quieres también configuración específica para iOS:
         // iOS: DarwinNotificationDetails(),
       ),
+    );
+  }
+
+  static bool consumePendingNavigationIfAny() {
+    final gameId = _pendingGameId;
+    if (gameId == null || gameId <= 0) return false;
+    _pendingGameId = null;
+    _goToGameDetail(gameId);
+    return true;
+  }
+
+  static bool _handleNavigationMessage(RemoteMessage message) {
+    final data = message.data;
+    if (data.isEmpty) return false;
+
+    final type = (data['type'] ?? '').toString().trim().toLowerCase();
+    if (type != 'game_today') return false;
+
+    final gameId = int.tryParse((data['game_id'] ?? '').toString());
+    if (gameId == null || gameId <= 0) return false;
+
+    if (!_isLoggedIn()) {
+      developer.log(
+        '🔕 Se ignoró game_today porque no hay sesión activa',
+        name: 'FCM',
+      );
+      return false;
+    }
+
+    if (_canNavigateNow()) {
+      _goToGameDetail(gameId);
+    } else {
+      _pendingGameId = gameId;
+      developer.log(
+        '🧭 game_today en cola para abrir al entrar a Home (game_id=$gameId)',
+        name: 'FCM',
+      );
+    }
+    return true;
+  }
+
+  static bool _isLoggedIn() => AppStorage.getUser() != null;
+
+  static bool _canNavigateNow() => Get.key.currentState != null;
+
+  static void _goToGameDetail(int gameId) {
+    final currentRoute = Get.currentRoute;
+    final currentArgs = Get.arguments;
+    if (currentRoute == Routes.gameDetail &&
+        currentArgs is Map &&
+        currentArgs['id'] == gameId) {
+      return;
+    }
+
+    Get.toNamed(Routes.gameDetail, arguments: {'id': gameId});
+    developer.log(
+      '🏟️ Navegando a game detail desde notif (id=$gameId)',
+      name: 'FCM',
     );
   }
 }

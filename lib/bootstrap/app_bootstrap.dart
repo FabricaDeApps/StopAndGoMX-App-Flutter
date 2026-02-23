@@ -8,6 +8,7 @@ import 'package:sentry_flutter/sentry_flutter.dart';
 
 import 'package:stopandgo/core/config/flavor_config.dart';
 import 'package:stopandgo/core/network/api_client.dart';
+import 'package:stopandgo/core/services/clarity_service.dart';
 import 'package:stopandgo/core/services/notification_service.dart';
 import 'package:stopandgo/core/storage/app_storage.dart';
 import 'package:stopandgo/firebase_messaging_background.dart';
@@ -37,6 +38,12 @@ class AppBootstrap {
       await Firebase.initializeApp(options: firebaseOptions);
       await initializeDateFormatting(localeTag, null);
       await AppStorage.init();
+      if (!FlavorConfig.I.isCustom) {
+        final cachedOrgId = AppStorage.getOrganization()?.id;
+        if (cachedOrgId != null) {
+          FlavorConfig.I.updateOrganizationId(cachedOrgId);
+        }
+      }
 
       firebaseAnalytics = FirebaseAnalytics.instance;
       firebaseObserver = FirebaseAnalyticsObserver(
@@ -61,19 +68,17 @@ class AppBootstrap {
       await NotificationService.initialize();
       await ApiClient.init();
 
-      runApp(appBuilder());
+      runApp(ClarityService.wrapApp(appBuilder()));
+      ClarityService.bootstrapContextFromStorage();
     }
 
     if (kReleaseMode) {
-      await SentryFlutter.init(
-        (options) {
-          options.dsn = sentryDsn;
-          options.environment = FlavorConfig.I.flavor.name;
-          options.tracesSampleRate = sentryTracesSampleRate;
-          options.sendDefaultPii = false;
-        },
-        appRunner: appRunner,
-      );
+      await SentryFlutter.init((options) {
+        options.dsn = sentryDsn;
+        options.environment = FlavorConfig.I.flavor.name;
+        options.tracesSampleRate = sentryTracesSampleRate;
+        options.sendDefaultPii = false;
+      }, appRunner: appRunner);
     } else {
       await appRunner();
     }

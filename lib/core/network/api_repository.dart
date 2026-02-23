@@ -201,9 +201,14 @@ class ApiRepository {
     required String to,
     String? status,
   }) async {
+    final params = <String, dynamic>{'from': from, 'to': to};
+    if (status != null) {
+      params['status'] = status;
+    }
+
     final res = await _dio.get(
       '/manager/$categoryId/games',
-      queryParameters: {'from': from, 'to': to},
+      queryParameters: params,
       options: Options(headers: _headers()),
     );
 

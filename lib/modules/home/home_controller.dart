@@ -9,6 +9,8 @@ import 'package:stopandgo/core/models/responses/organization_response.dart';
 import 'package:stopandgo/core/network/token_storage.dart';
 import 'package:stopandgo/core/storage/app_storage.dart';
 import 'package:stopandgo/core/network/api_repository.dart';
+import 'package:stopandgo/core/services/clarity_service.dart';
+import 'package:stopandgo/core/services/notification_service.dart';
 import 'package:stopandgo/modules/home/models/simple_player.dart';
 import 'package:stopandgo/modules/home/tabs/games/games_tab_controller.dart';
 import 'package:stopandgo/modules/home/tabs/notices/notices_tab_controller.dart';
@@ -80,10 +82,19 @@ class HomeController extends GetxController with GetTickerProviderStateMixin {
   Future<void> onReady() async {
     super.onReady();
     await refreshAccount();
+    final user = AppStorage.getUser();
+    if (user != null) {
+      ClarityService.setUserContext(
+        userId: user.id,
+        role: user.activeRole.isNotEmpty ? user.activeRole : user.role,
+        organizationId: FlavorConfig.I.organizationId,
+      );
+    }
     final hasValidAccess = await _bootstrapSelectorsByRole();
     if (!hasValidAccess) return;
     await _syncTabContext();
     await dashboardCtrl.refresh();
+    NotificationService.consumePendingNavigationIfAny();
   }
 
   void _loadSession() {
@@ -229,6 +240,12 @@ class HomeController extends GetxController with GetTickerProviderStateMixin {
     }
 
     await AppStorage.setActiveRole(nextRole);
+    ClarityService.setUserContext(
+      userId: AppStorage.getUser()?.id ?? 0,
+      role: nextRole,
+      organizationId: FlavorConfig.I.organizationId,
+    );
+    ClarityService.trackEvent('role_changed');
     await AppStorage.setSelectedCategoryId(null);
     await AppStorage.setSelectedCategoryName(null);
     await AppStorage.setSelectedPlayerId(null);
@@ -440,6 +457,8 @@ class HomeController extends GetxController with GetTickerProviderStateMixin {
     }
 
     await AppStorage.setSelectedCategoryName(name);
+    ClarityService.setSelectedCategory(id);
+    ClarityService.trackEvent('category_changed');
 
     await _loadCurrentTab();
   }
@@ -459,6 +478,8 @@ class HomeController extends GetxController with GetTickerProviderStateMixin {
     }
 
     await AppStorage.setSelectedPlayerName(name);
+    ClarityService.setSelectedPlayer(id);
+    ClarityService.trackEvent('player_changed');
 
     await _loadCurrentTab();
   }
@@ -477,6 +498,8 @@ class HomeController extends GetxController with GetTickerProviderStateMixin {
     }
 
     await AppStorage.setSelectedPlayerName(name);
+    ClarityService.setSelectedCategory(id);
+    ClarityService.trackEvent('player_category_changed');
 
     await _loadCurrentTab();
   }
@@ -505,6 +528,8 @@ class HomeController extends GetxController with GetTickerProviderStateMixin {
       final tokenStorage = Get.find<TokenStorage>();
       await tokenStorage.clear();
       await AppStorage.clearAll();
+      ClarityService.clearUserContext();
+      ClarityService.trackEvent('logout');
       await api.logout();
     } catch (_) {
       Get.offAllNamed(Routes.splash);

@@ -5,32 +5,32 @@
     
     
       
-      <testcase classname="fastlane.lanes" name="0: default_platform" time="0.000171">
+      <testcase classname="fastlane.lanes" name="0: default_platform" time="0.000172">
         
       </testcase>
     
       
-      <testcase classname="fastlane.lanes" name="1: Switch to android deploy lane" time="6.1e-05">
+      <testcase classname="fastlane.lanes" name="1: Switch to android deploy lane" time="5.9e-05">
         
       </testcase>
     
       
-      <testcase classname="fastlane.lanes" name="2: cd /Users/snakepitt/Developer/flutter_stopandgo &amp;&amp; ./scripts/use_logo.sh wolverinesqro" time="0.011771">
+      <testcase classname="fastlane.lanes" name="2: cd /Users/snakepitt/Developer/flutter_stopandgo &amp;&amp; ./scripts/use_logo.sh bearsqro" time="0.011279">
         
       </testcase>
     
       
-      <testcase classname="fastlane.lanes" name="3: cd /Users/snakepitt/Developer/flutter_stopandgo &amp;&amp; flutter pub get" time="1.198411">
+      <testcase classname="fastlane.lanes" name="3: cd /Users/snakepitt/Developer/flutter_stopandgo &amp;&amp; flutter pub get" time="1.242745">
         
       </testcase>
     
       
-      <testcase classname="fastlane.lanes" name="4: cd /Users/snakepitt/Developer/flutter_stopandgo &amp;&amp; flutter build aab --flavor wolverinesqro -t lib/main_wolverinesqro.dart" time="81.200145">
+      <testcase classname="fastlane.lanes" name="4: cd /Users/snakepitt/Developer/flutter_stopandgo &amp;&amp; flutter build aab --flavor bearsqro -t lib/main_bearsqro.dart" time="77.826405">
         
       </testcase>
     
       
-      <testcase classname="fastlane.lanes" name="5: upload_to_play_store" time="52.969848">
+      <testcase classname="fastlane.lanes" name="5: upload_to_play_store" time="45.514455">
         
       </testcase>
     

@@ -4,7 +4,6 @@ import 'package:get/get.dart';
 import 'package:stopandgo/core/utils/money.dart';
 import 'package:stopandgo/modules/home/tabs/payments/payments_controller.dart';
 import 'package:stopandgo/routes/app_routes.dart';
-import 'package:stopandgo/core/config/flavor_config.dart';
 
 class PaymentsTabView extends GetView<PaymentsTabController> {
   const PaymentsTabView({super.key});
@@ -133,10 +132,6 @@ class PaymentsTabView extends GetView<PaymentsTabController> {
                     itemCount: list.length,
                     separatorBuilder: (_, __) => const SizedBox(height: 8),
                     itemBuilder: (_, i) {
-                      final canPayCard = FlavorConfig.I.isPaymentProvider(
-                        'mercadopago',
-                      );
-
                       final p = list[i];
                       final paid = p.status == 'paid';
                       final partial = p.status == 'partial';
@@ -400,7 +395,7 @@ class PaymentsTabView extends GetView<PaymentsTabController> {
                                           await controller.loadPayments();
                                         },
                                       ),
-                                      if (canPayCard)
+                                      if (controller.canPayWithCard)
                                         Obx(
                                           () => FilledButton.icon(
                                             icon:
