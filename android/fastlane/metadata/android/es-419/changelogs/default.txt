@@ -1,2 +1,2 @@
-- Game Notifications
-- Boton de guardar en Entrenamientos y Juegos Asistencia
+- Managers y Coach crear entrenamientos y partidos.
+- Fix en vista de entrenamientos de jugadores

@@ -3,6 +3,7 @@ part of 'app_routes.dart';
 abstract class Routes {
   static const splash = '/';
   static const login = '/login';
+  static const forgotPassword = '/forgot-password';
   static const home = '/home';
   static const players = '/players';
   static const payments = '/payments';

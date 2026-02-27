@@ -4,6 +4,10 @@ Todos los cambios importantes del proyecto **StopAndGoMX** se documentan en este
 El formato sigue las recomendaciones de **Keep a Changelog**  
 y el versionado está basado en **Semantic Versioning (SemVer)**.
 
+## [1.0.56] - 2026-2-26
+• Managers y Coach crear entrenamientos y partidos.
+• Fix en vista de entrenamientos de jugadores
+
 ## [1.0.55] - 2026-2-20
 • Game Notifications
 • Boton de guardar en Entrenamientos y Juegos Asistencia

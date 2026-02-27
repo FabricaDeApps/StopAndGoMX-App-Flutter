@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
@@ -138,11 +140,19 @@ class RosterController extends GetxController {
   // ---------------------------
   Future<void> updatePlayerPhoto(Player player) async {
     try {
-      final allowed = await _ensureCameraPermission();
+      final source = await _pickPhotoSource();
+      if (source == null) return;
+
+      final allowed = source == ImageSource.camera
+          ? await _ensureCameraPermission()
+          : await _ensureGalleryPermission();
+
       if (!allowed) {
         Get.snackbar(
           'Permiso requerido',
-          'No se puede usar la cámara sin permiso.',
+          source == ImageSource.camera
+              ? 'No se puede usar la cámara sin permiso.'
+              : 'No se puede acceder a la galería sin permiso.',
           snackPosition: SnackPosition.BOTTOM,
         );
         return;
@@ -150,7 +160,7 @@ class RosterController extends GetxController {
 
       final picker = ImagePicker();
       final image = await picker.pickImage(
-        source: ImageSource.camera,
+        source: source,
         maxWidth: 1600,
         maxHeight: 1600,
         imageQuality: 85,
@@ -182,6 +192,36 @@ class RosterController extends GetxController {
     } finally {
       isLoading.value = false;
     }
+  }
+
+  Future<ImageSource?> _pickPhotoSource() async {
+    return Get.bottomSheet<ImageSource>(
+      SafeArea(
+        child: Material(
+          color: Colors.white,
+          child: Wrap(
+            children: [
+              ListTile(
+                leading: const Icon(Icons.photo_camera_outlined),
+                title: const Text('Tomar foto'),
+                onTap: () => Get.back(result: ImageSource.camera),
+              ),
+              ListTile(
+                leading: const Icon(Icons.photo_library_outlined),
+                title: const Text('Elegir de galería'),
+                onTap: () => Get.back(result: ImageSource.gallery),
+              ),
+              ListTile(
+                leading: const Icon(Icons.close),
+                title: const Text('Cancelar'),
+                onTap: () => Get.back(),
+              ),
+            ],
+          ),
+        ),
+      ),
+      isScrollControlled: false,
+    );
   }
 
   Future<bool> _ensureCameraPermission() async {
@@ -219,6 +259,53 @@ class RosterController extends GetxController {
     }
 
     return false;
+  }
+
+  Future<bool> _ensureGalleryPermission() async {
+    var photosStatus = await Permission.photos.status;
+    if (photosStatus.isGranted || photosStatus.isLimited) return true;
+
+    photosStatus = await Permission.photos.request();
+    if (photosStatus.isGranted || photosStatus.isLimited) return true;
+
+    if (Platform.isAndroid) {
+      var storageStatus = await Permission.storage.status;
+      if (storageStatus.isGranted) return true;
+      storageStatus = await Permission.storage.request();
+      if (storageStatus.isGranted) return true;
+      if (storageStatus.isPermanentlyDenied) {
+        await _showGalleryPermissionDialog();
+      }
+      return false;
+    }
+
+    if (photosStatus.isPermanentlyDenied) {
+      await _showGalleryPermissionDialog();
+    }
+
+    return false;
+  }
+
+  Future<void> _showGalleryPermissionDialog() async {
+    await Get.dialog(
+      AlertDialog(
+        title: const Text('Permiso de galería bloqueado'),
+        content: const Text(
+          'El acceso a la galería está bloqueado. '
+          'Ve a Configuración y habilita acceso a Fotos para esta app.',
+        ),
+        actions: [
+          TextButton(onPressed: () => Get.back(), child: const Text('Cerrar')),
+          TextButton(
+            onPressed: () {
+              openAppSettings();
+              Get.back();
+            },
+            child: const Text('Abrir Configuración'),
+          ),
+        ],
+      ),
+    );
   }
 
   // ---------------------------

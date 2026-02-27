@@ -36,8 +36,8 @@ class TrainingsController extends GetxController {
   }
 
   void _loadSession() {
-    final user = AppStorage.getUser();
-    userRole.value = user?.role ?? 'player';
+    final role = AppStorage.getActiveRole() ?? AppStorage.getUser()?.role;
+    userRole.value = (role ?? 'player').trim().toLowerCase();
   }
 
   Future<void> loadTrainings() async {
@@ -45,12 +45,19 @@ class TrainingsController extends GetxController {
     error.value = null;
 
     try {
-      final list = await _api.managerCategoryTrainings(
-        categoryId: categoryId,
-        status: selectedStatus.value,
-        from: fromDate.value,
-        to: toDate.value,
-      );
+      final list = userRole.value == 'coach'
+          ? await _api.getCoachCategoryTrainings(
+              categoryId: categoryId,
+              status: selectedStatus.value,
+              from: fromDate.value,
+              to: toDate.value,
+            )
+          : await _api.managerCategoryTrainings(
+              categoryId: categoryId,
+              status: selectedStatus.value,
+              from: fromDate.value,
+              to: toDate.value,
+            );
       trainings.assignAll(list);
     } catch (e) {
       error.value = 'Error al cargar entrenamientos: $e';
@@ -119,6 +126,16 @@ class TrainingsController extends GetxController {
   /// 👉 Navega a CreateTraining, espera resultado y recarga si fue success.
   Future<void> goToCreateTraining() async {
     final result = await Get.toNamed(Routes.createTrainnig);
+    if (result == true) {
+      await loadTrainings();
+    }
+  }
+
+  Future<void> goToEditTraining(Training training) async {
+    final result = await Get.toNamed(
+      Routes.createTrainnig,
+      arguments: {'categoryId': categoryId, 'training': training},
+    );
     if (result == true) {
       await loadTrainings();
     }

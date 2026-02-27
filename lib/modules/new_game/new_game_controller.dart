@@ -1,14 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:stopandgo/core/models/games/games.dart';
+import 'package:stopandgo/core/network/api_request_exception.dart';
 import 'package:stopandgo/core/network/api_repository.dart';
+import 'package:stopandgo/core/services/coach_games_service.dart';
+import 'package:stopandgo/core/services/manager_games_service.dart';
 import 'package:stopandgo/core/storage/app_storage.dart';
 
 class NewGameController extends GetxController {
   final _api = Get.find<ApiRepository>();
+  final _managerGames = Get.find<ManagerGamesService>();
+  final _coachGames = Get.find<CoachGamesService>();
 
   // Argumento requerido: categoryId
   late final int categoryId;
+  bool isEditing = false;
+  int? gameId;
+  Game? _editingGame;
 
   // Form
   final formKey = GlobalKey<FormState>();
@@ -22,6 +30,7 @@ class NewGameController extends GetxController {
 
   // Estado
   final isHome = true.obs;
+  final isHomeTouched = false.obs;
   final isSubmitting = false.obs;
   final scheduledAt = Rxn<DateTime>(); // fecha+hora
 
@@ -29,11 +38,19 @@ class NewGameController extends GetxController {
   void onInit() {
     super.onInit();
     final args = Get.arguments as Map<String, dynamic>?;
+    final editingGame = args?['game'];
+    if (editingGame is Game) {
+      _editingGame = editingGame;
+      gameId = editingGame.id;
+      isEditing = true;
+    }
 
     categoryId =
         (args?['categoryId'] as int?) ??
+        _editingGame?.categoryId ??
         (throw ArgumentError('categoryId es requerido en arguments'));
 
+    _prefillIfEditing();
     fetchVenues();
   }
 
@@ -42,6 +59,20 @@ class NewGameController extends GetxController {
     opponentCtrl.dispose();
     notesCtrl.dispose();
     super.onClose();
+  }
+
+  void _prefillIfEditing() {
+    final game = _editingGame;
+    if (game == null) return;
+
+    opponentCtrl.text = game.opponent;
+    notesCtrl.text = (game.notes ?? '').trim();
+    scheduledAt.value = game.startsAt;
+  }
+
+  void setIsHome(bool value) {
+    isHomeTouched.value = true;
+    isHome.value = value;
   }
 
   Future<void> fetchVenues() async {
@@ -54,6 +85,16 @@ class NewGameController extends GetxController {
       if (defaultVenueId != null && selectedVenue.value == null) {
         for (final venue in list) {
           if (venue.id == defaultVenueId) {
+            selectedVenue.value = venue;
+            break;
+          }
+        }
+      }
+
+      final editingVenueId = _editingGame?.venueId;
+      if (editingVenueId != null) {
+        for (final venue in list) {
+          if (venue.id == editingVenueId) {
             selectedVenue.value = venue;
             break;
           }
@@ -129,6 +170,11 @@ class NewGameController extends GetxController {
 
     isSubmitting.value = true;
     try {
+      final activeRole =
+          (AppStorage.getActiveRole() ?? AppStorage.getUser()?.role ?? '')
+              .trim()
+              .toLowerCase();
+
       final body = {
         "opponent_name": opponentCtrl.text.trim(),
         "scheduled_at": _formatForApi(scheduledAt.value!),
@@ -144,23 +190,104 @@ class NewGameController extends GetxController {
         "notes": notesCtrl.text.trim().isEmpty ? null : notesCtrl.text.trim(),
       };
 
-      await _api.createGame(categoryId, body);
+      if (isEditing && gameId != null) {
+        final patch = _buildUpdatePayload(body);
+        if (patch.isEmpty) {
+          Get.snackbar(
+            'Sin cambios',
+            'No hay cambios para actualizar.',
+            snackPosition: SnackPosition.BOTTOM,
+          );
+          return;
+        }
+        if (activeRole == 'coach') {
+          await _coachGames.updateGame(
+            categoryId: categoryId,
+            gameId: gameId!,
+            data: patch,
+          );
+        } else {
+          await _managerGames.updateGame(
+            categoryId: categoryId,
+            gameId: gameId!,
+            data: patch,
+          );
+        }
+      } else {
+        if (activeRole == 'coach') {
+          await _coachGames.createGame(categoryId: categoryId, data: body);
+        } else {
+          await _managerGames.createGame(categoryId: categoryId, data: body);
+        }
+      }
 
       Get.back(result: true);
       Get.snackbar(
         'Éxito',
-        'Juego creado correctamente',
+        isEditing
+            ? 'Juego actualizado correctamente'
+            : 'Juego creado correctamente',
         snackPosition: SnackPosition.BOTTOM,
       );
     } catch (e) {
+      final message = _mapCreateError(e);
       Get.snackbar(
         'Error',
-        'No se pudo crear el juego: $e',
+        message,
         snackPosition: SnackPosition.BOTTOM,
         duration: const Duration(seconds: 4),
       );
     } finally {
       isSubmitting.value = false;
     }
+  }
+
+  Map<String, dynamic> _buildUpdatePayload(Map<String, dynamic> fullBody) {
+    final game = _editingGame;
+    if (game == null) return fullBody;
+
+    final patch = <String, dynamic>{};
+    final newOpponent = (fullBody['opponent_name'] ?? '').toString().trim();
+    if (newOpponent != game.opponent.trim()) {
+      patch['opponent_name'] = newOpponent;
+    }
+
+    final newScheduledAt = fullBody['scheduled_at']?.toString();
+    final originalScheduledAt = game.startsAt == null
+        ? null
+        : _formatForApi(game.startsAt!);
+    if (newScheduledAt != originalScheduledAt) {
+      patch['scheduled_at'] = newScheduledAt;
+    }
+
+    final newVenueId = fullBody['venue_id'] as int?;
+    if (newVenueId != game.venueId) {
+      patch['venue_id'] = newVenueId;
+    }
+
+    final newNotesRaw = fullBody['notes'];
+    final newNotes = newNotesRaw?.toString().trim();
+    final oldNotes = game.notes?.trim();
+    if ((newNotes ?? '') != (oldNotes ?? '')) {
+      patch['notes'] = (newNotes == null || newNotes.isEmpty) ? null : newNotes;
+    }
+
+    if (isHomeTouched.value) {
+      patch['is_home'] = isHome.value;
+    }
+
+    return patch;
+  }
+
+  String _mapCreateError(Object error) {
+    if (error is ApiRequestException) {
+      return error.message;
+    }
+
+    final text = error.toString();
+    if (text.startsWith('Exception: ')) {
+      return text.replaceFirst('Exception: ', '');
+    }
+    return 'No se pudo crear el juego.';
   }
 }

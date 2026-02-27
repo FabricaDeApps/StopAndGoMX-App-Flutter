@@ -357,13 +357,15 @@ class _TrainingCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     final startsAt = item.startsAt as DateTime?;
     final dateStr = startsAt == null ? '—' : _formatDate(startsAt);
 
     final att = item.attendance; // AttendanceMini?
     final attStatus = att?.status?.toString();
+    final isAbsent = attStatus == 'absent';
     final statusLabel = attStatus == null
-        ? 'Sin marca'
+        ? 'Sin información'
         : (attStatus == 'present'
               ? 'Presente'
               : attStatus == 'absent'
@@ -376,6 +378,12 @@ class _TrainingCard extends StatelessWidget {
 
     return Card(
       margin: const EdgeInsets.only(bottom: 10),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: isAbsent
+            ? BorderSide(color: theme.colorScheme.error.withOpacity(0.45))
+            : BorderSide.none,
+      ),
       child: ListTile(
         title: Text(
           item.notes?.toString().isNotEmpty == true
@@ -437,23 +445,46 @@ class _AttendanceBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     IconData icon;
+    Color fg;
+    Color bg;
     if (status == 'present') {
       icon = Icons.check_circle_outline;
+      fg = Colors.green.shade700;
+      bg = Colors.green.withOpacity(0.12);
     } else if (status == 'absent') {
       icon = Icons.cancel_outlined;
+      fg = Colors.red.shade700;
+      bg = Colors.red.withOpacity(0.14);
     } else if (status == 'justified') {
       icon = Icons.rule;
+      fg = Colors.orange.shade700;
+      bg = Colors.orange.withOpacity(0.12);
     } else {
       icon = Icons.help_outline;
+      fg = Theme.of(context).textTheme.bodyMedium?.color ?? Colors.black87;
+      bg = Theme.of(context).dividerColor.withOpacity(0.12);
     }
 
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Icon(icon, size: 18),
-        const SizedBox(width: 6),
-        Text(text, style: Theme.of(context).textTheme.bodyMedium),
-      ],
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: bg,
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 18, color: fg),
+          const SizedBox(width: 6),
+          Text(
+            text,
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+              color: fg,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

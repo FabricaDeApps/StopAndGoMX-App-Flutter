@@ -13,7 +13,9 @@ class CreateTrainningView extends GetView<CreateTrainningController> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Nuevo entrenamiento'),
+        title: Text(
+          controller.isEditing ? 'Editar entrenamiento' : 'Nuevo entrenamiento',
+        ),
         centerTitle: true,
       ),
       body: Obx(() {
@@ -262,7 +264,9 @@ class CreateTrainningView extends GetView<CreateTrainningController> {
                           label: Text(
                             isSubmitting
                                 ? 'Guardando...'
-                                : 'Guardar entrenamiento',
+                                : (controller.isEditing
+                                      ? 'Guardar cambios'
+                                      : 'Guardar entrenamiento'),
                           ),
                           onPressed: isSubmitting ? null : controller.submit,
                           style: ElevatedButton.styleFrom(

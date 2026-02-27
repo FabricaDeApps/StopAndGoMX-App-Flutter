@@ -140,7 +140,8 @@ class RosterView extends GetView<RosterController> {
                                                 .editJerseyNumber(player),
                                           ),
                                           IconButton(
-                                            tooltip: 'Cambiar foto',
+                                            tooltip:
+                                                'Cambiar foto (cámara o galería)',
                                             icon: const Icon(Icons.camera_alt),
                                             onPressed: () => controller
                                                 .updatePlayerPhoto(player),

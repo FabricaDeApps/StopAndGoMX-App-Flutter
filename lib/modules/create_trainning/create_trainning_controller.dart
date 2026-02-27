@@ -2,13 +2,24 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'package:stopandgo/core/models/games/games.dart';
+import 'package:stopandgo/core/network/api_request_exception.dart';
 import 'package:stopandgo/core/network/api_repository.dart';
+import 'package:stopandgo/core/services/coach_trainings_service.dart';
+import 'package:stopandgo/core/services/manager_trainings_service.dart';
 import 'package:stopandgo/core/storage/app_storage.dart';
+import 'package:stopandgo/core/models/training.dart';
 
 class CreateTrainningController extends GetxController {
   final ApiRepository _api = Get.find<ApiRepository>();
+  final ManagerTrainingsService _managerTrainings =
+      Get.find<ManagerTrainingsService>();
+  final CoachTrainingsService _coachTrainings =
+      Get.find<CoachTrainingsService>();
 
   late final int categoryId;
+  bool isEditing = false;
+  int? trainingId;
+  Training? _editingTraining;
 
   final formKey = GlobalKey<FormState>();
 
@@ -35,17 +46,41 @@ class CreateTrainningController extends GetxController {
   void onInit() {
     super.onInit();
 
-    final selectedCategoryId = AppStorage.getSelectedCategoryId();
+    final args = Get.arguments as Map<String, dynamic>?;
+    final editingTraining = args?['training'];
+    if (editingTraining is Training) {
+      _editingTraining = editingTraining;
+      trainingId = editingTraining.id;
+      isEditing = true;
+    }
+
+    final selectedCategoryId =
+        (args?['categoryId'] as int?) ?? AppStorage.getSelectedCategoryId();
     if (selectedCategoryId == null) {
       error.value = 'No hay categoría seleccionada.';
     } else {
       categoryId = selectedCategoryId;
     }
 
-    // valor por defecto: ahora + 1h
-    final now = DateTime.now().add(const Duration(hours: 1));
-    _setStartsAt(now);
+    if (_editingTraining != null) {
+      _prefillIfEditing(_editingTraining!);
+    } else {
+      final now = DateTime.now().add(const Duration(hours: 1));
+      _setStartsAt(now);
+    }
     loadVenues();
+  }
+
+  void _prefillIfEditing(Training training) {
+    _setStartsAt(training.startsAt);
+    if (training.durationMinutes != null) {
+      durationController.text = '${training.durationMinutes}';
+    }
+    selectedVenueId.value = training.venueId;
+    status.value = training.status.trim().isEmpty
+        ? 'scheduled'
+        : training.status;
+    notesController.text = (training.notes ?? '').trim();
   }
 
   Future<void> loadVenues() async {
@@ -161,51 +196,136 @@ class CreateTrainningController extends GetxController {
     isSubmitting.value = true;
 
     try {
-      final resp = await _api.createTraining(
-        categoryId: categoryId,
-        data: body,
-      );
+      final activeRole =
+          (AppStorage.getActiveRole() ?? AppStorage.getUser()?.role ?? '')
+              .trim()
+              .toLowerCase();
 
-      if (resp['success'] == true) {
-        await Get.dialog(
-          AlertDialog(
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16),
-            ),
-            title: const Text('Entrenamiento creado'),
-            content: const Text(
-              'El entrenamiento se creó correctamente para esta categoría.',
-            ),
-            actions: [
-              TextButton(onPressed: () => Get.back(), child: const Text('OK')),
-            ],
-          ),
+      final Map<String, dynamic>? patch = (isEditing && trainingId != null)
+          ? _buildUpdatePayload(body)
+          : null;
+      if (patch != null && patch.isEmpty) {
+        Get.snackbar(
+          'Sin cambios',
+          'No hay cambios para actualizar.',
+          snackPosition: SnackPosition.BOTTOM,
         );
+        return;
+      }
 
-        // Volvemos con "true" para que la lista refresque
+      final resp = await (activeRole == 'coach'
+          ? (isEditing && trainingId != null
+                ? _coachTrainings.updateTraining(
+                    categoryId: categoryId,
+                    trainingId: trainingId!,
+                    data: patch!,
+                  )
+                : _coachTrainings.createTraining(
+                    categoryId: categoryId,
+                    data: body,
+                  ))
+          : (isEditing && trainingId != null
+                ? _managerTrainings.updateTraining(
+                    categoryId: categoryId,
+                    trainingId: trainingId!,
+                    data: patch!,
+                  )
+                : _managerTrainings.createTraining(
+                    categoryId: categoryId,
+                    data: body,
+                  )));
+
+      if (resp.success) {
+        await _showSuccessDialog(isEditing: isEditing);
         Get.back(result: true);
       } else {
-        final msg =
-            resp['message']?.toString() ?? 'No se pudo crear el entrenamiento.';
-        Get.snackbar(
-          'Error',
-          msg,
-          snackPosition: SnackPosition.BOTTOM,
-          backgroundColor: Colors.red.shade50,
-          colorText: Colors.red.shade800,
-        );
+        _showError(resp.message);
       }
     } catch (e) {
-      Get.snackbar(
-        'Error',
-        'No se pudo crear el entrenamiento: $e',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.red.shade50,
-        colorText: Colors.red.shade800,
-      );
+      _showError(_mapCreateError(e));
     } finally {
       isSubmitting.value = false;
     }
+  }
+
+  Map<String, dynamic> _buildUpdatePayload(Map<String, dynamic> fullBody) {
+    final training = _editingTraining;
+    if (training == null) return fullBody;
+
+    final patch = <String, dynamic>{};
+
+    final newStartsAt = fullBody['starts_at']?.toString();
+    final oldStartsAt = DateFormat(
+      'yyyy-MM-dd HH:mm:ss',
+    ).format(training.startsAt);
+    if (newStartsAt != oldStartsAt) {
+      patch['starts_at'] = newStartsAt;
+    }
+
+    final newDuration = fullBody['duration_minutes'] as int?;
+    if (newDuration != training.durationMinutes) {
+      patch['duration_minutes'] = newDuration;
+    }
+
+    final newVenueId = fullBody['venue_id'] as int?;
+    if (newVenueId != training.venueId) {
+      patch['venue_id'] = newVenueId;
+    }
+
+    final newStatus = (fullBody['status'] ?? '').toString().trim();
+    final oldStatus = training.status.trim();
+    if (newStatus != oldStatus) {
+      patch['status'] = newStatus;
+    }
+
+    final newNotesRaw = fullBody['notes'];
+    final newNotes = newNotesRaw?.toString().trim();
+    final oldNotes = training.notes?.trim();
+    if ((newNotes ?? '') != (oldNotes ?? '')) {
+      patch['notes'] = (newNotes == null || newNotes.isEmpty) ? null : newNotes;
+    }
+
+    return patch;
+  }
+
+  Future<void> _showSuccessDialog({required bool isEditing}) async {
+    await Get.dialog(
+      AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Text(
+          isEditing ? 'Entrenamiento actualizado' : 'Entrenamiento creado',
+        ),
+        content: Text(
+          isEditing
+              ? 'El entrenamiento se actualizó correctamente para esta categoría.'
+              : 'El entrenamiento se creó correctamente para esta categoría.',
+        ),
+        actions: [
+          TextButton(onPressed: () => Get.back(), child: const Text('OK')),
+        ],
+      ),
+    );
+  }
+
+  void _showError(String message) {
+    Get.snackbar(
+      'Error',
+      message,
+      snackPosition: SnackPosition.BOTTOM,
+      backgroundColor: Colors.red.shade50,
+      colorText: Colors.red.shade800,
+    );
+  }
+
+  String _mapCreateError(Object error) {
+    if (error is ApiRequestException) {
+      return error.message;
+    }
+    final text = error.toString();
+    if (text.startsWith('Exception: ')) {
+      return text.replaceFirst('Exception: ', '');
+    }
+    return 'No se pudo crear el entrenamiento.';
   }
 
   @override

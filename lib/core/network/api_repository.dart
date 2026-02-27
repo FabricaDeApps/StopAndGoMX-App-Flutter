@@ -38,7 +38,7 @@ import 'package:stopandgo/core/models/play_book_model.dart';
 import 'package:stopandgo/modules/combine_event_detail/combine_event_detail_controller.dart';
 import 'api_client.dart';
 import 'token_storage.dart';
-import 'package:get/get.dart' hide FormData, MultipartFile;
+import 'package:get/get.dart' hide FormData, MultipartFile, Response;
 import '../models/ecommerce/product_category_model.dart';
 import '../models/ecommerce/product_model.dart';
 import '../models/ecommerce/product_detail_model.dart';
@@ -288,6 +288,28 @@ class ApiRepository {
     return gameDtoListFromData(data);
   }
 
+  Future<List<Training>> getCoachCategoryTrainings({
+    required int categoryId,
+    DateTime? from,
+    DateTime? to,
+    String? status,
+  }) async {
+    final res = await _dio.get(
+      '/coach/categories/$categoryId/trainings',
+      queryParameters: {
+        if (status != null && status.isNotEmpty) 'status': status,
+        if (from != null) 'from': _dateOnly(from),
+        if (to != null) 'to': _dateOnly(to),
+      },
+      options: Options(headers: _headers()),
+    );
+
+    final data = (res.data['data'] as List?) ?? [];
+    return data
+        .map((e) => Training.fromJson(Map<String, dynamic>.from(e)))
+        .toList();
+  }
+
   // player: /player/my-payments?player_id=X  (usa res.data['data'])
   Future<List<PaymentDto>> playerMyPayments({required int playerId}) async {
     final res = await _dio.get(
@@ -386,11 +408,21 @@ class ApiRepository {
     Map<String, dynamic> data,
   ) async {
     try {
-      final response = await _dio.post(
-        '/manager/$categoryId/games/create',
+      final response = await managerCreateGameRequest(
+        categoryId: categoryId,
         data: data,
       );
-      return GenericResponse.fromJson(response.data);
+      final raw = response.data;
+      if (raw is Map<String, dynamic>) {
+        return GenericResponse.fromJson(raw);
+      }
+      if (raw is Map) {
+        return GenericResponse.fromJson(Map<String, dynamic>.from(raw));
+      }
+      return GenericResponse(
+        success: true,
+        message: 'Juego creado correctamente.',
+      );
     } on DioException catch (e) {
       final msg =
           e.response?.data?['message'] ?? e.message ?? 'Error desconocido';
@@ -779,10 +811,9 @@ class ApiRepository {
     required Map<String, dynamic> data,
   }) async {
     try {
-      final res = await _dio.post(
-        '/manager/$categoryId/trainings',
+      final res = await managerCreateTrainingRequest(
+        categoryId: categoryId,
         data: data,
-        options: Options(headers: _headers()),
       );
 
       if (res.statusCode == 201) {
@@ -805,6 +836,98 @@ class ApiRepository {
     } catch (e) {
       return {'success': false, 'message': 'Error inesperado: $e'};
     }
+  }
+
+  Future<Response<dynamic>> managerCreateGameRequest({
+    required int categoryId,
+    required Map<String, dynamic> data,
+  }) {
+    return _dio.post(
+      '/manager/$categoryId/games/create',
+      data: data,
+      options: Options(headers: _headers()),
+    );
+  }
+
+  Future<Response<dynamic>> managerUpdateGameRequest({
+    required int categoryId,
+    required int gameId,
+    required Map<String, dynamic> data,
+  }) {
+    return _dio.put(
+      '/manager/$categoryId/games/$gameId',
+      data: data,
+      options: Options(headers: _headers()),
+    );
+  }
+
+  Future<Response<dynamic>> managerCreateTrainingRequest({
+    required int categoryId,
+    required Map<String, dynamic> data,
+  }) {
+    return _dio.post(
+      '/manager/$categoryId/trainings',
+      data: data,
+      options: Options(headers: _headers()),
+    );
+  }
+
+  Future<Response<dynamic>> managerUpdateTrainingRequest({
+    required int categoryId,
+    required int trainingId,
+    required Map<String, dynamic> data,
+  }) {
+    return _dio.put(
+      '/manager/$categoryId/trainings/$trainingId',
+      data: data,
+      options: Options(headers: _headers()),
+    );
+  }
+
+  Future<Response<dynamic>> coachCreateGameRequest({
+    required int categoryId,
+    required Map<String, dynamic> data,
+  }) {
+    return _dio.post(
+      '/coach/categories/$categoryId/games',
+      data: data,
+      options: Options(headers: _headers()),
+    );
+  }
+
+  Future<Response<dynamic>> coachUpdateGameRequest({
+    required int categoryId,
+    required int gameId,
+    required Map<String, dynamic> data,
+  }) {
+    return _dio.put(
+      '/coach/categories/$categoryId/games/$gameId',
+      data: data,
+      options: Options(headers: _headers()),
+    );
+  }
+
+  Future<Response<dynamic>> coachCreateTrainingRequest({
+    required int categoryId,
+    required Map<String, dynamic> data,
+  }) {
+    return _dio.post(
+      '/coach/categories/$categoryId/trainings',
+      data: data,
+      options: Options(headers: _headers()),
+    );
+  }
+
+  Future<Response<dynamic>> coachUpdateTrainingRequest({
+    required int categoryId,
+    required int trainingId,
+    required Map<String, dynamic> data,
+  }) {
+    return _dio.put(
+      '/coach/categories/$categoryId/trainings/$trainingId',
+      data: data,
+      options: Options(headers: _headers()),
+    );
   }
 
   /// Registrar abono; payload puede ser FormData si subes archivo

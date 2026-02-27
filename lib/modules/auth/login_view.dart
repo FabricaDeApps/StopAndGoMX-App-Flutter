@@ -181,6 +181,17 @@ class LoginView extends GetView<LoginController> {
                             onFieldSubmitted: (_) => controller.submit(),
                           ),
                         ),
+                        const SizedBox(height: 4),
+                        Align(
+                          alignment: Alignment.centerRight,
+                          child: TextButton(
+                            onPressed: () => Get.toNamed(Routes.forgotPassword),
+                            style: TextButton.styleFrom(
+                              minimumSize: const Size(44, 44),
+                            ),
+                            child: const Text('¿Olvidaste tu contraseña?'),
+                          ),
+                        ),
                         const SizedBox(height: 20),
                         SizedBox(
                           width: double.infinity,

@@ -145,7 +145,9 @@ class TrainingsView extends GetView<TrainingsController> {
     return Scaffold(
       appBar: AppBar(title: const Text('Entrenamientos'), centerTitle: true),
 
-      floatingActionButton: controller.userRole.value == "manager"
+      floatingActionButton:
+          (controller.userRole.value == "manager" ||
+              controller.userRole.value == "coach")
           ? FloatingActionButton.extended(
               icon: const Icon(Icons.add),
               label: const Text('Nuevo entrenamiento'),
@@ -214,12 +216,18 @@ class TrainingsView extends GetView<TrainingsController> {
                         itemBuilder: (context, index) {
                           final t = list[index];
                           final isScheduled = t.status == 'scheduled';
+                          final canManageTraining =
+                              controller.userRole.value == 'manager';
+                          final canEditTraining =
+                              (controller.userRole.value == 'manager' ||
+                                  controller.userRole.value == 'coach') &&
+                              isScheduled;
                           final isCompleted = t.status == 'completed';
 
                           return Slidable(
                             key: ValueKey(t.id),
-                            enabled: isScheduled,
-                            endActionPane: isScheduled
+                            enabled: isScheduled && canManageTraining,
+                            endActionPane: (isScheduled && canManageTraining)
                                 ? ActionPane(
                                     motion: const DrawerMotion(),
                                     children: [
@@ -371,6 +379,19 @@ class TrainingsView extends GetView<TrainingsController> {
                                       Text(
                                         t.notes!,
                                         style: theme.textTheme.bodySmall,
+                                      ),
+                                    ],
+
+                                    if (canEditTraining) ...[
+                                      const SizedBox(height: 12),
+                                      Align(
+                                        alignment: Alignment.centerRight,
+                                        child: OutlinedButton.icon(
+                                          onPressed: () =>
+                                              controller.goToEditTraining(t),
+                                          icon: const Icon(Icons.edit_outlined),
+                                          label: const Text('Editar'),
+                                        ),
                                       ),
                                     ],
 

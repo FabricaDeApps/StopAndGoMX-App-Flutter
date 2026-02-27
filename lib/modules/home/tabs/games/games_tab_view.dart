@@ -279,6 +279,32 @@ class GamesTabView extends GetView<GamesTabController> {
                         ),
                       ),
 
+                      if ((role == 'manager' || role == 'coach') &&
+                          g.status != 'completed')
+                        IconButton(
+                          padding: EdgeInsets.zero,
+                          constraints: const BoxConstraints(
+                            minWidth: 36,
+                            minHeight: 36,
+                          ),
+                          visualDensity: VisualDensity.compact,
+                          icon: const Icon(Icons.edit_outlined, size: 22),
+                          tooltip: 'Editar juego',
+                          onPressed: () async {
+                            final result = await Get.toNamed(
+                              Routes.newGame,
+                              arguments: {
+                                'categoryId': g.categoryId,
+                                'game': g,
+                              },
+                            );
+
+                            if (result == true) {
+                              await controller.refresh();
+                            }
+                          },
+                        ),
+
                       // 📋 Asistencia (manager, mismo día)
                       if (role == 'manager' &&
                           g.startsAt != null &&
@@ -330,7 +356,8 @@ class GamesTabView extends GetView<GamesTabController> {
             ],
           ),
 
-          if (controller.role.value == 'manager')
+          if (controller.role.value == 'manager' ||
+              controller.role.value == 'coach')
             Positioned(
               right: 16,
               bottom: 16,

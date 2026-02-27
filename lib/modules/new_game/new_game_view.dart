@@ -12,7 +12,9 @@ class NewGameView extends GetView<NewGameController> {
     final theme = Theme.of(context);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Nuevo juego')),
+      appBar: AppBar(
+        title: Text(controller.isEditing ? 'Editar juego' : 'Nuevo juego'),
+      ),
       body: SafeArea(
         child: Form(
           key: controller.formKey,
@@ -78,9 +80,7 @@ class NewGameView extends GetView<NewGameController> {
                         },
                       ),
                       decoratorProps: const DropDownDecoratorProps(
-                        decoration: InputDecoration(
-                          labelText: 'Sede / Campo',
-                        ),
+                        decoration: InputDecoration(labelText: 'Sede / Campo'),
                       ),
                       suffixProps: const DropdownSuffixProps(
                         clearButtonProps: ClearButtonProps(isVisible: false),
@@ -128,7 +128,7 @@ class NewGameView extends GetView<NewGameController> {
                   contentPadding: EdgeInsets.zero,
                   title: const Text('Local'),
                   value: controller.isHome.value,
-                  onChanged: (v) => controller.isHome.value = v,
+                  onChanged: controller.setIsHome,
                 ),
               ),
               const SizedBox(height: 12),
@@ -162,7 +162,9 @@ class NewGameView extends GetView<NewGameController> {
                     label: Text(
                       controller.isSubmitting.value
                           ? 'Guardando...'
-                          : 'Crear juego',
+                          : (controller.isEditing
+                                ? 'Guardar cambios'
+                                : 'Crear juego'),
                     ),
                   ),
                 ),

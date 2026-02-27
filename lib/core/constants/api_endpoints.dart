@@ -14,6 +14,7 @@ class ApiEndpoints {
   static const authLogout = '$auth/logout';
   static const authMe = '$auth/me';
   static const authRefresh = '$auth/refresh';
+  static const authPasswordForgot = '$auth/password/forgot';
   static const accountPhoto = '/account/photo';
 
   // ---- MANAGER ----
