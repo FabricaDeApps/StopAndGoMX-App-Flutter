@@ -17,6 +17,7 @@ class AppStorage {
   static const keySelectedPlayerId = 'selected_player_id';
   static const keySelectedPlayerName = 'selected_player_name';
   static const keyTokenDevice = 'key_token_device';
+  static const keyPendingOrganizationId = 'pending_organization_id';
 
   /// Inicialización
   static Future<void> init() async {
@@ -142,6 +143,24 @@ class AppStorage {
     return _box.read<String?>(keyTokenDevice);
   }
 
+  static Future<void> setPendingOrganizationId(int? value) async {
+    if (value == null || value <= 0) {
+      await _box.remove(keyPendingOrganizationId);
+      return;
+    }
+    await _box.write(keyPendingOrganizationId, value);
+  }
+
+  static int? getPendingOrganizationId() {
+    return _box.read<int?>(keyPendingOrganizationId);
+  }
+
+  static Future<int?> consumePendingOrganizationId() async {
+    final value = getPendingOrganizationId();
+    await _box.remove(keyPendingOrganizationId);
+    return value;
+  }
+
   /// Guarda el ID del jugador seleccionado (para parent/player)
   static Future<void> setSelectedPlayerId(int? id) async {
     if (id == null) {
@@ -177,6 +196,7 @@ class AppStorage {
 
   static Future<void> clearAll() async {
     await clearUser();
+    await setPendingOrganizationId(null);
     await setSelectedCategoryId(null);
     await setSelectedCategoryName(null);
     await setSelectedPlayerId(null);

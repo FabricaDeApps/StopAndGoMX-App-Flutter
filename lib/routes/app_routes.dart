@@ -26,6 +26,8 @@ import 'package:stopandgo/modules/complete_game/complete_game_binding.dart';
 import 'package:stopandgo/modules/complete_game/complete_game_view.dart';
 import 'package:stopandgo/modules/create_metric/create_metric_view.dart';
 import 'package:stopandgo/modules/create_metric/index.dart';
+import 'package:stopandgo/modules/create_notice/create_notice_view.dart';
+import 'package:stopandgo/modules/create_notice/index.dart';
 import 'package:stopandgo/modules/create_trainning/index.dart';
 import 'package:stopandgo/modules/documents_compliance/documents_compliance_binding.dart';
 import 'package:stopandgo/modules/documents_compliance/documents_compliance_view.dart';
@@ -125,6 +127,11 @@ class AppPages {
       name: Routes.noticeDetail,
       page: () => const NoticeDetailView(),
       binding: NoticeDetailBinding(),
+    ),
+    GetPage(
+      name: Routes.createNotice,
+      page: () => const CreateNoticeView(),
+      binding: CreateNoticeBinding(),
     ),
     GetPage(
       name: Routes.home,

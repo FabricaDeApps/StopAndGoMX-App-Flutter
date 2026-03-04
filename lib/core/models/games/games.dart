@@ -83,6 +83,7 @@ class Game {
   final int id;
   final int organizationId;
   final int categoryId;
+  final String? categoryName;
 
   final String opponent;
   final String? opponentCategory;
@@ -130,6 +131,7 @@ class Game {
     required this.id,
     required this.organizationId,
     required this.categoryId,
+    this.categoryName,
     required this.opponent,
     this.opponentCategory,
     this.opponentNotes,
@@ -208,6 +210,7 @@ class Game {
       id: (json['id'] ?? 0) as int,
       organizationId: (json['organization_id'] ?? 0) as int,
       categoryId: (json['category_id'] ?? 0) as int,
+      categoryName: json['category_name']?.toString(),
       opponent: (json['opponent_name'] ?? json['opponent'] ?? '') as String,
       opponentCategory: json['opponent_category']?.toString(),
       opponentNotes: json['opponent_notes']?.toString(),
@@ -251,6 +254,7 @@ class Game {
     'id': id,
     'organization_id': organizationId,
     'category_id': categoryId,
+    'category_name': categoryName,
     'opponent': opponent,
     'opponent_category': opponentCategory,
     'opponent_notes': opponentNotes,

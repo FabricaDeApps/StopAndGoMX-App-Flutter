@@ -149,19 +149,23 @@ class ApiRepository {
 
   // /player/my-games?player_id=...
   Future<List<Game>> playerMyGamesFromParent({
-    required int playerId,
+    int? playerId,
     required String from,
     required String to,
     String? status,
+    bool allOrganizationGames = false,
   }) async {
-    final params = <String, dynamic>{
-      'player_id': playerId,
-      'from': from,
-      'to': to,
-    };
+    final params = <String, dynamic>{'from': from, 'to': to};
+
+    if (playerId != null) {
+      params['player_id'] = playerId;
+    }
 
     if (status != null) {
       params['status'] = status;
+    }
+    if (allOrganizationGames) {
+      params['all_organization_games'] = true;
     }
 
     final res = await _dio.get(
@@ -178,11 +182,15 @@ class ApiRepository {
     required String from,
     required String to,
     String? status,
+    bool allOrganizationGames = false,
   }) async {
     final params = <String, dynamic>{'from': from, 'to': to};
 
     if (status != null) {
       params['status'] = status;
+    }
+    if (allOrganizationGames) {
+      params['all_organization_games'] = true;
     }
     final res = await _dio.get(
       '/player/my-games',
@@ -200,10 +208,14 @@ class ApiRepository {
     required String from,
     required String to,
     String? status,
+    bool allOrganizationGames = false,
   }) async {
     final params = <String, dynamic>{'from': from, 'to': to};
     if (status != null) {
       params['status'] = status;
+    }
+    if (allOrganizationGames) {
+      params['all_organization_games'] = true;
     }
 
     final res = await _dio.get(
@@ -277,10 +289,19 @@ class ApiRepository {
     required String from,
     required String to,
     String? status,
+    bool allOrganizationGames = false,
   }) async {
+    final params = <String, dynamic>{'from': from, 'to': to};
+    if (status != null) {
+      params['status'] = status;
+    }
+    if (allOrganizationGames) {
+      params['all_organization_games'] = true;
+    }
+
     final res = await _dio.get(
       '/coach/categories/$categoryId/games',
-      queryParameters: {'from': from, 'to': to, 'status': status},
+      queryParameters: params,
       options: Options(headers: _headers()),
     );
 
@@ -1069,6 +1090,150 @@ class ApiRepository {
 
     final res = await _dio.post('/manager/notices', data: data);
     return Map<String, dynamic>.from(res.data as Map);
+  }
+
+  Future<Notice> createManagerCategoryNotice({
+    required int categoryId,
+    required String title,
+    required String message,
+    int? seasonId,
+    bool isPublished = true,
+    bool pinned = false,
+    DateTime? publishedAt,
+    DateTime? expiresAt,
+    String? attachmentPath,
+  }) async {
+    return _createCategoryNotice(
+      endpoint: '/manager/$categoryId/notices',
+      title: title,
+      message: message,
+      seasonId: seasonId,
+      isPublished: isPublished,
+      pinned: pinned,
+      publishedAt: publishedAt,
+      expiresAt: expiresAt,
+      attachmentPath: attachmentPath,
+    );
+  }
+
+  Future<Notice> createCoachCategoryNotice({
+    required int categoryId,
+    required String title,
+    required String message,
+    int? seasonId,
+    bool isPublished = true,
+    bool pinned = false,
+    DateTime? publishedAt,
+    DateTime? expiresAt,
+    String? attachmentPath,
+  }) async {
+    return _createCategoryNotice(
+      endpoint: '/coach/categories/$categoryId/notices',
+      title: title,
+      message: message,
+      seasonId: seasonId,
+      isPublished: isPublished,
+      pinned: pinned,
+      publishedAt: publishedAt,
+      expiresAt: expiresAt,
+      attachmentPath: attachmentPath,
+    );
+  }
+
+  Future<Notice> _createCategoryNotice({
+    required String endpoint,
+    required String title,
+    required String message,
+    int? seasonId,
+    required bool isPublished,
+    required bool pinned,
+    DateTime? publishedAt,
+    DateTime? expiresAt,
+    String? attachmentPath,
+  }) async {
+    final payload = <String, dynamic>{
+      'title': title.trim(),
+      'message': message.trim(),
+      'is_published': isPublished,
+      'pinned': pinned,
+      if (seasonId != null) 'season_id': seasonId,
+      if (publishedAt != null) 'published_at': publishedAt.toIso8601String(),
+      if (expiresAt != null) 'expires_at': expiresAt.toIso8601String(),
+    };
+
+    final hasAttachment =
+        attachmentPath != null && attachmentPath.trim().isNotEmpty;
+
+    final data = hasAttachment
+        ? FormData.fromMap({
+            ...payload,
+            // Laravel boolean en multipart suele aceptar 1/0 (o '1'/'0').
+            'is_published': isPublished ? '1' : '0',
+            'pinned': pinned ? '1' : '0',
+            'attachment': await MultipartFile.fromFile(attachmentPath.trim()),
+          })
+        : payload;
+
+    Response<dynamic> res;
+    try {
+      res = await _dio.post(
+        endpoint,
+        data: data,
+        options: Options(headers: _headers()),
+      );
+    } on DioException catch (e) {
+      throw Exception(_extractDioMessage(e));
+    }
+
+    final raw = res.data;
+    if (raw is Map<String, dynamic>) {
+      final nested = raw['data'];
+      if (nested is Map) {
+        return Notice.fromJson(Map<String, dynamic>.from(nested));
+      }
+      return Notice.fromJson(raw);
+    }
+    if (raw is Map) {
+      return Notice.fromJson(Map<String, dynamic>.from(raw));
+    }
+    throw Exception('Respuesta inesperada al crear aviso');
+  }
+
+  String _extractDioMessage(DioException e) {
+    final data = e.response?.data;
+
+    if (data is Map<String, dynamic>) {
+      final message = data['message'];
+      if (message is String && message.trim().isNotEmpty) {
+        return message.trim();
+      }
+
+      final errors = data['errors'];
+      if (errors is Map) {
+        for (final value in errors.values) {
+          if (value is List && value.isNotEmpty) {
+            final first = value.first?.toString();
+            if (first != null && first.trim().isNotEmpty) {
+              return first.trim();
+            }
+          }
+        }
+      }
+    } else if (data is Map) {
+      final map = Map<String, dynamic>.from(data);
+      final message = map['message'];
+      if (message is String && message.trim().isNotEmpty) {
+        return message.trim();
+      }
+    } else if (data is String && data.trim().isNotEmpty) {
+      return data.trim();
+    }
+
+    final status = e.response?.statusCode;
+    if (status == 422) {
+      return 'Datos inválidos para crear el aviso. Revisa los campos e intenta de nuevo.';
+    }
+    return e.message ?? 'No se pudo crear el aviso.';
   }
 
   Future<void> completeTraining(int trainingId, int categoryId) async {

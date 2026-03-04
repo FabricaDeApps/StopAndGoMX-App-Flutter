@@ -7,6 +7,8 @@ import 'package:stopandgo/core/storage/app_storage.dart';
 
 enum GamesStatusFilter { all, played, upcoming }
 
+enum GamesScopeFilter { mine, organization }
+
 class GamesTabController extends GetxController {
   final api = Get.find<ApiRepository>();
 
@@ -16,6 +18,7 @@ class GamesTabController extends GetxController {
   final selectedPlayerId = RxnInt();
 
   final filterStatus = GamesStatusFilter.all.obs;
+  final scopeFilter = GamesScopeFilter.mine.obs;
   final selectedRange = Rxn<DateTimeRange>();
 
   // Estado UI
@@ -33,7 +36,13 @@ class GamesTabController extends GetxController {
   }
 
   void setFilterStatus(GamesStatusFilter s) => filterStatus.value = s;
+  void setScopeFilter(GamesScopeFilter s) => scopeFilter.value = s;
   void setDateRange(DateTimeRange? r) => selectedRange.value = r;
+  bool get canFilterByScope =>
+      role.value == 'player' ||
+      role.value == 'parent' ||
+      role.value == 'manager' ||
+      role.value == 'coach';
 
   // Org (para streamingEnabled y orgId)
   bool get streamingEnabled =>
@@ -92,12 +101,15 @@ class GamesTabController extends GetxController {
         final categoryId =
             selectedCategoryId.value ?? AppStorage.getSelectedCategoryId();
         if (categoryId == null) return;
+        final allOrganizationGames =
+            scopeFilter.value == GamesScopeFilter.organization;
 
         final dtos = await api.managerCategoryGames(
           categoryId: categoryId,
           from: _ymd(from),
           to: _ymd(to),
           status: status,
+          allOrganizationGames: allOrganizationGames,
         );
         games.assignAll(_sortedByStart(dtos));
         return;
@@ -107,12 +119,15 @@ class GamesTabController extends GetxController {
         final categoryId =
             selectedCategoryId.value ?? AppStorage.getSelectedCategoryId();
         if (categoryId == null) return;
+        final allOrganizationGames =
+            scopeFilter.value == GamesScopeFilter.organization;
 
         final dtos = await api.getCoachCategoryGames(
           categoryId: categoryId,
           from: _ymd(from),
           to: _ymd(to),
           status: status,
+          allOrganizationGames: allOrganizationGames,
         );
         games.assignAll(_sortedByStart(dtos));
         return;
@@ -122,22 +137,28 @@ class GamesTabController extends GetxController {
         final playerId =
             selectedPlayerId.value ?? AppStorage.getSelectedPlayerId();
         if (playerId == null) return;
+        final allOrganizationGames =
+            scopeFilter.value == GamesScopeFilter.organization;
 
         final dtos = await api.playerMyGamesFromParent(
           playerId: playerId,
           from: _ymd(from),
           to: _ymd(to),
           status: status,
+          allOrganizationGames: allOrganizationGames,
         );
         games.assignAll(_sortedByStart(dtos));
         return;
       }
 
       // player
+      final allOrganizationGames =
+          scopeFilter.value == GamesScopeFilter.organization;
       final dtos = await api.playerMyGames(
         from: _ymd(from),
         to: _ymd(to),
         status: status,
+        allOrganizationGames: allOrganizationGames,
       );
       games.assignAll(_sortedByStart(dtos));
     } catch (e, st) {

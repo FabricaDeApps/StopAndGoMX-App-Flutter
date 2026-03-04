@@ -135,4 +135,5 @@ dependencies {
     // Añade libs Android puras aquí si las necesitas
     implementation("androidx.core:core-ktx:1.13.1")
     implementation("androidx.appcompat:appcompat:1.7.0")
+    implementation("com.android.installreferrer:installreferrer:2.2")
 }

@@ -1,2 +1,3 @@
-- Managers y Coach crear entrenamientos y partidos.
-- Fix en vista de entrenamientos de jugadores
+- Managers y Coach crear avisos.
+- Fix en vista de games.
+- Poder ver todos los juegos del equipo.

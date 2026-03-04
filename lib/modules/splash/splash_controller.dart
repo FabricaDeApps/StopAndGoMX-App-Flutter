@@ -58,9 +58,15 @@ class SplashController extends GetxController {
 
       // 2) Multi-org: restaura org cacheada para que el fetch remoto use ese id
       if (!FlavorConfig.I.isCustom) {
+        final pendingOrgId = await AppStorage.consumePendingOrganizationId();
+        if (pendingOrgId != null && pendingOrgId > 0) {
+          FlavorConfig.I.updateOrganizationId(pendingOrgId);
+        }
+
         final cachedOrg = AppStorage.getOrganization();
         final cachedOrgId = cachedOrg?.id;
-        if (cachedOrgId != null) {
+        if ((pendingOrgId == null || pendingOrgId <= 0) &&
+            cachedOrgId != null) {
           FlavorConfig.I.updateOrganizationId(cachedOrgId);
           _org = cachedOrg;
           _applyBranding(cachedOrg!);

@@ -109,7 +109,9 @@ class GameDetailView extends GetView<GameDetailController> {
                                 ),
                                 child: _CommentTile(
                                   c: c,
-                                  isLiking: controller.isCommentLikeLoading(c.id),
+                                  isLiking: controller.isCommentLikeLoading(
+                                    c.id,
+                                  ),
                                   onToggleLike: () async {
                                     await controller.toggleCommentLike(c);
                                   },
@@ -247,6 +249,21 @@ class _HeaderSlider extends StatelessWidget {
                       fontWeight: FontWeight.w800,
                     ),
                   ),
+                  if ((game.opponentCategory ?? game.categoryName ?? '')
+                      .trim()
+                      .isNotEmpty) ...[
+                    const SizedBox(height: 4),
+                    Text(
+                      (game.opponentCategory ?? game.categoryName!).trim(),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: Colors.white.withOpacity(0.9),
+                        fontStyle: FontStyle.italic,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
                   const SizedBox(height: 8),
                   Row(
                     children: List.generate(imgs.length, (i) {

@@ -9,6 +9,7 @@ import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:stopandgo/core/config/flavor_config.dart';
 import 'package:stopandgo/core/network/api_client.dart';
 import 'package:stopandgo/core/services/clarity_service.dart';
+import 'package:stopandgo/core/services/deep_link_org_service.dart';
 import 'package:stopandgo/core/services/notification_service.dart';
 import 'package:stopandgo/core/storage/app_storage.dart';
 import 'package:stopandgo/firebase_messaging_background.dart';
@@ -38,9 +39,15 @@ class AppBootstrap {
       await Firebase.initializeApp(options: firebaseOptions);
       await initializeDateFormatting(localeTag, null);
       await AppStorage.init();
+      await DeepLinkOrgService.bootstrap();
       if (!FlavorConfig.I.isCustom) {
+        final pendingOrgId = AppStorage.getPendingOrganizationId();
+        if (pendingOrgId != null && pendingOrgId > 0) {
+          FlavorConfig.I.updateOrganizationId(pendingOrgId);
+        }
         final cachedOrgId = AppStorage.getOrganization()?.id;
-        if (cachedOrgId != null) {
+        if ((pendingOrgId == null || pendingOrgId <= 0) &&
+            cachedOrgId != null) {
           FlavorConfig.I.updateOrganizationId(cachedOrgId);
         }
       }
