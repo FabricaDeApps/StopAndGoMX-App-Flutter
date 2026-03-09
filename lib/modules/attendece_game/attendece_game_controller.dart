@@ -59,15 +59,32 @@ class AttendanceGameController extends GetxController {
   void onInit() {
     super.onInit();
     final args = Get.arguments as Map<String, dynamic>?;
-    categoryId =
-        args?['categoryId'] as int? ??
-        (throw ArgumentError('categoryId requerido'));
 
+    int? parseInt(dynamic value) {
+      if (value == null) return null;
+      if (value is int) return value;
+      if (value is num) return value.toInt();
+      return int.tryParse(value.toString());
+    }
+
+    DateTime? parseDate(dynamic value) {
+      if (value is DateTime) return value;
+      if (value == null) return null;
+      return DateTime.tryParse(value.toString());
+    }
+
+    categoryId =
+        parseInt(args?['categoryId']) ??
+        (throw ArgumentError('categoryId requerido'));
     gameId =
-        args?['gameId'] as int? ?? (throw ArgumentError('gameId es requerido'));
+        parseInt(args?['gameId']) ??
+        (throw ArgumentError('gameId es requerido'));
     gameDate =
-        args?['gameDate'] as DateTime? ??
+        parseDate(args?['gameDate']) ??
         (throw ArgumentError('gameDate es requerido'));
+
+    if (categoryId <= 0) throw ArgumentError('categoryId inválido');
+    if (gameId <= 0) throw ArgumentError('gameId inválido');
     _loadPlayers();
   }
 

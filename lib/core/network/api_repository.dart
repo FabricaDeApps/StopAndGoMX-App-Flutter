@@ -19,6 +19,7 @@ import 'package:stopandgo/core/models/ecommerce/ecommerce_order_detail_model.dar
 import 'package:stopandgo/core/models/ecommerce/ecommerce_order_list_item_model.dart';
 import 'package:stopandgo/core/models/games/game_comment.dart';
 import 'package:stopandgo/core/models/games/games.dart';
+import 'package:stopandgo/core/models/gazzetta/gazzetta_models.dart';
 import 'package:stopandgo/core/models/player_document.dart';
 import 'package:stopandgo/core/models/player_file.dart';
 import 'package:stopandgo/core/models/player_documents_checklist.dart';
@@ -31,6 +32,7 @@ import 'package:stopandgo/core/models/streaming/live_event.dart';
 import 'package:stopandgo/core/models/training.dart';
 import 'package:stopandgo/core/models/trainings/training_player_response.dart';
 import 'package:stopandgo/core/models/trainning_attendance.dart';
+import 'package:stopandgo/core/network/gazzetta_exceptions.dart';
 import 'package:stopandgo/core/network/paginated_response.dart';
 import 'package:stopandgo/core/storage/app_storage.dart';
 import 'package:stopandgo/core/utils/device_info.dart';
@@ -574,12 +576,19 @@ class ApiRepository {
     required String name,
     required String email,
     String? role,
+    String? phone,
+    String? curp,
+    String? birthdate,
   }) async {
     try {
       final body = <String, dynamic>{
         'name': name.trim(),
         'email': email.trim(),
         if (role != null && role.isNotEmpty) 'role': role,
+        if (phone != null && phone.trim().isNotEmpty) 'phone': phone.trim(),
+        if (curp != null && curp.trim().isNotEmpty) 'curp': curp.trim(),
+        if (birthdate != null && birthdate.trim().isNotEmpty)
+          'birthdate': birthdate.trim(),
       };
 
       final res = await _dio.put(
@@ -1607,12 +1616,127 @@ class ApiRepository {
     }
   }
 
+  Future<GazettaDetail?> getGazettaFeed() async {
+    try {
+      final res = await _dio.get(
+        '/gazetta/feed',
+        options: Options(headers: _headers()),
+      );
+      final map = _asMap(res.data);
+      return GazettaFeedResponse.fromJson(map).data;
+    } on DioException catch (e) {
+      throw _mapGazettaError(e);
+    }
+  }
+
+  Future<PaginatedResponse<GazettaItem>> getGazettaHistory({
+    DateTime? from,
+    DateTime? to,
+    DateTime? weekStart,
+    int perPage = 20,
+    int page = 1,
+  }) async {
+    try {
+      final query = <String, dynamic>{
+        if (from != null) 'from': _toYmd(from),
+        if (to != null) 'to': _toYmd(to),
+        if (weekStart != null) 'week_start': _toYmd(weekStart),
+        'per_page': perPage,
+        'page': page,
+      };
+
+      final res = await _dio.get(
+        '/gazetta/history',
+        queryParameters: query,
+        options: Options(headers: _headers()),
+      );
+
+      final root = _asMap(res.data);
+      final payload = root['data'] is Map ? _asMap(root['data']) : root;
+      return PaginatedResponse<GazettaItem>.fromJson(
+        payload,
+        GazettaItem.fromJson,
+      );
+    } on DioException catch (e) {
+      throw _mapGazettaError(e);
+    }
+  }
+
+  Future<GazettaDetail> getGazettaDetail(int id) async {
+    try {
+      final res = await _dio.get(
+        '/gazetta/$id',
+        options: Options(headers: _headers()),
+      );
+      final root = _asMap(res.data);
+      final payload = root['data'] is Map ? _asMap(root['data']) : root;
+      return GazettaDetail.fromJson(payload);
+    } on DioException catch (e) {
+      throw _mapGazettaError(e);
+    }
+  }
+
+  Future<GazettaMeta> getGazettaMeta(int id) async {
+    try {
+      final res = await _dio.get(
+        '/gazetta/$id/meta',
+        options: Options(headers: _headers()),
+      );
+      final root = _asMap(res.data);
+      final payload = root['data'] is Map ? _asMap(root['data']) : root;
+      return GazettaMeta.fromJson(payload);
+    } on DioException catch (e) {
+      throw _mapGazettaError(e);
+    }
+  }
+
+  Future<void> markGazettaSeen(int id) async {
+    try {
+      await _dio.post(
+        '/gazetta/$id/seen',
+        options: Options(headers: _headers()),
+      );
+    } on DioException catch (e) {
+      throw _mapGazettaError(e);
+    }
+  }
+
   /// helper: DateTime -> YYYY-MM-DD
   String _toYmd(DateTime d) {
     final dt = DateTime(d.year, d.month, d.day);
     final mm = dt.month.toString().padLeft(2, '0');
     final dd = dt.day.toString().padLeft(2, '0');
     return '${dt.year}-$mm-$dd';
+  }
+
+  Map<String, dynamic> _asMap(dynamic data) {
+    if (data is Map<String, dynamic>) return data;
+    if (data is Map) return Map<String, dynamic>.from(data);
+    return const <String, dynamic>{};
+  }
+
+  Exception _mapGazettaError(DioException e) {
+    final status = e.response?.statusCode;
+    if (status == 404) {
+      return const GazettaModuleUnavailableException();
+    }
+
+    if (e.type == DioExceptionType.connectionTimeout ||
+        e.type == DioExceptionType.receiveTimeout ||
+        e.type == DioExceptionType.sendTimeout ||
+        e.type == DioExceptionType.connectionError) {
+      return Exception('Sin conexión o tiempo de espera agotado');
+    }
+
+    final data = e.response?.data;
+    if (data is Map<String, dynamic>) {
+      final message = data['message']?.toString().trim();
+      if (message != null && message.isNotEmpty) {
+        return Exception(message);
+      }
+    }
+
+    return Exception(e.message ?? 'No se pudo consultar Gazzetta');
   }
 
   /// GET /dashboards/parent

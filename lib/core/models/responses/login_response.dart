@@ -36,6 +36,9 @@ class User {
   final String name;
   final String email;
   final String? photoUrl;
+  final String? phone;
+  final String? curp;
+  final String? birthdate;
   final String role;
   final List<String> roles;
   final String primaryRole;
@@ -49,6 +52,9 @@ class User {
     required this.name,
     required this.email,
     this.photoUrl,
+    this.phone,
+    this.curp,
+    this.birthdate,
     required this.role,
     required this.roles,
     required this.primaryRole,
@@ -85,6 +91,12 @@ class User {
       name: json['name'] ?? '',
       email: json['email'] ?? '',
       photoUrl: json['profile_photo_url'] ?? '',
+      phone: json['phone']?.toString(),
+      curp: json['curp']?.toString(),
+      birthdate:
+          json['birthdate']?.toString() ??
+          json['birth_date']?.toString() ??
+          json['date_of_birth']?.toString(),
       role: effectiveRole,
       roles: roles,
       primaryRole: primaryRole.isNotEmpty ? primaryRole : effectiveRole,
@@ -100,6 +112,9 @@ class User {
     String? name,
     String? email,
     String? photoUrl,
+    String? phone,
+    String? curp,
+    String? birthdate,
     String? role,
     List<String>? roles,
     String? primaryRole,
@@ -113,6 +128,9 @@ class User {
       name: name ?? this.name,
       email: email ?? this.email,
       photoUrl: photoUrl ?? this.photoUrl,
+      phone: phone ?? this.phone,
+      curp: curp ?? this.curp,
+      birthdate: birthdate ?? this.birthdate,
       role: role ?? this.role,
       roles: roles ?? this.roles,
       primaryRole: primaryRole ?? this.primaryRole,
@@ -128,6 +146,9 @@ class User {
     'name': name,
     'email': email,
     if (photoUrl != null && photoUrl!.isNotEmpty) 'photo_url': photoUrl,
+    if (phone != null && phone!.isNotEmpty) 'phone': phone,
+    if (curp != null && curp!.isNotEmpty) 'curp': curp,
+    if (birthdate != null && birthdate!.isNotEmpty) 'birthdate': birthdate,
     'role': role,
     'roles': roles,
     'primary_role': primaryRole,

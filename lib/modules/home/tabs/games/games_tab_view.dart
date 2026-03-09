@@ -110,9 +110,9 @@ class GamesTabView extends GetView<GamesTabController> {
                     role == 'manager' &&
                     controller.scopeFilter.value ==
                         GamesScopeFilter.organization;
+                final hideManagerActions = isManagerAllTeamScope;
 
                 final canComplete = role == 'manager' && isPast;
-                final canStartLive = controller.canStartLive();
 
                 final streamingEnabled = controller.streamingEnabled;
 
@@ -341,7 +341,9 @@ class GamesTabView extends GetView<GamesTabController> {
                         ],
 
                         // 🎥 Iniciar Live (solo manager/coach y streaming habilitado)
-                        if (streamingEnabled && canStartLive)
+                        if (streamingEnabled &&
+                            (role == 'coach' ||
+                                (role == 'manager' && !hideManagerActions)))
                           IconButton(
                             padding: EdgeInsets.zero,
                             constraints: const BoxConstraints(
@@ -375,7 +377,10 @@ class GamesTabView extends GetView<GamesTabController> {
 
                         // 🗺️ Google Maps
                         Visibility(
-                          visible: role == 'manager' && g.status != "completed",
+                          visible:
+                              role == 'manager' &&
+                              !hideManagerActions &&
+                              g.status != "completed",
                           child: IconButton(
                             padding: EdgeInsets.zero,
                             constraints: const BoxConstraints(
@@ -399,9 +404,9 @@ class GamesTabView extends GetView<GamesTabController> {
                               final result = await Get.toNamed(
                                 Routes.completeGame,
                                 arguments: {
-                                  'categoryId':
-                                      controller.selectedCategoryId.value ??
-                                      AppStorage.getSelectedCategoryId(),
+                                  // Usa la categoría real del juego para evitar
+                                  // desalineación cuando el manager ve "Toda la organización".
+                                  'categoryId': g.categoryId,
                                   'gameId': g.id,
                                   'gameDate': g.startsAt,
                                 },
@@ -494,7 +499,8 @@ class GamesTabView extends GetView<GamesTabController> {
             ],
           ),
 
-          if (controller.role.value == 'manager' ||
+          if ((controller.role.value == 'manager' &&
+                  controller.scopeFilter.value == GamesScopeFilter.mine) ||
               controller.role.value == 'coach')
             Positioned(
               right: 16,

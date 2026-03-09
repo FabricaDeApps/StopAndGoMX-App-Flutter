@@ -4,6 +4,10 @@ Todos los cambios importantes del proyecto **StopAndGoMX** se documentan en este
 El formato sigue las recomendaciones de **Keep a Changelog**  
 y el versionado está basado en **Semantic Versioning (SemVer)**.
 
+## [1.0.60] - 2026-3-7
+• Sección de Gazzetta.
+• Fix en vista de games.
+
 ## [1.0.59] - 2026-2-26
 • Managers y Coach crear avisos.
 • Fix en vista de games.

@@ -10,6 +10,9 @@ class MyProfileController extends GetxController {
   // Text controllers
   final nameCtrl = TextEditingController();
   final emailCtrl = TextEditingController();
+  final birthdateCtrl = TextEditingController();
+  final phoneCtrl = TextEditingController();
+  final curpCtrl = TextEditingController();
 
   final currentPasswordCtrl = TextEditingController();
   final newPasswordCtrl = TextEditingController();
@@ -43,12 +46,18 @@ class MyProfileController extends GetxController {
       // Asumiendo que data es el usuario directamente
       nameCtrl.text = data['name']?.toString() ?? '';
       emailCtrl.text = data['email']?.toString() ?? '';
+      birthdateCtrl.text =
+          (data['birthdate'] ?? data['birth_date'] ?? data['date_of_birth'])
+              ?.toString() ??
+          '';
+      phoneCtrl.text = data['phone']?.toString() ?? '';
+      curpCtrl.text = data['curp']?.toString() ?? '';
 
       final apiRoles = (data['roles'] is List)
           ? (data['roles'] as List)
-              .map((e) => e.toString().trim())
-              .where((e) => e.isNotEmpty)
-              .toList()
+                .map((e) => e.toString().trim())
+                .where((e) => e.isNotEmpty)
+                .toList()
           : <String>[];
       if (apiRoles.isNotEmpty) {
         roles.assignAll(apiRoles);
@@ -74,6 +83,9 @@ class MyProfileController extends GetxController {
   Future<void> updateProfile() async {
     final name = nameCtrl.text.trim();
     final email = emailCtrl.text.trim();
+    final birthdate = birthdateCtrl.text.trim();
+    final phone = phoneCtrl.text.trim();
+    final curp = curpCtrl.text.trim();
     final role = selectedRole.value;
 
     if (name.isEmpty || email.isEmpty) {
@@ -92,21 +104,35 @@ class MyProfileController extends GetxController {
         name: name,
         email: email,
         role: role,
+        birthdate: birthdate,
+        phone: phone,
+        curp: curp,
       );
 
       // Si la API devuelve { message, user }, tomamos el user
-      final userData =
-          (res['user'] is Map) ? Map<String, dynamic>.from(res['user']) : res;
+      final userData = (res['user'] is Map)
+          ? Map<String, dynamic>.from(res['user'])
+          : res;
 
-      final switchedRole =
-          (userData['active_role'] ?? userData['role'])?.toString();
+      final switchedRole = (userData['active_role'] ?? userData['role'])
+          ?.toString();
       if (switchedRole != null && switchedRole.isNotEmpty) {
         await AppStorage.setActiveRole(switchedRole);
         selectedRole.value = switchedRole;
       }
 
-      // Si tienes un modelo User y AppStorage.setUser, puedes hacerlo aquí
-      // await AppStorage.setUser(User.fromJson(userData));
+      final sessionUser = AppStorage.getUser();
+      if (sessionUser != null) {
+        await AppStorage.setUser(
+          sessionUser.copyWith(
+            name: name,
+            email: email,
+            phone: phone.isEmpty ? null : phone,
+            curp: curp.isEmpty ? null : curp,
+            birthdate: birthdate.isEmpty ? null : birthdate,
+          ),
+        );
+      }
 
       Get.snackbar(
         'Perfil actualizado',
@@ -210,6 +236,9 @@ class MyProfileController extends GetxController {
   void onClose() {
     nameCtrl.dispose();
     emailCtrl.dispose();
+    birthdateCtrl.dispose();
+    phoneCtrl.dispose();
+    curpCtrl.dispose();
     currentPasswordCtrl.dispose();
     newPasswordCtrl.dispose();
     confirmPasswordCtrl.dispose();

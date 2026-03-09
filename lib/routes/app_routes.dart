@@ -55,6 +55,8 @@ import 'package:stopandgo/modules/game_gallery/game_gallery_view.dart';
 import 'package:stopandgo/modules/game_gallery/index.dart';
 import 'package:stopandgo/modules/forgot_password/forgot_password_binding.dart';
 import 'package:stopandgo/modules/forgot_password/forgot_password_view.dart';
+import 'package:stopandgo/modules/gazzetta/index.dart';
+import 'package:stopandgo/modules/gazzetta_detail/index.dart';
 import 'package:stopandgo/modules/home/index.dart';
 import 'package:stopandgo/modules/image_view/image_binding.dart';
 import 'package:stopandgo/modules/image_view/image_view.dart';
@@ -372,6 +374,16 @@ class AppPages {
       name: Routes.gameGallery,
       page: () => const GameGalleryView(),
       binding: GameGalleryBinding(),
+    ),
+    GetPage(
+      name: Routes.gazzetta,
+      page: () => const GazzettaView(),
+      binding: GazzettaBinding(),
+    ),
+    GetPage(
+      name: Routes.gazzettaDetail,
+      page: () => const GazzettaDetailView(),
+      binding: GazzettaDetailBinding(),
     ),
     GetPage(
       name: Routes.changeRole,

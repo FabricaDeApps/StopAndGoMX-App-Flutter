@@ -50,8 +50,58 @@ class MyProfileView extends GetView<MyProfileController> {
                   ),
                   const SizedBox(height: 12),
 
+                  TextField(
+                    controller: controller.birthdateCtrl,
+                    readOnly: true,
+                    decoration: const InputDecoration(
+                      labelText: 'Fecha de nacimiento (opcional)',
+                      hintText: 'YYYY-MM-DD',
+                      border: OutlineInputBorder(),
+                      prefixIcon: Icon(Icons.cake_outlined),
+                    ),
+                    onTap: () async {
+                      final now = DateTime.now();
+                      final initial =
+                          DateTime.tryParse(controller.birthdateCtrl.text) ??
+                          DateTime(now.year - 12, now.month, now.day);
+                      final picked = await showDatePicker(
+                        context: context,
+                        initialDate: initial,
+                        firstDate: DateTime(1940, 1, 1),
+                        lastDate: now,
+                      );
+                      if (picked == null) return;
+                      final mm = picked.month.toString().padLeft(2, '0');
+                      final dd = picked.day.toString().padLeft(2, '0');
+                      controller.birthdateCtrl.text = '${picked.year}-$mm-$dd';
+                    },
+                  ),
+                  const SizedBox(height: 12),
+
+                  TextField(
+                    controller: controller.phoneCtrl,
+                    keyboardType: TextInputType.phone,
+                    decoration: const InputDecoration(
+                      labelText: 'Teléfono (opcional)',
+                      border: OutlineInputBorder(),
+                      prefixIcon: Icon(Icons.phone_outlined),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+
+                  TextField(
+                    controller: controller.curpCtrl,
+                    textCapitalization: TextCapitalization.characters,
+                    decoration: const InputDecoration(
+                      labelText: 'CURP (opcional)',
+                      border: OutlineInputBorder(),
+                      prefixIcon: Icon(Icons.badge_outlined),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+
                   DropdownButtonFormField<String>(
-                    value: controller.selectedRole.value,
+                    initialValue: controller.selectedRole.value,
                     decoration: const InputDecoration(
                       labelText: 'Rol',
                       border: OutlineInputBorder(),

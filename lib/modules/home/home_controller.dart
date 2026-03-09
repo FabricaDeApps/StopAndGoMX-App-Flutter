@@ -12,6 +12,7 @@ import 'package:stopandgo/core/network/api_repository.dart';
 import 'package:stopandgo/core/services/clarity_service.dart';
 import 'package:stopandgo/core/services/notification_service.dart';
 import 'package:stopandgo/modules/home/models/simple_player.dart';
+import 'package:stopandgo/modules/gazzetta/gazzetta_controller.dart';
 import 'package:stopandgo/modules/home/tabs/games/games_tab_controller.dart';
 import 'package:stopandgo/modules/home/tabs/notices/notices_tab_controller.dart';
 import 'package:stopandgo/modules/home/tabs/payments/payments_controller.dart';
@@ -22,6 +23,7 @@ import 'tabs/dashboard/dashboard_tab_controller.dart';
 class HomeController extends GetxController with GetTickerProviderStateMixin {
   final api = Get.find<ApiRepository>();
   final _picker = ImagePicker();
+  bool _birthdayPromptShown = false;
 
   // sesión
   final userName = 'Usuario'.obs;
@@ -51,6 +53,7 @@ class HomeController extends GetxController with GetTickerProviderStateMixin {
   late final GamesTabController gamesCtrl;
   late final PaymentsTabController paymentsCtrl;
   late final NoticesTabController noticesCtrl;
+  late final GazzettaController gazzettaCtrl;
 
   @override
   void onInit() {
@@ -58,13 +61,14 @@ class HomeController extends GetxController with GetTickerProviderStateMixin {
     org.value = AppStorage.getOrganization();
     _loadSession();
 
-    tabs.value = FlavorConfig.I.getTabsForRole(userRole.value);
+    tabs.value = _resolveTabsForRole(userRole.value);
     tabController = TabController(length: tabs.length, vsync: this);
 
     dashboardCtrl = Get.put(DashboardTabController(), permanent: true);
     gamesCtrl = Get.put(GamesTabController(), permanent: true);
     paymentsCtrl = Get.put(PaymentsTabController(), permanent: true);
     noticesCtrl = Get.put(NoticesTabController(), permanent: true);
+    gazzettaCtrl = Get.put(GazzettaController(), permanent: true);
 
     tabController.addListener(() async {
       if (tabController.indexIsChanging) return;
@@ -82,6 +86,7 @@ class HomeController extends GetxController with GetTickerProviderStateMixin {
   Future<void> onReady() async {
     super.onReady();
     await refreshAccount();
+    _showBirthdayReminderIfNeeded();
     final user = AppStorage.getUser();
     if (user != null) {
       ClarityService.setUserContext(
@@ -128,6 +133,15 @@ class HomeController extends GetxController with GetTickerProviderStateMixin {
           ? profilePhotoUrl
           : null;
 
+      final birthdate =
+          (account['birthdate'] ??
+                  account['birth_date'] ??
+                  account['date_of_birth'])
+              ?.toString()
+              .trim();
+      final phone = account['phone']?.toString().trim();
+      final curp = account['curp']?.toString().trim();
+
       final sessionUser = AppStorage.getUser();
       if (sessionUser != null) {
         await AppStorage.setUser(
@@ -135,12 +149,62 @@ class HomeController extends GetxController with GetTickerProviderStateMixin {
             name: userName.value,
             email: userEmail.value,
             photoUrl: userAvatar.value,
+            birthdate: (birthdate != null && birthdate.isNotEmpty)
+                ? birthdate
+                : null,
+            phone: (phone != null && phone.isNotEmpty) ? phone : null,
+            curp: (curp != null && curp.isNotEmpty) ? curp : null,
           ),
         );
       }
     } catch (_) {
       // No bloqueamos Home si este request falla.
     }
+  }
+
+  void _showBirthdayReminderIfNeeded() {
+    if (_birthdayPromptShown) return;
+    final user = AppStorage.getUser();
+    if (user == null) return;
+
+    final birthdate = (user.birthdate ?? '').trim();
+    if (birthdate.isNotEmpty) return;
+
+    _birthdayPromptShown = true;
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (Get.context == null) return;
+
+      Get.dialog(
+        AlertDialog(
+          title: const Row(
+            children: [
+              Icon(Icons.cake_outlined, color: Colors.pink),
+              SizedBox(width: 8),
+              Expanded(child: Text('Completa tu cumpleaños')),
+            ],
+          ),
+          content: const Text(
+            'Agrega tu fecha de nacimiento para que la organización pueda enviarte tus felicitaciones.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Get.back(),
+              child: const Text('Después'),
+            ),
+            FilledButton.icon(
+              onPressed: () {
+                Get.back();
+                Get.toNamed(Routes.myProfile);
+              },
+              icon: const Icon(Icons.person_outline),
+              label: const Text('Ir a actualizar'),
+            ),
+          ],
+        ),
+        barrierDismissible: true,
+      );
+    });
   }
 
   Future<void> onTapEditAvatar() async {
@@ -212,6 +276,12 @@ class HomeController extends GetxController with GetTickerProviderStateMixin {
 
   String _normalizeRole(String role) => role.trim().toLowerCase();
 
+  List<String> _resolveTabsForRole(String role) {
+    final configuredTabs = FlavorConfig.I.getTabsForRole(role);
+    if (org.value?.gazettaEnabled == true) return configuredTabs;
+    return configuredTabs.where((tab) => tab != 'gazzetta').toList();
+  }
+
   List<String> get availableRoles {
     final raw = AppStorage.getAvailableRoles();
     final supported = raw
@@ -266,6 +336,9 @@ class HomeController extends GetxController with GetTickerProviderStateMixin {
     }
     if (Get.isRegistered<NoticesTabController>()) {
       Get.delete<NoticesTabController>(force: true);
+    }
+    if (Get.isRegistered<GazzettaController>()) {
+      Get.delete<GazzettaController>(force: true);
     }
   }
 
@@ -438,6 +511,9 @@ class HomeController extends GetxController with GetTickerProviderStateMixin {
         break;
       case 'notices':
         await noticesCtrl.refresh();
+        break;
+      case 'gazzetta':
+        await gazzettaCtrl.refreshData();
         break;
     }
   }

@@ -15,6 +15,7 @@ import 'models/simple_player.dart';
 
 import 'tabs/dashboard/dashboard_tab_view.dart';
 import 'tabs/games/games_tab_view.dart';
+import 'tabs/gazzetta/gazzetta_tab_view.dart';
 import 'tabs/payments/payments_tab_view.dart';
 import 'tabs/notices/notices_tab_view.dart';
 
@@ -176,6 +177,8 @@ class HomeView extends GetView<HomeController> {
 
               case 'notices':
                 return const NoticesTabView();
+              case 'gazzetta':
+                return const GazzettaTabView();
 
               default:
                 return const SizedBox.shrink();
@@ -208,16 +211,31 @@ class HomeView extends GetView<HomeController> {
   Tab _buildTab(String key) {
     switch (key) {
       case "dashboard":
-        return const Tab(icon: Icon(Icons.dashboard), text: "Dashboard");
+        return _tab(icon: Icons.dashboard, label: "Dashboard");
       case "games":
-        return const Tab(icon: Icon(Icons.sports_football), text: "Juegos");
+        return _tab(icon: Icons.sports_football, label: "Juegos");
       case "payments":
-        return const Tab(icon: Icon(Icons.payments_outlined), text: "Pagos");
+        return _tab(icon: Icons.payments_outlined, label: "Pagos");
       case "notices":
-        return const Tab(icon: Icon(Icons.campaign_outlined), text: "Avisos");
+        return _tab(icon: Icons.campaign_outlined, label: "Avisos");
+      case "gazzetta":
+        return _tab(icon: Icons.menu_book_outlined, label: "Gazzetta");
       default:
-        return const Tab(text: "N/A");
+        return _tab(icon: Icons.circle_outlined, label: "N/A");
     }
+  }
+
+  Tab _tab({required IconData icon, required String label}) {
+    return Tab(
+      icon: Icon(icon),
+      child: Text(
+        label,
+        maxLines: 2,
+        textAlign: TextAlign.center,
+        overflow: TextOverflow.ellipsis,
+        style: const TextStyle(fontSize: 11, height: 1.05),
+      ),
+    );
   }
 
   // ================= Drawer =================
@@ -234,8 +252,9 @@ class HomeView extends GetView<HomeController> {
           final isStaff = role == 'staff';
           final orgSlug = (controller.org.value?.slug ?? '').trim();
           final availableRoles = controller.availableRoles;
-          final selectedRole =
-              availableRoles.contains(role) ? role : availableRoles.first;
+          final selectedRole = availableRoles.contains(role)
+              ? role
+              : availableRoles.first;
 
           return ListView(
             padding: EdgeInsets.zero,
@@ -260,8 +279,8 @@ class HomeView extends GetView<HomeController> {
                       children: [
                         CircleAvatar(
                           radius: 70,
-                          backgroundColor:
-                              theme.colorScheme.secondary.withOpacity(.1),
+                          backgroundColor: theme.colorScheme.secondary
+                              .withOpacity(.1),
                           child: controller.userAvatar.value != null
                               ? ClipOval(
                                   child: CachedNetworkImage(
@@ -578,10 +597,10 @@ class HomeView extends GetView<HomeController> {
                     if (role == 'parent') {
                       final picked =
                           await Get.bottomSheet<Map<String, dynamic>?>(
-                        const PlayerPickerSheet(),
-                        isScrollControlled: true,
-                        backgroundColor: Colors.transparent,
-                      );
+                            const PlayerPickerSheet(),
+                            isScrollControlled: true,
+                            backgroundColor: Colors.transparent,
+                          );
 
                       if (picked == null) return;
 

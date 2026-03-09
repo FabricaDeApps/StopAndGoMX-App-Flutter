@@ -1,3 +1,2 @@
-- Managers y Coach crear avisos.
+- Sección de Gazzetta.
 - Fix en vista de games.
-- Poder ver todos los juegos del equipo.
