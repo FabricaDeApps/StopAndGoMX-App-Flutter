@@ -1,6 +1,7 @@
 // lib/core/auth/auth_service.dart
 import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
+import 'package:stopandgo/core/config/flavor_config.dart';
 import 'package:stopandgo/core/network/auth_repository.dart';
 import 'package:stopandgo/core/storage/app_storage.dart';
 import '../network/token_storage.dart';
@@ -23,11 +24,11 @@ class AuthService {
         }
         await AppStorage.clearAll();
       }
-      debugPrint('navigating to login कारण $reason');
+      final next = FlavorConfig.I.isCustom ? Routes.login : Routes.teamSelector;
+      debugPrint('navigating to auth entry कारण $reason');
 
-      // Evita recrear el login mientras ya está en pantalla.
-      if (Get.currentRoute != Routes.login) {
-        Get.offAllNamed(Routes.login);
+      if (Get.currentRoute != next) {
+        Get.offAllNamed(next);
       }
     } finally {
       _logoutInProgress = false;

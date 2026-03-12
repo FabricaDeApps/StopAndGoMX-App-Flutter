@@ -8,6 +8,7 @@ class TokenStorage extends GetxService {
   static const _keyType = 'token_type';
   static const _keyRefreshExpiresAt = 'refresh_expires_at';
   static const _keyAccessExpiresInMinutes = 'access_expires_in_minutes';
+  static const _legacyKeyAccessTtl = 'access_ttl';
 
   late final GetStorage _box;
 
@@ -18,7 +19,9 @@ class TokenStorage extends GetxService {
     if (raw == null || raw.isEmpty) return null;
     return DateTime.tryParse(raw);
   }
-  int? get accessExpiresInMinutes => _box.read<int?>(_keyAccessExpiresInMinutes);
+
+  int? get accessExpiresInMinutes =>
+      _box.read<int?>(_keyAccessExpiresInMinutes);
   bool get hasRefreshToken => (refreshToken ?? '').trim().isNotEmpty;
 
   // ✅ default Bearer
@@ -44,7 +47,10 @@ class TokenStorage extends GetxService {
     await _box.write(_keyRefresh, refreshToken);
     await _box.write(_keyType, tokenType);
     if (refreshExpiresAt != null) {
-      await _box.write(_keyRefreshExpiresAt, refreshExpiresAt.toIso8601String());
+      await _box.write(
+        _keyRefreshExpiresAt,
+        refreshExpiresAt.toIso8601String(),
+      );
     }
     if (accessExpiresInMinutes != null) {
       await _box.write(_keyAccessExpiresInMinutes, accessExpiresInMinutes);
@@ -62,6 +68,51 @@ class TokenStorage extends GetxService {
   Future<TokenStorage> init() async {
     await GetStorage.init(_boxName);
     _box = GetStorage(_boxName);
+    await _migrateLegacyDefaultBoxIfNeeded();
     return this;
+  }
+
+  Future<void> _migrateLegacyDefaultBoxIfNeeded() async {
+    final hasCurrentSession =
+        (accessToken ?? '').trim().isNotEmpty ||
+        (refreshToken ?? '').trim().isNotEmpty;
+    if (hasCurrentSession) return;
+
+    // Compatibilidad con builds anteriores que guardaban tokens
+    // en la caja default de GetStorage (sin nombre).
+    await GetStorage.init();
+    final legacyBox = GetStorage();
+
+    final legacyAccess = legacyBox.read<String?>(_keyAccess);
+    final legacyRefresh = legacyBox.read<String?>(_keyRefresh);
+    if ((legacyAccess ?? '').trim().isEmpty &&
+        (legacyRefresh ?? '').trim().isEmpty) {
+      return;
+    }
+
+    final legacyType = (legacyBox.read<String?>(_keyType) ?? 'Bearer').trim();
+    final legacyRefreshExp = legacyBox.read<String?>(_keyRefreshExpiresAt);
+    final legacyAccessTtl =
+        legacyBox.read<int?>(_keyAccessExpiresInMinutes) ??
+        legacyBox.read<int?>(_legacyKeyAccessTtl);
+
+    await _box.write(_keyAccess, legacyAccess);
+    await _box.write(_keyRefresh, legacyRefresh);
+    await _box.write(_keyType, legacyType.isEmpty ? 'Bearer' : legacyType);
+
+    if (legacyRefreshExp != null && legacyRefreshExp.trim().isNotEmpty) {
+      await _box.write(_keyRefreshExpiresAt, legacyRefreshExp);
+    }
+    if (legacyAccessTtl != null) {
+      await _box.write(_keyAccessExpiresInMinutes, legacyAccessTtl);
+    }
+
+    // Evita repetir migración en siguientes arranques.
+    await legacyBox.remove(_keyAccess);
+    await legacyBox.remove(_keyRefresh);
+    await legacyBox.remove(_keyType);
+    await legacyBox.remove(_keyRefreshExpiresAt);
+    await legacyBox.remove(_keyAccessExpiresInMinutes);
+    await legacyBox.remove(_legacyKeyAccessTtl);
   }
 }

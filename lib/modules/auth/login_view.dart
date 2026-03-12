@@ -2,7 +2,6 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:stopandgo/core/config/flavor_config.dart';
-import 'package:stopandgo/core/models/responses/organization_response.dart';
 import 'package:stopandgo/modules/webview/webview_page.dart';
 import 'package:stopandgo/routes/app_routes.dart';
 import 'login_controller.dart';
@@ -16,7 +15,17 @@ class LoginView extends GetView<LoginController> {
 
     return Scaffold(
       resizeToAvoidBottomInset: true,
-      appBar: AppBar(title: Text('Iniciar sesión'), centerTitle: true),
+      appBar: AppBar(
+        title: Text('Iniciar sesión'),
+        centerTitle: true,
+        leading: FlavorConfig.I.isCustom
+            ? null
+            : IconButton(
+                onPressed: () => Get.offAllNamed(Routes.teamSelector),
+                icon: const Icon(Icons.arrow_back),
+                tooltip: 'Cambiar equipo',
+              ),
+      ),
       body: LayoutBuilder(
         builder: (context, viewportConstraints) {
           final keyboard = MediaQuery.of(context).viewInsets.bottom > 0;
@@ -43,63 +52,6 @@ class LoginView extends GetView<LoginController> {
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        if (controller.isMultiOrg) ...[
-                          Align(
-                            alignment: Alignment.centerLeft,
-                            child: Text(
-                              'Selecciona tu club',
-                              style: theme.textTheme.bodyMedium?.copyWith(
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          Obx(() {
-                            if (controller.isLoadingOrganizations.value) {
-                              return const Center(
-                                child: CircularProgressIndicator(),
-                              );
-                            }
-
-                            final orgs = controller.organizations;
-                            return DropdownButtonFormField<
-                              OrganizationResponse
-                            >(
-                              isExpanded: true,
-                              decoration: const InputDecoration(
-                                prefixIcon: Icon(Icons.sports_football),
-                                border: OutlineInputBorder(),
-                              ),
-                              hint: const Text('Elige tu organización'),
-                              value: controller.selectedOrganization.value,
-                              items: orgs
-                                  .map(
-                                    (o) =>
-                                        DropdownMenuItem<OrganizationResponse>(
-                                          value: o,
-                                          child: Text(
-                                            o.name ?? o.slug ?? 'Org #${o.id}',
-                                          ),
-                                        ),
-                                  )
-                                  .toList(),
-                              onChanged: (org) {
-                                if (org != null) {
-                                  controller.onSelectOrganization(org);
-                                }
-                              },
-                              validator: (value) {
-                                if (controller.isMultiOrg &&
-                                    controller.selectedOrganization.value ==
-                                        null) {
-                                  return 'Selecciona una organización';
-                                }
-                                return null;
-                              },
-                            );
-                          }),
-                          const SizedBox(height: 20),
-                        ],
                         Obx(() {
                           final imageUrl = controller.url.value ?? '';
 

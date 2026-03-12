@@ -13,10 +13,7 @@ class LoginController extends GetxController {
   final _api = Get.find<ApiRepository>();
 
   final bool isMultiOrg = !FlavorConfig.I.isCustom;
-
-  final organizations = <OrganizationResponse>[].obs;
   final selectedOrganization = Rxn<OrganizationResponse>();
-  final isLoadingOrganizations = false.obs;
 
   // --- Branding (logo para la vista)
   final url = RxnString();
@@ -36,59 +33,12 @@ class LoginController extends GetxController {
   final loginResponse = Rxn<LoginResponse>();
 
   @override
-  void onInit() {
-    super.onInit();
-  }
-
-  @override
   void onReady() {
     super.onReady();
     _loadBrandingFromStorage();
-
-    if (isMultiOrg) {
-      _loadOrganizations();
+    if (isMultiOrg && selectedOrganization.value == null) {
+      Get.offAllNamed(Routes.teamSelector);
     }
-  }
-
-  /// Carga catálogo de organizaciones públicas
-  Future<void> _loadOrganizations() async {
-    isLoadingOrganizations.value = true;
-    try {
-      final list = await _api.getPublicOrganizations();
-      organizations.assignAll(list);
-
-      final cached = AppStorage.getOrganization();
-      if (cached != null) {
-        final match = list.firstWhereOrNull((o) => o.id == cached.id);
-        if (match != null) {
-          onSelectOrganization(match);
-        }
-      }
-    } catch (e) {
-      Get.snackbar(
-        'Error',
-        'No se pudo cargar el catálogo de organizaciones',
-        snackPosition: SnackPosition.BOTTOM,
-      );
-    } finally {
-      isLoadingOrganizations.value = false;
-    }
-  }
-
-  /// Cuando el usuario elige una organización en el combo
-  Future<void> onSelectOrganization(OrganizationResponse org) async {
-    selectedOrganization.value = org;
-
-    // 1) Actualiza FlavorConfig para que todos los endpoints usen esta org
-    FlavorConfig.I.updateOrganizationId(org.id!);
-
-    // 2) Guarda en storage para branding y futuros inicios
-    await AppStorage.setOrganization(org);
-
-    // 3) Actualiza logo y tema
-    url.value = _buildLogoUrl(org.logo);
-
-    Get.find<ThemeController>().refreshTheme();
   }
 
   String _buildLogoUrl(String? path) {
@@ -100,7 +50,11 @@ class LoginController extends GetxController {
 
   void _loadBrandingFromStorage() {
     selectedOrganization.value = AppStorage.getOrganization();
-    url.value = selectedOrganization.value?.logo;
+    final logo = selectedOrganization.value?.logo ?? '';
+    url.value = _buildLogoUrl(logo);
+    if (isMultiOrg && selectedOrganization.value?.id != null) {
+      FlavorConfig.I.updateOrganizationId(selectedOrganization.value!.id);
+    }
     Get.find<ThemeController>().refreshTheme();
   }
 
@@ -120,6 +74,16 @@ class LoginController extends GetxController {
   }
 
   Future<void> submit() async {
+    if (isMultiOrg && selectedOrganization.value == null) {
+      Get.snackbar(
+        'Selecciona equipo',
+        'Primero elige un equipo para continuar',
+        snackPosition: SnackPosition.BOTTOM,
+      );
+      Get.offAllNamed(Routes.teamSelector);
+      return;
+    }
+
     final current = formKey.currentState;
     if (current == null || !current.validate()) return;
 

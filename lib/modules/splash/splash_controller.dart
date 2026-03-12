@@ -232,10 +232,14 @@ class SplashController extends GetxController {
     _navigated = true;
 
     final result = await _auth.restoreSession();
-    final next = result.isAuthenticated ? Routes.home : Routes.login;
+    final needsTeamSelector =
+        !result.isAuthenticated && !FlavorConfig.I.isCustom;
+    final next = result.isAuthenticated
+        ? Routes.home
+        : (needsTeamSelector ? Routes.teamSelector : Routes.login);
     debugPrint('session bootstrap: ${result.reason}');
     if (!result.isAuthenticated) {
-      debugPrint('navigating to login कारण ${result.reason}');
+      debugPrint('navigating unauthenticated कारण ${result.reason}');
     }
     Get.offAllNamed(next);
   }

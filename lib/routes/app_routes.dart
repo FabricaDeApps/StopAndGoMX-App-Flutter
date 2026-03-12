@@ -93,6 +93,7 @@ import 'package:stopandgo/modules/sign_in/sign_in_binding.dart';
 import 'package:stopandgo/modules/sign_in/sign_in_view.dart';
 import 'package:stopandgo/modules/splash/splash_binding.dart';
 import 'package:stopandgo/modules/splash/splash_view.dart';
+import 'package:stopandgo/modules/team_selector/index.dart';
 import 'package:stopandgo/modules/training_attendance/index.dart';
 import 'package:stopandgo/modules/training_attendance/training_attendance_view.dart';
 import 'package:stopandgo/modules/trainnings/index.dart';
@@ -119,6 +120,11 @@ class AppPages {
       name: Routes.login,
       page: () => const LoginView(),
       binding: LoginBinding(),
+    ),
+    GetPage(
+      name: Routes.teamSelector,
+      page: () => const TeamSelectorView(),
+      binding: TeamSelectorBinding(),
     ),
     GetPage(
       name: Routes.forgotPassword,

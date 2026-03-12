@@ -4,6 +4,9 @@ Todos los cambios importantes del proyecto **StopAndGoMX** se documentan en este
 El formato sigue las recomendaciones de **Keep a Changelog**  
 y el versionado está basado en **Semantic Versioning (SemVer)**.
 
+## [1.0.61] - 2026-3-9
+• Pantalla de seleccion de equipos en app genérica.
+
 ## [1.0.60] - 2026-3-7
 • Sección de Gazzetta.
 • Fix en vista de games.
