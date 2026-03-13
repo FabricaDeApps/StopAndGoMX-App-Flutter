@@ -65,16 +65,18 @@ class User {
   });
 
   factory User.fromJson(Map<String, dynamic> json) {
+    String normalizeRole(String? value) => (value ?? '').trim().toLowerCase();
+
     final parsedRoles = (json['roles'] is List)
         ? (json['roles'] as List)
-              .map((e) => e.toString().trim())
+              .map((e) => normalizeRole(e.toString()))
               .where((e) => e.isNotEmpty)
               .toList()
         : <String>[];
 
-    final roleFromApi = (json['role'] ?? '').toString();
-    final primaryRole = (json['primary_role'] ?? '').toString();
-    final activeRole = (json['active_role'] ?? '').toString();
+    final roleFromApi = normalizeRole((json['role'] ?? '').toString());
+    final primaryRole = normalizeRole((json['primary_role'] ?? '').toString());
+    final activeRole = normalizeRole((json['active_role'] ?? '').toString());
 
     final effectiveRole = activeRole.isNotEmpty
         ? activeRole
@@ -85,6 +87,7 @@ class User {
     final roles = parsedRoles.isNotEmpty
         ? parsedRoles
         : (effectiveRole.isNotEmpty ? <String>[effectiveRole] : <String>[]);
+    final uniqueRoles = roles.toSet().toList();
 
     return User(
       id: json['id'] ?? 0,
@@ -98,7 +101,7 @@ class User {
           json['birth_date']?.toString() ??
           json['date_of_birth']?.toString(),
       role: effectiveRole,
-      roles: roles,
+      roles: uniqueRoles,
       primaryRole: primaryRole.isNotEmpty ? primaryRole : effectiveRole,
       activeRole: effectiveRole,
       so: json['so'],

@@ -1,5 +1,6 @@
 // lib/modules/home/tabs/payments/payments_tab_view.dart
 import 'package:flutter/material.dart';
+import 'dart:math' as math;
 import 'package:get/get.dart';
 import 'package:stopandgo/core/utils/money.dart';
 import 'package:stopandgo/modules/home/tabs/payments/payments_controller.dart';
@@ -41,80 +42,7 @@ class PaymentsTabView extends GetView<PaymentsTabController> {
 
       return Column(
         children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
-            child: Column(
-              children: [
-                TextField(
-                  onChanged: controller.setQuery,
-                  decoration: InputDecoration(
-                    prefixIcon: const Icon(Icons.search),
-                    hintText: 'Buscar por jugador o concepto…',
-                    isDense: true,
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(14),
-                    ),
-                    suffixIcon: Obx(() {
-                      final hasText = controller.query.value.trim().isNotEmpty;
-                      if (!hasText) return const SizedBox.shrink();
-                      return IconButton(
-                        icon: const Icon(Icons.clear),
-                        onPressed: () => controller.setQuery(''),
-                      );
-                    }),
-                  ),
-                ),
-                const SizedBox(height: 10),
-
-                Align(
-                  alignment: Alignment.centerLeft,
-                  child: Obx(() {
-                    final selected = controller.statusFilter.value;
-                    return Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
-                      children: PaymentStatusFilter.values.map((f) {
-                        final isSel = f == selected;
-                        return ChoiceChip(
-                          label: Text(f.label),
-                          selected: isSel,
-                          onSelected: (_) => controller.setStatusFilter(f),
-                        );
-                      }).toList(),
-                    );
-                  }),
-                ),
-                const SizedBox(height: 8),
-
-                Row(
-                  children: [
-                    Expanded(
-                      child: Obx(() {
-                        final selected = controller.dueFilter.value;
-                        return Wrap(
-                          spacing: 8,
-                          runSpacing: 8,
-                          children: PaymentDueFilter.values.map((f) {
-                            final isSel = f == selected;
-                            return ChoiceChip(
-                              label: Text(f.label),
-                              selected: isSel,
-                              onSelected: (_) => controller.setDueFilter(f),
-                            );
-                          }).toList(),
-                        );
-                      }),
-                    ),
-                    TextButton.icon(
-                      onPressed: controller.clearFilters,
-                      icon: const Icon(Icons.filter_alt_off),
-                      label: const Text('Limpiar'),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
+          _PaymentsFiltersHeader(controller: controller),
 
           const SizedBox(height: 8),
           const Divider(height: 1),
@@ -144,8 +72,6 @@ class PaymentsTabView extends GetView<PaymentsTabController> {
                           p.dueDate != null &&
                           p.dueDate!.isBefore(today);
 
-                      final overdueColor = Colors.amber.withOpacity(0.12);
-
                       final totalRecibido = p.receipts.fold<double>(
                         0.0,
                         (sum, r) => sum + r.amount,
@@ -168,180 +94,307 @@ class PaymentsTabView extends GetView<PaymentsTabController> {
                         chipText = 'Pendiente';
                       }
 
-                      return Card(
-                        elevation: 0,
-                        color: isOverdue ? overdueColor : null,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        child: ExpansionTile(
-                          onExpansionChanged: (expanded) =>
-                              controller.setExpanded(p.id, expanded),
-                          tilePadding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 8,
+                      return _StaggeredEntrance(
+                        index: i,
+                        child: Card(
+                          elevation: 0,
+                          margin: EdgeInsets.zero,
+                          color: isOverdue
+                              ? Colors.amber.withValues(alpha: .08)
+                              : theme.colorScheme.surface,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(20),
                           ),
-                          childrenPadding: const EdgeInsets.fromLTRB(
-                            16,
-                            0,
-                            16,
-                            12,
-                          ),
-                          leading: CircleAvatar(
-                            backgroundColor: theme.colorScheme.primary
-                                .withOpacity(.12),
-                            child: const Icon(Icons.receipt_long),
-                          ),
-                          title: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Container(
-                                margin: const EdgeInsets.only(bottom: 6),
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 10,
-                                  vertical: 6,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: chipColor.withOpacity(0.12),
-                                  borderRadius: BorderRadius.circular(999),
-                                  border: Border.all(
-                                    color: chipColor.withOpacity(0.45),
-                                  ),
-                                ),
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
+                          child: Theme(
+                            data: theme.copyWith(
+                              dividerColor: Colors.transparent,
+                            ),
+                            child: ExpansionTile(
+                            onExpansionChanged: (expanded) =>
+                                controller.setExpanded(p.id, expanded),
+                            tilePadding: const EdgeInsets.fromLTRB(
+                              18,
+                              18,
+                              18,
+                              16,
+                            ),
+                            childrenPadding: const EdgeInsets.fromLTRB(
+                              18,
+                              0,
+                              18,
+                              18,
+                            ),
+                            title: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Wrap(
+                                  spacing: 8,
+                                  runSpacing: 8,
                                   children: [
-                                    Container(
-                                      width: 8,
-                                      height: 8,
-                                      decoration: BoxDecoration(
-                                        color: chipColor,
-                                        shape: BoxShape.circle,
-                                      ),
+                                    _PaymentStatusPill(
+                                      label: chipText,
+                                      color: chipColor,
+                                      icon: paid
+                                          ? Icons.verified_rounded
+                                          : partial
+                                          ? Icons.pie_chart_rounded
+                                          : Icons.receipt_long_rounded,
                                     ),
-                                    const SizedBox(width: 6),
-                                    Text(
-                                      chipText,
-                                      style: TextStyle(
-                                        color: chipColor,
-                                        fontWeight: FontWeight.w700,
-                                        fontSize: 12,
+                                    if (isOverdue)
+                                      const _PaymentStatusPill(
+                                        label: 'Vencido',
+                                        color: Colors.deepOrange,
+                                        icon: Icons.warning_amber_rounded,
                                       ),
-                                    ),
                                   ],
                                 ),
-                              ),
-                              Text(
-                                p.concept,
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                            ],
-                          ),
-                          subtitle: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              if (p.playerName != null &&
-                                  p.playerName!.isNotEmpty)
+                                const SizedBox(height: 12),
                                 Text(
-                                  p.playerName!,
-                                  style: theme.textTheme.bodySmall,
-                                ),
-                              const SizedBox(height: 2),
-
-                              Text(
-                                p.hasDiscount
-                                    ? 'Monto: \$${p.amount.toStringAsFixed(2)}\n'
-                                          'Con Descuento: ${money(effectiveAmount)} \n'
-                                          'Pagado: ${money(totalRecibido)} \n'
-                                          'Saldo: ${money(balance)}'
-                                    : 'Monto: ${money(p.amount)} \n'
-                                          'Pagado: ${money(totalRecibido)} \n'
-                                          'Saldo: ${money(balance)}',
-                                style: theme.textTheme.bodySmall?.copyWith(
-                                  fontWeight: FontWeight.w700,
-                                ),
-                              ),
-
-                              if (p.hasDiscount) ...[
-                                const SizedBox(height: 2),
-                                Text(
-                                  'Descuento aplicado: -\$${p.discountsSumAmount.toStringAsFixed(2)}',
-                                  style: theme.textTheme.bodySmall?.copyWith(
-                                    color: theme.colorScheme.primary,
-                                    fontWeight: FontWeight.w600,
+                                  p.concept,
+                                  style: theme.textTheme.titleMedium?.copyWith(
+                                    fontWeight: FontWeight.w700,
                                   ),
                                 ),
-                              ],
-
-                              if (p.dueDate != null) ...[
-                                const SizedBox(height: 2),
+                                const SizedBox(height: 6),
                                 Text(
-                                  'Vence: ${_fmtDateOnly(p.dueDate!)}',
-                                  style: theme.textTheme.bodySmall?.copyWith(
-                                    color: theme.colorScheme.onSurfaceVariant,
+                                  'Monto: ${money(effectiveAmount)}',
+                                  textAlign: TextAlign.left,
+                                  style: theme.textTheme.bodyMedium?.copyWith(
+                                    fontWeight: FontWeight.w700,
+                                    color: chipColor,
                                   ),
                                 ),
-                              ],
-                              const SizedBox(height: 8),
-                              Obx(
-                                () => Center(
-                                  child: AnimatedRotation(
-                                    turns:
-                                        controller.isExpanded(p.id) ? 0.5 : 0.0,
-                                    duration: const Duration(milliseconds: 180),
-                                    child: Icon(
-                                      Icons.expand_more,
+                                if (p.playerName != null &&
+                                    p.playerName!.isNotEmpty) ...[
+                                  const SizedBox(height: 6),
+                                  Text(
+                                    p.playerName!,
+                                    style: theme.textTheme.bodyMedium?.copyWith(
                                       color: theme.colorScheme.onSurfaceVariant,
                                     ),
                                   ),
-                                ),
-                              ),
-                            ],
-                          ),
-                          trailing: IconButton(
-                            tooltip: 'Ver detalle',
-                            icon: const Icon(Icons.chevron_right, size: 24),
-                            onPressed: () async {
-                              await Get.toNamed(
-                                Routes.paymentDetail,
-                                arguments: {
-                                  'paymentId': p.id,
-                                  'payment': p,
-                                },
-                              );
-                              await controller.loadPayments();
-                            },
-                          ),
-                          children: [
-                            if (p.hasDiscount && p.discounts.isNotEmpty) ...[
-                              Padding(
-                                padding: const EdgeInsets.only(bottom: 4),
-                                child: Text(
-                                  'Descuentos aplicados',
-                                  style: theme.textTheme.titleSmall?.copyWith(
-                                    fontWeight: FontWeight.w600,
+                                ],
+                                if (!paid) ...[
+                                  const SizedBox(height: 14),
+                                  SizedBox(
+                                    width: double.infinity,
+                                    child: controller.canPayWithCard
+                                        ? FilledButton.icon(
+                                            style: FilledButton.styleFrom(
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                    horizontal: 16,
+                                                    vertical: 12,
+                                                  ),
+                                              shape: RoundedRectangleBorder(
+                                                borderRadius:
+                                                    BorderRadius.circular(14),
+                                              ),
+                                            ),
+                                            icon: const Icon(
+                                              Icons.payments_rounded,
+                                              size: 18,
+                                            ),
+                                            label: Text(
+                                              balance > 0
+                                                  ? 'Pagar ${money(balance)}'
+                                                  : 'Registrar pago',
+                                            ),
+                                            onPressed: () async {
+                                              await Get.toNamed(
+                                                Routes.makePayment,
+                                                arguments: {'paymentId': p.id},
+                                              );
+                                              await controller.loadPayments();
+                                            },
+                                          )
+                                        : Center(
+                                            child: FilledButton.icon(
+                                              style: FilledButton.styleFrom(
+                                                padding:
+                                                    const EdgeInsets.symmetric(
+                                                      horizontal: 16,
+                                                      vertical: 12,
+                                                    ),
+                                                shape: RoundedRectangleBorder(
+                                                  borderRadius:
+                                                      BorderRadius.circular(14),
+                                                ),
+                                              ),
+                                              icon: const Icon(
+                                                Icons.payments_rounded,
+                                                size: 18,
+                                              ),
+                                              label: Text(
+                                                balance > 0
+                                                    ? 'Pagar ${money(balance)}'
+                                                    : 'Registrar pago',
+                                              ),
+                                              onPressed: () async {
+                                                await Get.toNamed(
+                                                  Routes.makePayment,
+                                                  arguments: {
+                                                    'paymentId': p.id,
+                                                  },
+                                                );
+                                                await controller.loadPayments();
+                                              },
+                                            ),
+                                          ),
+                                  ),
+                                  if (controller.canPayWithCard) ...[
+                                    const SizedBox(height: 10),
+                                    SizedBox(
+                                      width: double.infinity,
+                                      child: Obx(
+                                        () => OutlinedButton.icon(
+                                          style: OutlinedButton.styleFrom(
+                                            padding: const EdgeInsets.symmetric(
+                                              horizontal: 16,
+                                              vertical: 12,
+                                            ),
+                                            shape: RoundedRectangleBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(14),
+                                            ),
+                                          ),
+                                          icon:
+                                              controller.isPayingWithCard.value
+                                              ? const SizedBox(
+                                                  width: 16,
+                                                  height: 16,
+                                                  child:
+                                                      CircularProgressIndicator(
+                                                        strokeWidth: 2,
+                                                      ),
+                                                )
+                                              : const Icon(
+                                                  Icons.credit_card_rounded,
+                                                  size: 18,
+                                                ),
+                                          label: const Text(
+                                            'Pagar con tarjeta',
+                                          ),
+                                          onPressed:
+                                              controller.isPayingWithCard.value
+                                              ? null
+                                              : () =>
+                                                  controller.payWithCard(p.id),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ],
+                                const SizedBox(height: 10),
+                                Obx(
+                                  () => Align(
+                                    alignment: Alignment.centerLeft,
+                                    child: AnimatedRotation(
+                                      turns: controller.isExpanded(p.id)
+                                          ? 0.5
+                                          : 0.0,
+                                      duration: const Duration(
+                                        milliseconds: 180,
+                                      ),
+                                      child: Icon(
+                                        Icons.expand_more_rounded,
+                                        color: theme
+                                            .colorScheme
+                                            .onSurfaceVariant,
+                                      ),
+                                    ),
                                   ),
                                 ),
-                              ),
-                              ...p.discounts.map((d) {
-                                return ListTile(
-                                  dense: true,
-                                  contentPadding: EdgeInsets.zero,
-                                  leading: const Icon(Icons.local_offer),
-                                  title: Text(
-                                    '-\$${d.amount.toStringAsFixed(2)}',
-                                  ),
-                                  subtitle: Text(
-                                    d.createdAt != null
-                                        ? 'Fecha: ${_fmtDateOnly(d.createdAt!)}'
-                                        : 'Sin fecha',
-                                  ),
+                              ],
+                            ),
+                            trailing: IconButton(
+                              tooltip: 'Ver detalle',
+                              icon: const Icon(Icons.chevron_right_rounded),
+                              onPressed: () async {
+                                await Get.toNamed(
+                                  Routes.paymentDetail,
+                                  arguments: {
+                                    'paymentId': p.id,
+                                    'payment': p,
+                                  },
                                 );
-                              }),
-                              const Divider(),
-                            ],
+                                await controller.loadPayments();
+                              },
+                            ),
+                            children: [
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: _PaymentMetricBox(
+                                      label: p.hasDiscount
+                                          ? 'Monto final'
+                                          : 'Monto',
+                                      value: money(effectiveAmount),
+                                      tint: chipColor,
+                                      emphasis: true,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: _PaymentMetricBox(
+                                      label: 'Pagado',
+                                      value: money(totalRecibido),
+                                      tint: Colors.teal,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 12),
+                              _PaymentMetricBox(
+                                label: 'Saldo pendiente',
+                                value: money(balance),
+                                tint: paid ? Colors.green : chipColor,
+                                emphasis: true,
+                                fullWidth: true,
+                              ),
+                              if (p.dueDate != null) ...[
+                                const SizedBox(height: 12),
+                                _PaymentMetaBadge(
+                                  icon: Icons.event_outlined,
+                                  text: 'Vence ${_fmtDateOnly(p.dueDate!)}',
+                                ),
+                              ],
+                              if (p.hasDiscount) ...[
+                                const SizedBox(height: 12),
+                                _PaymentMetaBadge(
+                                  icon: Icons.local_offer_outlined,
+                                  text:
+                                      'Descuento -\$${p.discountsSumAmount.toStringAsFixed(2)}',
+                                ),
+                              ],
+                              if (p.hasDiscount && p.discounts.isNotEmpty) ...[
+                                const SizedBox(height: 16),
+                                Padding(
+                                  padding: const EdgeInsets.only(bottom: 8),
+                                  child: Text(
+                                    'Descuentos aplicados',
+                                    style: theme.textTheme.titleSmall?.copyWith(
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                                  ),
+                                ),
+                                ...p.discounts.map((d) {
+                                  return ListTile(
+                                    dense: true,
+                                    contentPadding: EdgeInsets.zero,
+                                    leading: const Icon(Icons.local_offer),
+                                    title: Text(
+                                      '-\$${d.amount.toStringAsFixed(2)}',
+                                    ),
+                                    subtitle: Text(
+                                      d.createdAt != null
+                                          ? 'Fecha: ${_fmtDateOnly(d.createdAt!)}'
+                                          : 'Sin fecha',
+                                    ),
+                                  );
+                                }),
+                                const Divider(),
+                              ],
 
                             if (p.receipts.isEmpty)
                               Text(
@@ -372,63 +425,9 @@ class PaymentsTabView extends GetView<PaymentsTabController> {
                                 );
                               }),
 
-                            if (!paid)
-                              Align(
-                                alignment: Alignment.centerRight,
-                                child: Padding(
-                                  padding: const EdgeInsets.only(top: 8),
-                                  child: Wrap(
-                                    spacing: 8,
-                                    runSpacing: 8,
-                                    alignment: WrapAlignment.end,
-                                    children: [
-                                      FilledButton.icon(
-                                        icon: const Icon(
-                                          Icons.payments_outlined,
-                                        ),
-                                        label: const Text('Pagar'),
-                                        onPressed: () async {
-                                          await Get.toNamed(
-                                            Routes.makePayment,
-                                            arguments: {'paymentId': p.id},
-                                          );
-                                          await controller.loadPayments();
-                                        },
-                                      ),
-                                      if (controller.canPayWithCard)
-                                        Obx(
-                                          () => FilledButton.icon(
-                                            icon:
-                                                controller
-                                                    .isPayingWithCard
-                                                    .value
-                                                ? const SizedBox(
-                                                    width: 18,
-                                                    height: 18,
-                                                    child:
-                                                        CircularProgressIndicator(
-                                                          strokeWidth: 2,
-                                                        ),
-                                                  )
-                                                : const Icon(Icons.credit_card),
-                                            label: const Text(
-                                              'Pagar con tarjeta',
-                                            ),
-                                            onPressed:
-                                                controller
-                                                    .isPayingWithCard
-                                                    .value
-                                                ? null
-                                                : () => controller.payWithCard(
-                                                    p.id,
-                                                  ),
-                                          ),
-                                        ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                          ],
+                            ],
+                            ),
+                          ),
                         ),
                       );
                     },
@@ -437,6 +436,96 @@ class PaymentsTabView extends GetView<PaymentsTabController> {
         ],
       );
     });
+  }
+
+  static void _openFiltersSheet(
+    BuildContext context,
+    PaymentsTabController controller,
+  ) {
+    showModalBottomSheet<void>(
+      context: context,
+      showDragHandle: true,
+      isScrollControlled: true,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      builder: (_) => SafeArea(
+        top: false,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+          child: Obx(
+            () => Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Filtrar pagos',
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  'Estado',
+                  style: Theme.of(context).textTheme.titleSmall,
+                ),
+                const SizedBox(height: 8),
+                Row(
+                  children: PaymentStatusFilter.values.map((f) {
+                    return Expanded(
+                      child: Padding(
+                        padding: EdgeInsets.only(
+                          right: f == PaymentStatusFilter.partial ? 0 : 6,
+                        ),
+                        child: ChoiceChip(
+                          label: SizedBox(
+                            width: double.infinity,
+                            child: Text(
+                              f.label,
+                              textAlign: TextAlign.center,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(fontSize: 12),
+                            ),
+                          ),
+                          selected: controller.statusFilter.value == f,
+                          onSelected: (_) => controller.setStatusFilter(f),
+                          visualDensity: const VisualDensity(
+                            horizontal: -3,
+                            vertical: -3,
+                          ),
+                          materialTapTargetSize:
+                              MaterialTapTargetSize.shrinkWrap,
+                          labelPadding: const EdgeInsets.symmetric(
+                            horizontal: 4,
+                          ),
+                        ),
+                      ),
+                    );
+                  }).toList(),
+                ),
+                const SizedBox(height: 20),
+                Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton.icon(
+                        onPressed: controller.hasActiveFilters
+                            ? controller.clearFilters
+                            : null,
+                        icon: const Icon(Icons.filter_alt_off),
+                        label: const Text('Limpiar'),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: FilledButton(
+                        onPressed: () => Get.back(),
+                        child: const Text('Listo'),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
   }
 
   static String _fmtDateOnly(DateTime d) =>
@@ -489,6 +578,306 @@ class PaymentsTabView extends GetView<PaymentsTabController> {
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+class _PaymentsFiltersHeader extends StatelessWidget {
+  const _PaymentsFiltersHeader({required this.controller});
+
+  final PaymentsTabController controller;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+      child: Obx(
+        () => Column(
+          children: [
+            Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: controller.searchCtrl,
+                    onChanged: controller.setQuery,
+                    decoration: InputDecoration(
+                      prefixIcon: const Icon(Icons.search),
+                      hintText: 'Buscar por jugador o concepto',
+                      isDense: true,
+                      filled: true,
+                      fillColor: theme.colorScheme.surfaceContainerHighest
+                          .withValues(alpha: .45),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(16),
+                        borderSide: BorderSide.none,
+                      ),
+                      suffixIcon: controller.query.value.trim().isNotEmpty
+                          ? IconButton(
+                              icon: const Icon(Icons.clear),
+                              onPressed: () => controller.setQuery(''),
+                            )
+                          : null,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                FilledButton.tonalIcon(
+                  onPressed: () => PaymentsTabView._openFiltersSheet(
+                    context,
+                    controller,
+                  ),
+                  icon: const Icon(Icons.tune),
+                  label: Text(
+                    controller.activeFiltersCount > 0
+                        ? 'Filtros (${controller.activeFiltersCount})'
+                        : 'Filtros',
+                  ),
+                ),
+              ],
+            ),
+            if (controller.hasActiveFilters) ...[
+              const SizedBox(height: 10),
+              Row(
+                children: [
+                  Expanded(
+                    child: Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: [
+                        if (controller.statusFilter.value !=
+                            PaymentStatusFilter.all)
+                          _ActiveFilterChip(
+                            label: controller.statusFilter.value.label,
+                            onDeleted: () => controller.setStatusFilter(
+                              PaymentStatusFilter.all,
+                            ),
+                          ),
+                        if (controller.query.value.trim().isNotEmpty)
+                          _ActiveFilterChip(
+                            label: 'Busqueda activa',
+                            onDeleted: () => controller.setQuery(''),
+                          ),
+                      ],
+                    ),
+                  ),
+                  TextButton(
+                    onPressed: controller.clearFilters,
+                    child: const Text('Limpiar'),
+                  ),
+                ],
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ActiveFilterChip extends StatelessWidget {
+  const _ActiveFilterChip({required this.label, required this.onDeleted});
+
+  final String label;
+  final VoidCallback onDeleted;
+
+  @override
+  Widget build(BuildContext context) {
+    return InputChip(
+      label: Text(label),
+      onDeleted: onDeleted,
+      deleteIcon: const Icon(Icons.close, size: 18),
+    );
+  }
+}
+
+class _PaymentStatusPill extends StatelessWidget {
+  const _PaymentStatusPill({
+    required this.label,
+    required this.color,
+    this.icon,
+  });
+
+  final String label;
+  final Color color;
+  final IconData? icon;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: .12),
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: color.withValues(alpha: .35)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (icon != null) ...[
+            Icon(icon, size: 14, color: color),
+            const SizedBox(width: 5),
+          ],
+          Container(
+            width: 7,
+            height: 7,
+            decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+          ),
+          const SizedBox(width: 6),
+          Text(
+            label,
+            style: TextStyle(
+              color: color,
+              fontWeight: FontWeight.w800,
+              fontSize: 12,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _PaymentMetricBox extends StatelessWidget {
+  const _PaymentMetricBox({
+    required this.label,
+    required this.value,
+    required this.tint,
+    this.emphasis = false,
+    this.fullWidth = false,
+  });
+
+  final String label;
+  final String value;
+  final Color tint;
+  final bool emphasis;
+  final bool fullWidth;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Container(
+      width: fullWidth ? double.infinity : null,
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+      decoration: BoxDecoration(
+        color: tint.withValues(alpha: .06),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: tint.withValues(alpha: .12)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            label,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: theme.textTheme.labelSmall?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            value,
+            maxLines: fullWidth ? 2 : 1,
+            overflow: TextOverflow.ellipsis,
+            style: theme.textTheme.bodyMedium?.copyWith(
+              fontWeight: emphasis ? FontWeight.w900 : FontWeight.w800,
+              letterSpacing: -.2,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _PaymentMetaBadge extends StatelessWidget {
+  const _PaymentMetaBadge({required this.icon, required this.text});
+
+  final IconData icon;
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: .42),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 14, color: theme.colorScheme.onSurfaceVariant),
+          const SizedBox(width: 6),
+          Text(
+            text,
+            style: theme.textTheme.labelMedium?.copyWith(
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _StaggeredEntrance extends StatefulWidget {
+  const _StaggeredEntrance({required this.index, required this.child});
+
+  final int index;
+  final Widget child;
+
+  @override
+  State<_StaggeredEntrance> createState() => _StaggeredEntranceState();
+}
+
+class _StaggeredEntranceState extends State<_StaggeredEntrance> {
+  bool _visible = false;
+
+  @override
+  void initState() {
+    super.initState();
+    final delayMs = 40 * widget.index;
+    Future.delayed(Duration(milliseconds: delayMs.clamp(0, 280)), () {
+      if (!mounted) return;
+      setState(() => _visible = true);
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isEven = widget.index.isEven;
+    final hiddenOffset = Offset(isEven ? -0.12 : 0.12, 0.18);
+    final hiddenRotation = (isEven ? -1 : 1) * 0.045;
+
+    return AnimatedSlide(
+      duration: const Duration(milliseconds: 520),
+      curve: Curves.easeOutCubic,
+      offset: _visible ? Offset.zero : hiddenOffset,
+      child: TweenAnimationBuilder<double>(
+        tween: Tween<double>(
+          begin: _visible ? 1 : 0,
+          end: _visible ? 1 : 0,
+        ),
+        duration: const Duration(milliseconds: 520),
+        curve: Curves.easeOutBack,
+        builder: (context, value, child) {
+          final rotation = hiddenRotation * (1 - value);
+          final scale = 0.96 + (0.04 * value);
+          return Transform.rotate(
+            angle: rotation * math.pi,
+            child: Transform.scale(
+              scale: scale,
+              child: child,
+            ),
+          );
+        },
+        child: widget.child,
       ),
     );
   }

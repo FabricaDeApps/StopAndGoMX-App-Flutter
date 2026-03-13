@@ -79,52 +79,103 @@ class PaymentDetailView extends GetView<PaymentDetailController> {
             children: [
               Card(
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
+                  borderRadius: BorderRadius.circular(20),
                 ),
                 child: Padding(
-                  padding: const EdgeInsets.all(16),
+                  padding: const EdgeInsets.all(18),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: [
+                          _StatusPill(
+                            label: chipText,
+                            color: chipColor,
+                            icon: paid
+                                ? Icons.verified_rounded
+                                : partial
+                                ? Icons.pie_chart_rounded
+                                : Icons.receipt_long_rounded,
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      Text(
+                        p.concept,
+                        style: theme.textTheme.titleLarge?.copyWith(
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        'Monto: ${money(p.netAmount)}',
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w700,
+                          color: chipColor,
+                        ),
+                      ),
+                      if ((p.playerName ?? '').isNotEmpty)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 8),
+                          child: Text(
+                            p.playerName!,
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              color: theme.colorScheme.onSurfaceVariant,
+                            ),
+                          ),
+                        ),
+                      const SizedBox(height: 16),
                       Row(
                         children: [
                           Expanded(
-                            child: Text(
-                              p.concept,
-                              style: theme.textTheme.titleMedium?.copyWith(
-                                fontWeight: FontWeight.w700,
-                              ),
+                            child: _MetricTile(
+                              label: p.hasDiscount ? 'Monto final' : 'Monto',
+                              value: money(p.netAmount),
+                              tint: chipColor,
+                              emphasis: true,
                             ),
                           ),
-                          Chip(
-                            backgroundColor: chipColor,
-                            label: Text(
-                              chipText,
-                              style: const TextStyle(color: Colors.white),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: _MetricTile(
+                              label: 'Pagado',
+                              value: money(totalRecibido),
+                              tint: Colors.teal,
                             ),
                           ),
                         ],
                       ),
-                      if ((p.playerName ?? '').isNotEmpty)
-                        Padding(
-                          padding: const EdgeInsets.only(top: 4),
-                          child: Text(
-                            p.playerName!,
-                            style: theme.textTheme.bodyMedium,
-                          ),
-                        ),
-                      const SizedBox(height: 10),
-                      Text('Monto: ${money(p.amount)}'),
+                      const SizedBox(height: 12),
+                      _MetricTile(
+                        label: 'Saldo pendiente',
+                        value: money(balance),
+                        tint: paid ? Colors.green : chipColor,
+                        emphasis: true,
+                        fullWidth: true,
+                      ),
                       if (p.hasDiscount) ...[
-                        Text('Descuento: -${money(p.discountsSumAmount)}'),
-                        Text('Neto: ${money(p.netAmount)}'),
+                        const SizedBox(height: 12),
+                        _MetaBadge(
+                          icon: Icons.local_offer_outlined,
+                          text: 'Descuento: -${money(p.discountsSumAmount)}',
+                        ),
                       ],
-                      Text('Pagado: ${money(totalRecibido)}'),
-                      Text('Saldo: ${money(balance)}'),
-                      if (p.dueDate != null)
-                        Text('Vence: ${_fmtDateOnly(p.dueDate!)}'),
-                      if (p.paidAt != null)
-                        Text('Liquidado: ${_fmtDateTime(p.paidAt)}'),
+                      if (p.dueDate != null) ...[
+                        const SizedBox(height: 12),
+                        _MetaBadge(
+                          icon: Icons.event_outlined,
+                          text: 'Vence: ${_fmtDateOnly(p.dueDate!)}',
+                        ),
+                      ],
+                      if (p.paidAt != null) ...[
+                        const SizedBox(height: 12),
+                        _MetaBadge(
+                          icon: Icons.check_circle_outline_rounded,
+                          text: 'Liquidado: ${_fmtDateTime(p.paidAt)}',
+                        ),
+                      ],
                     ],
                   ),
                 ),
@@ -151,7 +202,20 @@ class PaymentDetailView extends GetView<PaymentDetailController> {
                           (d) => ListTile(
                             contentPadding: EdgeInsets.zero,
                             dense: true,
-                            leading: const Icon(Icons.local_offer),
+                            leading: Container(
+                              width: 36,
+                              height: 36,
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(10),
+                                color: theme.colorScheme.primary.withValues(
+                                  alpha: .10,
+                                ),
+                              ),
+                              child: Icon(
+                                Icons.local_offer,
+                                color: theme.colorScheme.primary,
+                              ),
+                            ),
                             title: Text('-${money(d.amount)}'),
                             subtitle: Text(
                               d.createdAt != null
@@ -170,11 +234,11 @@ class PaymentDetailView extends GetView<PaymentDetailController> {
                   borderRadius: BorderRadius.circular(16),
                 ),
                 child: Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
+                    padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
                         'Historial de recibos',
                         style: theme.textTheme.titleSmall?.copyWith(
                           fontWeight: FontWeight.w700,
@@ -204,17 +268,33 @@ class PaymentDetailView extends GetView<PaymentDetailController> {
                 SizedBox(
                   width: double.infinity,
                   child: FilledButton.icon(
+                    style: FilledButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                    ),
                     onPressed: () async {
                       await controller.goToMakePayment();
                     },
                     icon: const Icon(Icons.payments_outlined),
-                    label: const Text('Pagar'),
+                    label: Text(
+                      balance > 0
+                          ? 'Pagar ${money(balance)}'
+                          : 'Registrar pago',
+                    ),
                   ),
                 ),
               if (!controller.isPaid && controller.canPayWithCard)
                 SizedBox(
                   width: double.infinity,
-                  child: FilledButton.icon(
+                  child: OutlinedButton.icon(
+                    style: OutlinedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                    ),
                     onPressed: controller.isPayingWithCard.value
                         ? null
                         : () async {
@@ -226,7 +306,7 @@ class PaymentDetailView extends GetView<PaymentDetailController> {
                             height: 18,
                             child: CircularProgressIndicator(strokeWidth: 2),
                           )
-                        : const Icon(Icons.credit_card),
+                        : const Icon(Icons.credit_card_rounded),
                     label: const Text('Pagar con tarjeta'),
                   ),
                 ),
@@ -238,9 +318,21 @@ class PaymentDetailView extends GetView<PaymentDetailController> {
   }
 
   Widget _receiptTile(BuildContext context, ReceiptDto r) {
+    final theme = Theme.of(context);
     return ListTile(
       contentPadding: EdgeInsets.zero,
-      leading: const Icon(Icons.attach_money),
+      leading: Container(
+        width: 36,
+        height: 36,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(10),
+          color: theme.colorScheme.primary.withValues(alpha: .10),
+        ),
+        child: Icon(
+          Icons.attach_money,
+          color: theme.colorScheme.primary,
+        ),
+      ),
       title: Text('${money(r.amount)} • ${r.method}'),
       subtitle: Text(
         '${_fmtDateTime(r.paidAt)}${r.reference != null ? ' · Ref: ${r.reference}' : ''}',
@@ -300,6 +392,130 @@ class PaymentDetailView extends GetView<PaymentDetailController> {
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+class _StatusPill extends StatelessWidget {
+  const _StatusPill({
+    required this.label,
+    required this.color,
+    this.icon,
+  });
+
+  final String label;
+  final Color color;
+  final IconData? icon;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: .12),
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: color.withValues(alpha: .35)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (icon != null) ...[
+            Icon(icon, size: 14, color: color),
+            const SizedBox(width: 6),
+          ],
+          Text(
+            label,
+            style: TextStyle(
+              color: color,
+              fontWeight: FontWeight.w800,
+              fontSize: 12,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _MetricTile extends StatelessWidget {
+  const _MetricTile({
+    required this.label,
+    required this.value,
+    required this.tint,
+    this.emphasis = false,
+    this.fullWidth = false,
+  });
+
+  final String label;
+  final String value;
+  final Color tint;
+  final bool emphasis;
+  final bool fullWidth;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Container(
+      width: fullWidth ? double.infinity : null,
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+      decoration: BoxDecoration(
+        color: tint.withValues(alpha: .06),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: tint.withValues(alpha: .12)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            label,
+            style: theme.textTheme.labelSmall?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            value,
+            style: theme.textTheme.bodyMedium?.copyWith(
+              fontWeight: emphasis ? FontWeight.w900 : FontWeight.w800,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _MetaBadge extends StatelessWidget {
+  const _MetaBadge({required this.icon, required this.text});
+
+  final IconData icon;
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: .42),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 14, color: theme.colorScheme.onSurfaceVariant),
+          const SizedBox(width: 6),
+          Flexible(
+            child: Text(
+              text,
+              style: theme.textTheme.labelMedium?.copyWith(
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

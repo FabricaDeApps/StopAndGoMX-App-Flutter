@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
+import 'package:stopandgo/core/utils/role_utils.dart';
 import 'package:stopandgo/modules/trainnings/trainnings_controller.dart';
 import 'package:stopandgo/routes/app_routes.dart';
 
@@ -146,7 +147,7 @@ class TrainingsView extends GetView<TrainingsController> {
       appBar: AppBar(title: const Text('Entrenamientos'), centerTitle: true),
 
       floatingActionButton:
-          (controller.userRole.value == "manager" ||
+          (hasManagerPrivileges(controller.userRole.value) ||
               controller.userRole.value == "coach")
           ? FloatingActionButton.extended(
               icon: const Icon(Icons.add),
@@ -217,9 +218,9 @@ class TrainingsView extends GetView<TrainingsController> {
                           final t = list[index];
                           final isScheduled = t.status == 'scheduled';
                           final canManageTraining =
-                              controller.userRole.value == 'manager';
+                              hasManagerPrivileges(controller.userRole.value);
                           final canEditTraining =
-                              (controller.userRole.value == 'manager' ||
+                              (hasManagerPrivileges(controller.userRole.value) ||
                                   controller.userRole.value == 'coach') &&
                               isScheduled;
                           final isCompleted = t.status == 'completed';

@@ -1,6 +1,7 @@
 // lib/modules/home/tabs/notices/notices_tab_view.dart
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:stopandgo/core/utils/role_utils.dart';
 import 'package:stopandgo/routes/app_routes.dart';
 
 import 'notices_tab_controller.dart';
@@ -14,7 +15,7 @@ class NoticesTabView extends GetView<NoticesTabController> {
 
     return Obx(() {
       final role = controller.role.value;
-      final canCreate = role == 'manager' || role == 'coach';
+      final canCreate = canManageNotices(role);
 
       if (controller.isLoading.value) {
         return const Center(child: CircularProgressIndicator());

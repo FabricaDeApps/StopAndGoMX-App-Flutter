@@ -26,6 +26,8 @@ abstract class Routes {
   static const noCategory = '/noCategory';
   static const noPlayer = '/noPlayer';
   static const roster = '/roster';
+  static const adminRoster = '/admin/roster-general';
+  static const adminPlayerEdit = '/admin/player-edit';
   static const managerPlayerFile = '/manager/player-file/:playerId';
   static const documentsCompliance = '/manager/documents-compliance';
   static const documents = '/documents';

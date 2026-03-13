@@ -3,6 +3,7 @@ class ApiEndpoints {
   static const public = '/public';
   static const auth = '/auth';
   static const manager = '/manager';
+  static const admin = '/admin';
   static const parent = '/player';
 
   // ---- PUBLIC ----
@@ -19,6 +20,7 @@ class ApiEndpoints {
 
   // ---- MANAGER ----
   static const managerPlayers = '$manager/players';
+  static const adminPlayers = '$admin/players';
   static const managerPayments = '$manager/payments';
   static const markPaymentPaid = '$manager/payments/{id}/mark-paid';
 

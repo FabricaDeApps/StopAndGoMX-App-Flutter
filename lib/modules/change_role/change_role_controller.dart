@@ -1,5 +1,6 @@
 import 'package:get/get.dart';
 import 'package:flutter/material.dart';
+import 'package:stopandgo/core/utils/helpers.dart';
 import 'package:stopandgo/routes/app_routes.dart';
 
 class ChangeRoleController extends GetxController
@@ -46,21 +47,7 @@ class ChangeRoleController extends GetxController
   }
 
   String get roleLabel {
-    switch (role.value) {
-      case 'parent':
-        return 'Padre/Madre';
-      case 'player':
-        return 'Jugador';
-      case 'coach':
-        return 'Entrenador';
-      case 'manager':
-        return 'Manager';
-      case 'staff':
-        return 'Personal';
-      case 'admin':
-        return 'Administrador';
-      default:
-        return role.value.isEmpty ? 'usuario' : role.value;
-    }
+    final label = getLabelRol(role.value);
+    return label.isEmpty ? 'usuario' : label;
   }
 }

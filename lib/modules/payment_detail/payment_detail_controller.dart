@@ -2,6 +2,7 @@ import 'package:get/get.dart';
 import 'package:stopandgo/core/models/dto/payment_dto.dart';
 import 'package:stopandgo/core/network/api_repository.dart';
 import 'package:stopandgo/core/storage/app_storage.dart';
+import 'package:stopandgo/core/utils/role_utils.dart';
 import 'package:stopandgo/routes/app_routes.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -50,7 +51,7 @@ class PaymentDetailController extends GetxController {
       final role = user.activeRole.isNotEmpty ? user.activeRole : user.role;
       List<PaymentDto> list = const [];
 
-      if (role == 'manager') {
+      if (hasManagerPrivileges(role)) {
         final categoryId = AppStorage.getSelectedCategoryId();
         if (categoryId == null || categoryId <= 0) {
           error.value = 'No hay categoría seleccionada.';

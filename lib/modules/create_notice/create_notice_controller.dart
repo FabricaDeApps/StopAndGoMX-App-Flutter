@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:stopandgo/core/network/api_repository.dart';
 import 'package:stopandgo/core/storage/app_storage.dart';
+import 'package:stopandgo/core/utils/role_utils.dart';
 
 class CreateNoticeController extends GetxController {
   final _api = Get.find<ApiRepository>();
@@ -169,7 +170,7 @@ class CreateNoticeController extends GetxController {
           expiresAt: expiresAt.value,
           attachmentPath: attachment,
         );
-      } else if (role == 'manager') {
+      } else if (hasManagerPrivileges(role)) {
         await _api.createManagerCategoryNotice(
           categoryId: categoryId,
           title: title,
@@ -180,7 +181,7 @@ class CreateNoticeController extends GetxController {
           attachmentPath: attachment,
         );
       } else {
-        throw Exception('Solo manager o coach pueden crear avisos.');
+        throw Exception('Solo admin, manager o coach pueden crear avisos.');
       }
 
       Get.back(result: true);

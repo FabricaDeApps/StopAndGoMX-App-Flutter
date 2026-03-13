@@ -5,6 +5,7 @@ import 'package:stopandgo/core/models/dto/notice_model.dart';
 import 'package:stopandgo/core/models/games/games.dart';
 import 'package:stopandgo/core/network/api_repository.dart';
 import 'package:stopandgo/core/storage/app_storage.dart';
+import 'package:stopandgo/core/utils/role_utils.dart';
 
 class DashboardTabController extends GetxController {
   final api = Get.find<ApiRepository>();
@@ -30,16 +31,16 @@ class DashboardTabController extends GetxController {
   }
 
   Future<void> refresh() async {
+    if (hasManagerPrivileges(role.value)) {
+      return _loadDashboardForManager();
+    }
     switch (role.value) {
-      case 'manager':
-        return _loadDashboardForManager();
       case 'coach':
         return _loadDashboardForCoach();
       case 'staff':
         return _loadDashboardForStaff();
       case 'parent':
       case 'player':
-        return _loadDashboardForPlayerOrParent();
       default:
         return _loadDashboardForPlayerOrParent();
     }

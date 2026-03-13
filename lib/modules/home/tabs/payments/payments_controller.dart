@@ -1,8 +1,10 @@
 // lib/modules/payments/payments_controller.dart
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:stopandgo/core/models/dto/payment_dto.dart';
 import 'package:stopandgo/core/network/api_repository.dart';
 import 'package:stopandgo/core/storage/app_storage.dart';
+import 'package:stopandgo/core/utils/role_utils.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 enum PaymentStatusFilter { all, paid, pending, partial }
@@ -41,6 +43,7 @@ class PaymentsTabController extends GetxController {
   final error = RxnString();
 
   // filtros
+  final searchCtrl = TextEditingController();
   final statusFilter = PaymentStatusFilter.all.obs;
   final dueFilter = PaymentDueFilter.all.obs;
   final query = ''.obs;
@@ -75,7 +78,7 @@ class PaymentsTabController extends GetxController {
 
       final r = role.value.isEmpty ? user.role : role.value;
 
-      if (r == 'manager') {
+      if (hasManagerPrivileges(r)) {
         final categoryId =
             selectedCategoryId.value ?? AppStorage.getSelectedCategoryId();
 
@@ -115,12 +118,31 @@ class PaymentsTabController extends GetxController {
 
   void setStatusFilter(PaymentStatusFilter v) => statusFilter.value = v;
   void setDueFilter(PaymentDueFilter v) => dueFilter.value = v;
-  void setQuery(String v) => query.value = v;
+  void setQuery(String v) {
+    query.value = v;
+    if (searchCtrl.text != v) {
+      searchCtrl.value = TextEditingValue(
+        text: v,
+        selection: TextSelection.collapsed(offset: v.length),
+      );
+    }
+  }
+
+  bool get hasActiveFilters =>
+      query.value.trim().isNotEmpty ||
+      statusFilter.value != PaymentStatusFilter.all;
+
+  int get activeFiltersCount {
+    var count = 0;
+    if (query.value.trim().isNotEmpty) count++;
+    if (statusFilter.value != PaymentStatusFilter.all) count++;
+    return count;
+  }
 
   void clearFilters() {
     statusFilter.value = PaymentStatusFilter.all;
     dueFilter.value = PaymentDueFilter.all;
-    query.value = '';
+    setQuery('');
   }
 
   List<PaymentDto> get filteredPayments {
@@ -201,5 +223,11 @@ class PaymentsTabController extends GetxController {
       expandedPaymentIds.remove(paymentId);
     }
     expandedPaymentIds.refresh();
+  }
+
+  @override
+  void onClose() {
+    searchCtrl.dispose();
+    super.onClose();
   }
 }

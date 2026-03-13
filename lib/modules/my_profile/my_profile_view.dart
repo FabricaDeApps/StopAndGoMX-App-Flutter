@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:stopandgo/core/utils/helpers.dart';
 import 'my_profile_controller.dart';
 
 class MyProfileView extends GetView<MyProfileController> {
@@ -239,15 +240,7 @@ class MyProfileView extends GetView<MyProfileController> {
   }
 
   static String _roleLabel(String role) {
-    switch (role) {
-      case 'parent':
-        return 'Padre/Madre';
-      case 'player':
-        return 'Jugador';
-      case 'manager':
-        return 'Manager';
-      default:
-        return role;
-    }
+    final label = getLabelRol(role);
+    return label.isEmpty ? role : label;
   }
 }

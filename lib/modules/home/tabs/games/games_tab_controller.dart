@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 import 'package:stopandgo/core/models/games/games.dart';
 import 'package:stopandgo/core/network/api_repository.dart';
 import 'package:stopandgo/core/storage/app_storage.dart';
+import 'package:stopandgo/core/utils/role_utils.dart';
 
 enum GamesStatusFilter { all, played, upcoming }
 
@@ -41,7 +42,7 @@ class GamesTabController extends GetxController {
   bool get canFilterByScope =>
       role.value == 'player' ||
       role.value == 'parent' ||
-      role.value == 'manager' ||
+      hasManagerPrivileges(role.value) ||
       role.value == 'coach';
 
   // Org (para streamingEnabled y orgId)
@@ -57,7 +58,7 @@ class GamesTabController extends GetxController {
 
   bool canStartLive() {
     final r = role.value;
-    return r == 'manager' || r == 'coach';
+    return hasManagerPrivileges(r) || r == 'coach';
   }
 
   String? _statusParam(GamesStatusFilter f) {
@@ -67,7 +68,6 @@ class GamesTabController extends GetxController {
       case GamesStatusFilter.upcoming:
         return 'scheduled';
       case GamesStatusFilter.all:
-      default:
         return null;
     }
   }
@@ -97,7 +97,7 @@ class GamesTabController extends GetxController {
         return;
       }
 
-      if (r == 'manager') {
+      if (hasManagerPrivileges(r)) {
         final categoryId =
             selectedCategoryId.value ?? AppStorage.getSelectedCategoryId();
         if (categoryId == null) return;

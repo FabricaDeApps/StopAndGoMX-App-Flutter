@@ -7,6 +7,7 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:stopandgo/core/models/players.dart';
 import 'package:stopandgo/core/network/api_repository.dart';
 import 'package:stopandgo/core/storage/app_storage.dart';
+import 'package:stopandgo/core/utils/role_utils.dart';
 import 'package:stopandgo/routes/app_routes.dart';
 
 class RosterController extends GetxController {
@@ -48,7 +49,10 @@ class RosterController extends GetxController {
 
   void _loadSession() {
     final user = AppStorage.getUser();
-    userRole.value = user?.role ?? 'player';
+    final role = user == null
+        ? 'player'
+        : (user.activeRole.isNotEmpty ? user.activeRole : user.role);
+    userRole.value = normalizeRole(role);
   }
 
   Future<void> _loadPlayers() async {

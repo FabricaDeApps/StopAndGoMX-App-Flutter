@@ -5,6 +5,7 @@ import 'package:get/get.dart';
 import 'package:stopandgo/core/models/category.dart';
 import 'package:stopandgo/core/services/ecommerce_cart_service.dart';
 import 'package:stopandgo/core/storage/app_storage.dart';
+import 'package:stopandgo/core/utils/role_utils.dart';
 import 'package:stopandgo/core/widgets/category_picker_sheet.dart';
 import 'package:stopandgo/core/widgets/player_picker_sheet.dart';
 import 'package:stopandgo/modules/webview/webview_page.dart';
@@ -53,10 +54,11 @@ class HomeView extends GetView<HomeController> {
     return Obx(() {
       final role = controller.userRole.value;
 
-      final isManager = role == 'manager';
+      final isManager = hasManagerPrivileges(role);
       final isParent = role == 'parent';
       final isPlayer = role == 'player';
       final isCoach = role == 'coach';
+      final managerLabel = isAdminRole(role) ? 'Administrador: ' : 'Manager: ';
 
       final tabs = controller.tabs.toList();
 
@@ -66,8 +68,8 @@ class HomeView extends GetView<HomeController> {
           title: Row(
             children: [
               if (isManager) ...[
-                const Text(
-                  'Manager: ',
+                Text(
+                  managerLabel,
                   style: TextStyle(fontWeight: FontWeight.w600),
                 ),
                 const SizedBox(width: 12),
@@ -245,7 +247,7 @@ class HomeView extends GetView<HomeController> {
         child: Obx(() {
           final role = controller.userRole.value;
 
-          final isManager = role == 'manager';
+          final isManager = hasManagerPrivileges(role);
           final isParent = role == 'parent';
           final isPlayer = role == 'player';
           final isCoach = role == 'coach';
@@ -442,6 +444,15 @@ class HomeView extends GetView<HomeController> {
                     Get.toNamed(Routes.roster);
                   },
                 ),
+                if (isAdminRole(role))
+                  ListTile(
+                    leading: const Icon(Icons.groups_2_outlined),
+                    title: const Text('Roster General'),
+                    onTap: () {
+                      Get.back();
+                      Get.toNamed(Routes.adminRoster);
+                    },
+                  ),
                 if (isManager)
                   ListTile(
                     leading: const Icon(Icons.fact_check_outlined),

@@ -1,6 +1,8 @@
 import 'package:get/get.dart';
 import 'package:stopandgo/core/models/player_document.dart';
 import 'package:stopandgo/modules/assign_player/index.dart';
+import 'package:stopandgo/modules/admin_player_edit/index.dart';
+import 'package:stopandgo/modules/admin_roster/index.dart';
 import 'package:stopandgo/modules/attendece_game/index.dart';
 import 'package:stopandgo/modules/auth/login_binding.dart';
 import 'package:stopandgo/modules/auth/login_view.dart';
@@ -220,6 +222,16 @@ class AppPages {
       name: Routes.roster,
       page: () => const RosterView(),
       binding: RosterBinding(),
+    ),
+    GetPage(
+      name: Routes.adminRoster,
+      page: () => const AdminRosterView(),
+      binding: AdminRosterBinding(),
+    ),
+    GetPage(
+      name: Routes.adminPlayerEdit,
+      page: () => const AdminPlayerEditView(),
+      binding: AdminPlayerEditBinding(),
     ),
     GetPage(
       name: Routes.managerPlayerFile,

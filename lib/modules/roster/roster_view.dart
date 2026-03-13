@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:stopandgo/core/utils/role_utils.dart';
 import 'roster_controller.dart';
 
 class RosterView extends GetView<RosterController> {
@@ -12,7 +13,7 @@ class RosterView extends GetView<RosterController> {
         title: Text(controller.categoryName),
         actions: [
           Obx(() {
-            if (controller.userRole.value != 'manager') {
+            if (!hasManagerPrivileges(controller.userRole.value)) {
               return const SizedBox.shrink();
             }
             return IconButton(
@@ -129,7 +130,10 @@ class RosterView extends GetView<RosterController> {
                                 subtitle: Text(
                                   "#${player.number.toString()} - ${player.position} ",
                                 ),
-                                trailing: controller.userRole.value == "manager"
+                                trailing:
+                                    hasManagerPrivileges(
+                                      controller.userRole.value,
+                                    )
                                     ? Wrap(
                                         spacing: 6,
                                         children: [
@@ -148,7 +152,7 @@ class RosterView extends GetView<RosterController> {
                                           ),
                                         ],
                                       )
-                                    : SizedBox(),
+                                    : const SizedBox(),
                               ),
                             );
                           },

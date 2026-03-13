@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:stopandgo/core/config/flavor_config.dart';
 import 'package:stopandgo/core/constants/api_endpoints.dart';
+import 'package:stopandgo/core/models/admin_player.dart';
 import 'package:stopandgo/core/models/category.dart';
 import 'package:stopandgo/core/models/checkin_model.dart';
 import 'package:stopandgo/core/models/checkin_model_response.dart';
@@ -247,6 +248,46 @@ class ApiRepository {
     }
 
     return [];
+  }
+
+  Future<AdminPlayersResponse> getAdminPlayers({
+    String? q,
+    String active = 'all',
+    String confirmed = 'all',
+    int? categoryId,
+    bool includeArchived = false,
+    int perPage = 25,
+    int page = 1,
+  }) async {
+    final res = await _dio.get(
+      ApiEndpoints.adminPlayers,
+      queryParameters: {
+        if (q != null && q.isNotEmpty) 'q': q,
+        'active': active,
+        'confirmed': confirmed,
+        if (categoryId != null) 'category_id': categoryId,
+        'include_archived': includeArchived,
+        'per_page': perPage,
+        'page': page,
+      },
+      options: Options(headers: _headers()),
+    );
+
+    return AdminPlayersResponse.fromJson(Map<String, dynamic>.from(res.data));
+  }
+
+  Future<AdminPlayer> updateAdminPlayer({
+    required int playerId,
+    required Map<String, dynamic> data,
+  }) async {
+    final res = await _dio.patch(
+      '${ApiEndpoints.adminPlayers}/$playerId',
+      data: data,
+      options: Options(headers: _headers()),
+    );
+
+    final payload = Map<String, dynamic>.from(res.data as Map);
+    return AdminPlayer.fromJson(Map<String, dynamic>.from(payload['data']));
   }
 
   /// GET /api/manager/categories

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:stopandgo/core/models/dto/notice_model.dart';
 import 'package:stopandgo/core/network/api_repository.dart';
+import 'package:stopandgo/core/utils/role_utils.dart';
 
 class NoticesTabController extends GetxController {
   final api = Get.find<ApiRepository>();
@@ -43,7 +44,7 @@ class NoticesTabController extends GetxController {
         return;
       }
 
-      if (r == 'manager' || r == 'coach') {
+      if (canManageNotices(r)) {
         final notices = await api.managerNotices();
         listNotices.assignAll(notices);
         return;

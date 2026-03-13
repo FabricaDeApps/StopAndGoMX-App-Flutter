@@ -17,6 +17,7 @@ import 'package:stopandgo/modules/home/tabs/games/games_tab_controller.dart';
 import 'package:stopandgo/modules/home/tabs/notices/notices_tab_controller.dart';
 import 'package:stopandgo/modules/home/tabs/payments/payments_controller.dart';
 import 'package:stopandgo/routes/app_routes.dart';
+import 'package:stopandgo/core/utils/role_utils.dart';
 
 import 'tabs/dashboard/dashboard_tab_controller.dart';
 
@@ -108,7 +109,7 @@ class HomeController extends GetxController with GetTickerProviderStateMixin {
       userName.value = user.name;
       userEmail.value = user.email;
       userAvatar.value = user.photoUrl;
-      userRole.value = _normalizeRole(
+      userRole.value = normalizeRole(
         user.activeRole.isNotEmpty ? user.activeRole : user.role,
       );
     }
@@ -274,8 +275,6 @@ class HomeController extends GetxController with GetTickerProviderStateMixin {
     }
   }
 
-  String _normalizeRole(String role) => role.trim().toLowerCase();
-
   List<String> _resolveTabsForRole(String role) {
     final configuredTabs = FlavorConfig.I.getTabsForRole(role);
     if (org.value?.gazettaEnabled == true) return configuredTabs;
@@ -285,10 +284,11 @@ class HomeController extends GetxController with GetTickerProviderStateMixin {
   List<String> get availableRoles {
     final raw = AppStorage.getAvailableRoles();
     final supported = raw
-        .map(_normalizeRole)
+        .map(normalizeRole)
         .where((r) => FlavorConfig.I.getTabsForRole(r).isNotEmpty)
         .toSet()
-        .toList();
+        .toList()
+        .cast<String>();
     if (supported.isEmpty) return <String>[userRole.value];
     if (!supported.contains(userRole.value)) {
       supported.insert(0, userRole.value);
@@ -297,7 +297,7 @@ class HomeController extends GetxController with GetTickerProviderStateMixin {
   }
 
   Future<void> changeRole(String newRole) async {
-    final nextRole = _normalizeRole(newRole);
+    final nextRole = normalizeRole(newRole);
     if (nextRole.isEmpty || nextRole == userRole.value) return;
 
     if (FlavorConfig.I.getTabsForRole(nextRole).isEmpty) {
@@ -345,7 +345,7 @@ class HomeController extends GetxController with GetTickerProviderStateMixin {
   Future<bool> _bootstrapSelectorsByRole() async {
     final role = userRole.value;
 
-    if (role == 'manager') {
+    if (hasManagerPrivileges(role)) {
       await _loadManagerCategories();
       if (categories.isEmpty) {
         Get.offAllNamed(Routes.noCategory);

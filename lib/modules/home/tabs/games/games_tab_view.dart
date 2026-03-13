@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:stopandgo/core/storage/app_storage.dart';
+import 'package:stopandgo/core/utils/role_utils.dart';
 import 'package:stopandgo/modules/home/widgets/live_breathing_badge.dart';
 import 'package:stopandgo/routes/app_routes.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -107,12 +108,12 @@ class GamesTabView extends GetView<GamesTabController> {
 
                 final role = controller.role.value;
                 final isManagerAllTeamScope =
-                    role == 'manager' &&
+                    hasManagerPrivileges(role) &&
                     controller.scopeFilter.value ==
                         GamesScopeFilter.organization;
                 final hideManagerActions = isManagerAllTeamScope;
 
-                final canComplete = role == 'manager' && isPast;
+                final canComplete = hasManagerPrivileges(role) && isPast;
 
                 final streamingEnabled = controller.streamingEnabled;
 
@@ -343,7 +344,8 @@ class GamesTabView extends GetView<GamesTabController> {
                         // 🎥 Iniciar Live (solo manager/coach y streaming habilitado)
                         if (streamingEnabled &&
                             (role == 'coach' ||
-                                (role == 'manager' && !hideManagerActions)))
+                                (hasManagerPrivileges(role) &&
+                                    !hideManagerActions)))
                           IconButton(
                             padding: EdgeInsets.zero,
                             constraints: const BoxConstraints(
@@ -378,7 +380,7 @@ class GamesTabView extends GetView<GamesTabController> {
                         // 🗺️ Google Maps
                         Visibility(
                           visible:
-                              role == 'manager' &&
+                              hasManagerPrivileges(role) &&
                               !hideManagerActions &&
                               g.status != "completed",
                           child: IconButton(
@@ -419,7 +421,8 @@ class GamesTabView extends GetView<GamesTabController> {
                           ),
                         ),
 
-                        if (((role == 'manager' && !isManagerAllTeamScope) ||
+                        if (((hasManagerPrivileges(role) &&
+                                    !isManagerAllTeamScope) ||
                                 role == 'coach') &&
                             g.status != 'completed')
                           IconButton(
@@ -447,7 +450,7 @@ class GamesTabView extends GetView<GamesTabController> {
                           ),
 
                         // 📋 Asistencia (manager, mismo día)
-                        if (role == 'manager' &&
+                        if (hasManagerPrivileges(role) &&
                             !isManagerAllTeamScope &&
                             g.startsAt != null &&
                             DateTime.now().year == g.startsAt!.year &&
@@ -499,7 +502,7 @@ class GamesTabView extends GetView<GamesTabController> {
             ],
           ),
 
-          if ((controller.role.value == 'manager' &&
+          if ((hasManagerPrivileges(controller.role.value) &&
                   controller.scopeFilter.value == GamesScopeFilter.mine) ||
               controller.role.value == 'coach')
             Positioned(
@@ -545,7 +548,7 @@ class _GamesFiltersHeader extends StatelessWidget {
       final range = controller.effectiveRange;
       final selected = controller.selectedRange.value != null;
       final mineLabel =
-          (controller.role.value == 'manager' ||
+          (hasManagerPrivileges(controller.role.value) ||
               controller.role.value == 'coach')
           ? 'Mis juegos'
           : 'Mis partidos';

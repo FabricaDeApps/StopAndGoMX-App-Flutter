@@ -1,5 +1,8 @@
 enum AppFlavor { main, zorros, raidersqro, wolverinesqro, bearsqro, redskins }
 
+const _managerTabs = ["dashboard", "games", "payments", "notices", "gazzetta"];
+const _managerTabsNoPayments = ["dashboard", "games", "notices", "gazzetta"];
+
 class FlavorConfig {
   final AppFlavor flavor;
   final String appName;
@@ -62,42 +65,48 @@ class FlavorConfig {
       "player": ["dashboard", "games", "payments", "notices", "gazzetta"],
       "coach": ["dashboard", "games", "notices", "gazzetta"],
       "staff": ["dashboard", "games", "notices", "gazzetta"],
-      "manager": ["dashboard", "games", "payments", "notices", "gazzetta"],
+      "manager": _managerTabs,
+      "admin": _managerTabs,
     },
     AppFlavor.zorros: {
       "parent": ["dashboard", "games", "payments", "notices", "gazzetta"],
       "player": ["dashboard", "games", "payments", "notices", "gazzetta"],
       "coach": ["dashboard", "games", "notices", "gazzetta"],
       "staff": ["dashboard", "games", "notices", "gazzetta"],
-      "manager": ["dashboard", "games", "payments", "notices", "gazzetta"],
+      "manager": _managerTabs,
+      "admin": _managerTabs,
     },
     AppFlavor.raidersqro: {
       "parent": ["dashboard", "games", "payments", "notices", "gazzetta"],
       "player": ["dashboard", "games", "payments", "notices", "gazzetta"],
       "coach": ["dashboard", "games", "notices", "gazzetta"],
       "staff": ["dashboard", "games", "notices", "gazzetta"],
-      "manager": ["dashboard", "games", "payments", "notices", "gazzetta"],
+      "manager": _managerTabs,
+      "admin": _managerTabs,
     },
     AppFlavor.wolverinesqro: {
       "parent": ["dashboard", "games", "payments", "notices", "gazzetta"],
       "player": ["dashboard", "games", "payments", "notices", "gazzetta"],
       "coach": ["dashboard", "games", "notices", "gazzetta"],
       "staff": ["dashboard", "games", "notices", "gazzetta"],
-      "manager": ["dashboard", "games", "notices", "gazzetta"],
+      "manager": _managerTabsNoPayments,
+      "admin": _managerTabsNoPayments,
     },
     AppFlavor.bearsqro: {
       "parent": ["dashboard", "games", "payments", "notices", "gazzetta"],
       "player": ["dashboard", "games", "payments", "notices", "gazzetta"],
       "coach": ["dashboard", "games", "notices", "gazzetta"],
       "staff": ["dashboard", "games", "notices", "gazzetta"],
-      "manager": ["dashboard", "games", "payments", "notices", "gazzetta"],
+      "manager": _managerTabs,
+      "admin": _managerTabs,
     },
     AppFlavor.redskins: {
       "parent": ["dashboard", "games", "payments", "notices", "gazzetta"],
       "player": ["dashboard", "games", "payments", "notices", "gazzetta"],
       "coach": ["dashboard", "games", "notices", "gazzetta"],
       "staff": ["dashboard", "games", "notices", "gazzetta"],
-      "manager": ["dashboard", "games", "payments", "notices", "gazzetta"],
+      "manager": _managerTabs,
+      "admin": _managerTabs,
     },
   };
 
