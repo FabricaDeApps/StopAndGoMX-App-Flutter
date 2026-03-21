@@ -1,1 +1,3 @@
-- Pantalla de seleccion de equipos en app genérica.
+- Coaches pueden generar entrenamientos y pasar lista.
+- Felicitación de cumpleaños por notificación.
+- Fix validar monto pago.

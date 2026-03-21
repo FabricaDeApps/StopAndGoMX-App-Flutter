@@ -24,16 +24,28 @@ class MakePaymentView extends GetView<MakePaymentController> {
               return Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  if (controller.maxAllowedAmount != null) ...[
+                    Text(
+                      'Saldo pendiente: \$${controller.maxAllowedAmount!.toStringAsFixed(2)}',
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                  ],
                   // Monto
                   TextFormField(
                     controller: controller.amountCtrl,
                     keyboardType: const TextInputType.numberWithOptions(
                       decimal: true,
                     ),
-                    decoration: const InputDecoration(
+                    decoration: InputDecoration(
                       labelText: 'Monto',
-                      hintText: '210.00',
+                      hintText: controller.maxAllowedAmount != null
+                          ? controller.maxAllowedAmount!.toStringAsFixed(2)
+                          : '210.00',
                       prefixIcon: Icon(Icons.attach_money),
+                      helperText: 'No puede exceder el saldo pendiente',
                     ),
                     validator: controller.validateAmount,
                   ),
@@ -41,7 +53,7 @@ class MakePaymentView extends GetView<MakePaymentController> {
 
                   // Método
                   DropdownButtonFormField<String>(
-                    value: controller.method.value,
+                    initialValue: controller.method.value,
                     decoration: const InputDecoration(
                       labelText: 'Método de pago',
                       prefixIcon: Icon(Icons.payment),

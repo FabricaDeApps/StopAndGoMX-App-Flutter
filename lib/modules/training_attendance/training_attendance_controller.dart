@@ -4,6 +4,7 @@ import 'package:stopandgo/core/models/players.dart';
 import 'package:stopandgo/core/models/trainning_attendance.dart';
 import 'package:stopandgo/core/network/api_repository.dart';
 import 'package:stopandgo/core/storage/app_storage.dart';
+import 'package:stopandgo/core/utils/role_utils.dart';
 
 class AttendanceRow {
   final Player player;
@@ -48,8 +49,10 @@ class TrainingAttendanceController extends GetxController {
 
   final userRole = 'player'.obs;
 
-  bool get isReadOnly => userRole.value == 'coach';
-  bool get canEdit => !isReadOnly;
+  bool get canEdit =>
+      hasManagerPrivileges(userRole.value) || userRole.value == 'coach';
+  bool get isReadOnly => !canEdit;
+  bool get isCoachRole => userRole.value == 'coach';
 
   @override
   void onInit() {
@@ -69,7 +72,8 @@ class TrainingAttendanceController extends GetxController {
 
   void _loadSession() {
     final user = AppStorage.getUser();
-    userRole.value = user?.role ?? 'player';
+    final role = AppStorage.getActiveRole() ?? user?.role;
+    userRole.value = (role ?? 'player').trim().toLowerCase();
   }
 
   /// 🆕 Modo NUEVO
@@ -127,8 +131,9 @@ class TrainingAttendanceController extends GetxController {
     error.value = null;
 
     try {
-      final List<TrainingAttendanceItem> attendanceItems = await _api
-          .getTrainningAttendance(trainingId, categoryId);
+      final List<TrainingAttendanceItem> attendanceItems = isCoachRole
+          ? await _api.getCoachTrainningAttendance(trainingId, categoryId)
+          : await _api.getTrainningAttendance(trainingId, categoryId);
       attendanceItems.sort(
         (a, b) =>
             a.playerName.toLowerCase().compareTo(b.playerName.toLowerCase()),
@@ -199,10 +204,15 @@ class TrainingAttendanceController extends GetxController {
         });
       }
 
-      final ok = await _api.managerAttendanceBulk(
-        categoryId: categoryId,
-        items: items,
-      );
+      final ok = isCoachRole
+          ? await _api.coachAttendanceBulk(
+              categoryId: categoryId,
+              items: items,
+            )
+          : await _api.managerAttendanceBulk(
+              categoryId: categoryId,
+              items: items,
+            );
 
       if (ok) {
         Get.back(result: true);
@@ -224,16 +234,29 @@ class TrainingAttendanceController extends GetxController {
     row.isUpdating.value = true;
 
     try {
-      await _api.updateTrainingAttendance(
-        categoryId: categoryId,
-        trainingId: trainingId,
-        attendanceId: row.attendanceId!,
-        status: row.status.value,
-        minutesLate: row.status.value == 'late' ? row.minutesLate.value : 0,
-        notes: row.notesController.text.trim().isNotEmpty
-            ? row.notesController.text.trim()
-            : null,
-      );
+      if (isCoachRole) {
+        await _api.updateCoachTrainingAttendance(
+          categoryId: categoryId,
+          trainingId: trainingId,
+          attendanceId: row.attendanceId!,
+          status: row.status.value,
+          minutesLate: row.status.value == 'late' ? row.minutesLate.value : 0,
+          notes: row.notesController.text.trim().isNotEmpty
+              ? row.notesController.text.trim()
+              : null,
+        );
+      } else {
+        await _api.updateTrainingAttendance(
+          categoryId: categoryId,
+          trainingId: trainingId,
+          attendanceId: row.attendanceId!,
+          status: row.status.value,
+          minutesLate: row.status.value == 'late' ? row.minutesLate.value : 0,
+          notes: row.notesController.text.trim().isNotEmpty
+              ? row.notesController.text.trim()
+              : null,
+        );
+      }
 
       Get.snackbar(
         'Actualizado',

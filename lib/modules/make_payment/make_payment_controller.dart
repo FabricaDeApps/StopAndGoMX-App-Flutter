@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:stopandgo/core/models/dto/payment_dto.dart';
 import 'package:stopandgo/core/models/responses/organization_response.dart';
 import 'package:stopandgo/core/network/api_repository.dart';
 import 'package:stopandgo/core/storage/app_storage.dart';
@@ -13,6 +14,7 @@ class MakePaymentController extends GetxController {
 
   // Parámetro obligatorio: id del pago
   late final int paymentId;
+  final payment = Rxn<PaymentDto>();
 
   // Form
   final formKey = GlobalKey<FormState>();
@@ -34,7 +36,17 @@ class MakePaymentController extends GetxController {
   void onInit() {
     super.onInit();
     paymentId = Get.arguments?['paymentId'] as int? ?? 0;
+    final incomingPayment = Get.arguments?['payment'];
+    if (incomingPayment is PaymentDto) {
+      payment.value = incomingPayment;
+    }
     organization.value = AppStorage.getOrganization();
+  }
+
+  double? get maxAllowedAmount {
+    final currentPayment = payment.value;
+    if (currentPayment == null) return null;
+    return currentPayment.remainingAfterDiscountsAndReceipts;
   }
 
   @override
@@ -69,6 +81,10 @@ class MakePaymentController extends GetxController {
     if (s.isEmpty) return 'Ingresa el monto';
     final n = double.tryParse(s.replaceAll(',', '.'));
     if (n == null || n <= 0) return 'Monto inválido';
+    final max = maxAllowedAmount;
+    if (max != null && n > max) {
+      return 'El monto no puede ser mayor al saldo pendiente';
+    }
     return null;
   }
 
@@ -208,9 +224,20 @@ class MakePaymentController extends GetxController {
 
     isSubmitting.value = true;
     try {
+      final amount = double.parse(amountCtrl.text.replaceAll(',', '.'));
+      final max = maxAllowedAmount;
+      if (max != null && amount > max) {
+        Get.snackbar(
+          'Monto inválido',
+          'El monto no puede ser mayor al saldo pendiente.',
+          snackPosition: SnackPosition.BOTTOM,
+        );
+        return;
+      }
+
       await _api.createPlayerReceipt(
         paymentId: paymentId,
-        amount: double.parse(amountCtrl.text.replaceAll(',', '.')),
+        amount: amount,
         method: method.value,
         reference: referenceCtrl.text.trim().isEmpty
             ? null

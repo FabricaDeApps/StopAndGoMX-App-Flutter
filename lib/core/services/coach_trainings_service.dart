@@ -12,7 +12,7 @@ class CoachTrainingsService extends GetxService {
     required Map<String, dynamic> data,
   }) async {
     try {
-      final res = await _api.coachCreateTrainingRequest(
+      final res = await _api.managerCreateTrainingRequest(
         categoryId: categoryId,
         data: data,
       );
@@ -34,7 +34,7 @@ class CoachTrainingsService extends GetxService {
     required Map<String, dynamic> data,
   }) async {
     try {
-      final res = await _api.coachUpdateTrainingRequest(
+      final res = await _api.managerUpdateTrainingRequest(
         categoryId: categoryId,
         trainingId: trainingId,
         data: data,
@@ -56,7 +56,7 @@ class CoachTrainingsService extends GetxService {
     required String successMessage,
   }) {
     if (raw is Map) {
-      final map = Map<String, dynamic>.from(raw as Map);
+      final map = Map<String, dynamic>.from(raw);
       map['success'] = map['success'] ?? true;
       map['message'] = map['message'] ?? successMessage;
       return GenericResponse.fromJson(map);

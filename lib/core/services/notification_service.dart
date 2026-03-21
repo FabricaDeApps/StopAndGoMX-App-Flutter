@@ -1,6 +1,5 @@
 import 'dart:developer' as developer;
 import 'package:firebase_messaging/firebase_messaging.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:get/get.dart';
 
@@ -12,6 +11,7 @@ class NotificationService {
   static final FlutterLocalNotificationsPlugin _local =
       FlutterLocalNotificationsPlugin();
   static int? _pendingGameId;
+  static Map<String, dynamic>? _pendingBirthdayGreetingArgs;
 
   static Future<void> initialize() async {
     // 1) Permisos FCM (Android/iOS)
@@ -125,6 +125,13 @@ class NotificationService {
   }
 
   static bool consumePendingNavigationIfAny() {
+    final birthdayArgs = _pendingBirthdayGreetingArgs;
+    if (birthdayArgs != null) {
+      _pendingBirthdayGreetingArgs = null;
+      _goToBirthdayGreeting(birthdayArgs);
+      return true;
+    }
+
     final gameId = _pendingGameId;
     if (gameId == null || gameId <= 0) return false;
     _pendingGameId = null;
@@ -137,29 +144,46 @@ class NotificationService {
     if (data.isEmpty) return false;
 
     final type = (data['type'] ?? '').toString().trim().toLowerCase();
-    if (type != 'game_today') return false;
-
-    final gameId = int.tryParse((data['game_id'] ?? '').toString());
-    if (gameId == null || gameId <= 0) return false;
 
     if (!_isLoggedIn()) {
       developer.log(
-        '🔕 Se ignoró game_today porque no hay sesión activa',
+        '🔕 Se ignoró $type porque no hay sesión activa',
         name: 'FCM',
       );
       return false;
     }
 
-    if (_canNavigateNow()) {
-      _goToGameDetail(gameId);
-    } else {
-      _pendingGameId = gameId;
-      developer.log(
-        '🧭 game_today en cola para abrir al entrar a Home (game_id=$gameId)',
-        name: 'FCM',
-      );
+    if (type == 'game_today') {
+      final gameId = int.tryParse((data['game_id'] ?? '').toString());
+      if (gameId == null || gameId <= 0) return false;
+
+      if (_canNavigateNow()) {
+        _goToGameDetail(gameId);
+      } else {
+        _pendingGameId = gameId;
+        developer.log(
+          '🧭 game_today en cola para abrir al entrar a Home (game_id=$gameId)',
+          name: 'FCM',
+        );
+      }
+      return true;
     }
-    return true;
+
+    if (type == 'birthday_greeting') {
+      final birthdayArgs = _birthdayGreetingArgsFromMessage(message);
+      if (_canNavigateNow()) {
+        _goToBirthdayGreeting(birthdayArgs);
+      } else {
+        _pendingBirthdayGreetingArgs = birthdayArgs;
+        developer.log(
+          '🧭 birthday_greeting en cola para abrir al entrar a Home',
+          name: 'FCM',
+        );
+      }
+      return true;
+    }
+
+    return false;
   }
 
   static bool _isLoggedIn() => AppStorage.getUser() != null;
@@ -180,5 +204,41 @@ class NotificationService {
       '🏟️ Navegando a game detail desde notif (id=$gameId)',
       name: 'FCM',
     );
+  }
+
+  static Map<String, dynamic> _birthdayGreetingArgsFromMessage(
+    RemoteMessage message,
+  ) {
+    final data = message.data;
+    final notification = message.notification;
+    final user = AppStorage.getUser();
+
+    return <String, dynamic>{
+      'title': notification?.title?.trim().isNotEmpty == true
+          ? notification!.title!.trim()
+          : 'Feliz cumpleaños',
+      'body': notification?.body?.trim() ?? '',
+      'organization_name':
+          data['organization_name']?.toString().trim() ??
+          AppStorage.getOrganization()?.name ??
+          '',
+      'recipient_name':
+          data['recipient_name']?.toString().trim() ??
+          AppStorage.getSelectedPlayerName() ??
+          user?.name ??
+          '',
+      'date': data['date']?.toString().trim() ?? '',
+      'avatar_url': user?.photoUrl ?? '',
+    };
+  }
+
+  static void _goToBirthdayGreeting(Map<String, dynamic> args) {
+    if (Get.currentRoute == Routes.birthdayGreeting) {
+      Get.offNamed(Routes.birthdayGreeting, arguments: args);
+    } else {
+      Get.toNamed(Routes.birthdayGreeting, arguments: args);
+    }
+
+    developer.log('🎂 Navegando a birthday greeting desde notif', name: 'FCM');
   }
 }

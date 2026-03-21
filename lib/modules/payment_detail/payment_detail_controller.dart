@@ -88,7 +88,13 @@ class PaymentDetailController extends GetxController {
   }
 
   Future<void> goToMakePayment() async {
-    await Get.toNamed(Routes.makePayment, arguments: {'paymentId': paymentId});
+    await Get.toNamed(
+      Routes.makePayment,
+      arguments: {
+        'paymentId': paymentId,
+        if (payment.value != null) 'payment': payment.value,
+      },
+    );
     await loadPayment();
   }
 

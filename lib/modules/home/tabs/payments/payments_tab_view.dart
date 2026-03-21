@@ -203,7 +203,10 @@ class PaymentsTabView extends GetView<PaymentsTabController> {
                                             onPressed: () async {
                                               await Get.toNamed(
                                                 Routes.makePayment,
-                                                arguments: {'paymentId': p.id},
+                                                arguments: {
+                                                  'paymentId': p.id,
+                                                  'payment': p,
+                                                },
                                               );
                                               await controller.loadPayments();
                                             },
@@ -235,6 +238,7 @@ class PaymentsTabView extends GetView<PaymentsTabController> {
                                                   Routes.makePayment,
                                                   arguments: {
                                                     'paymentId': p.id,
+                                                    'payment': p,
                                                   },
                                                 );
                                                 await controller.loadPayments();

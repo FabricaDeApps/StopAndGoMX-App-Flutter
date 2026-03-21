@@ -1037,6 +1037,19 @@ class ApiRepository {
     return res.statusCode == 200;
   }
 
+  Future<bool> coachAttendanceBulk({
+    required int categoryId,
+    required List<Map<String, dynamic>> items,
+  }) async {
+    final res = await _dio.post(
+      '/coach/categories/$categoryId/attendances/bulk',
+      data: {'items': items},
+      options: Options(headers: _headers()),
+    );
+
+    return res.statusCode == 200;
+  }
+
   Future<Map<String, dynamic>> registerPublicUser({
     required int organizationId,
     required String name,
@@ -1335,6 +1348,35 @@ class ApiRepository {
     }
   }
 
+  Future<List<TrainingAttendanceItem>> getCoachTrainningAttendance(
+    int trainingId,
+    int categoryId,
+  ) async {
+    try {
+      final response = await _dio.get(
+        '/coach/categories/$categoryId/trainings/$trainingId/attendance',
+        options: Options(headers: _headers()),
+      );
+      final data = response.data['data'] as List<dynamic>;
+      return data.map((json) => TrainingAttendanceItem.fromJson(json)).toList();
+    } on DioException catch (e) {
+      if (e.response != null) {
+        final msg = e.response?.data['message'] ?? 'Ocurrió un error.';
+        throw Exception(msg);
+      }
+
+      if (e.type == DioExceptionType.connectionTimeout ||
+          e.type == DioExceptionType.receiveTimeout ||
+          e.type == DioExceptionType.sendTimeout) {
+        throw Exception('La solicitud tardó demasiado. Inténtalo de nuevo.');
+      }
+
+      throw Exception('No se pudo conectar con el servidor.');
+    } catch (e) {
+      throw Exception('Error inesperado: $e');
+    }
+  }
+
   Future<void> updateTrainingAttendance({
     required int categoryId,
     required int trainingId,
@@ -1356,6 +1398,38 @@ class ApiRepository {
       }
 
       // Timeouts o desconexión
+      if (e.type == DioExceptionType.connectionTimeout ||
+          e.type == DioExceptionType.receiveTimeout ||
+          e.type == DioExceptionType.sendTimeout) {
+        throw Exception('La solicitud tardó demasiado. Inténtalo de nuevo.');
+      }
+
+      throw Exception('No se pudo conectar con el servidor.');
+    } catch (e) {
+      throw Exception('Error inesperado: $e');
+    }
+  }
+
+  Future<void> updateCoachTrainingAttendance({
+    required int categoryId,
+    required int trainingId,
+    required int attendanceId,
+    required String status,
+    required int minutesLate,
+    String? notes,
+  }) async {
+    try {
+      await _dio.put(
+        '/coach/categories/$categoryId/trainings/$trainingId/attendance/$attendanceId',
+        data: {'status': status, 'minutes_late': minutesLate, 'notes': notes},
+        options: Options(headers: _headers()),
+      );
+    } on DioException catch (e) {
+      if (e.response != null) {
+        final msg = e.response?.data['message'] ?? 'Ocurrió un error.';
+        throw Exception(msg);
+      }
+
       if (e.type == DioExceptionType.connectionTimeout ||
           e.type == DioExceptionType.receiveTimeout ||
           e.type == DioExceptionType.sendTimeout) {

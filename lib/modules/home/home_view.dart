@@ -279,30 +279,33 @@ class HomeView extends GetView<HomeController> {
                   children: [
                     Stack(
                       children: [
-                        CircleAvatar(
-                          radius: 70,
-                          backgroundColor: theme.colorScheme.secondary
-                              .withOpacity(.1),
-                          child: controller.userAvatar.value != null
-                              ? ClipOval(
-                                  child: CachedNetworkImage(
-                                    imageUrl: controller.userAvatar.value!,
-                                    width: 150,
-                                    height: 150,
-                                    fit: BoxFit.cover,
-                                    placeholder: (_, __) => const SizedBox(
-                                      width: 28,
-                                      height: 28,
-                                      child: CircularProgressIndicator(
-                                        strokeWidth: 2,
-                                        color: Colors.white,
+                        GestureDetector(
+                          onTap: controller.onDrawerAvatarTap,
+                          child: CircleAvatar(
+                            radius: 70,
+                            backgroundColor: theme.colorScheme.secondary
+                                .withOpacity(.1),
+                            child: controller.userAvatar.value != null
+                                ? ClipOval(
+                                    child: CachedNetworkImage(
+                                      imageUrl: controller.userAvatar.value!,
+                                      width: 150,
+                                      height: 150,
+                                      fit: BoxFit.cover,
+                                      placeholder: (_, __) => const SizedBox(
+                                        width: 28,
+                                        height: 28,
+                                        child: CircularProgressIndicator(
+                                          strokeWidth: 2,
+                                          color: Colors.white,
+                                        ),
                                       ),
+                                      errorWidget: (_, __, ___) =>
+                                          const Icon(Icons.person, size: 56),
                                     ),
-                                    errorWidget: (_, __, ___) =>
-                                        const Icon(Icons.person, size: 56),
-                                  ),
-                                )
-                              : const Icon(Icons.person, size: 56),
+                                  )
+                                : const Icon(Icons.person, size: 56),
+                          ),
                         ),
                         Positioned(
                           right: 0,

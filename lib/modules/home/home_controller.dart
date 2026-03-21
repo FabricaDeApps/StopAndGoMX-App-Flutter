@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:get/get.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
@@ -25,6 +27,8 @@ class HomeController extends GetxController with GetTickerProviderStateMixin {
   final api = Get.find<ApiRepository>();
   final _picker = ImagePicker();
   bool _birthdayPromptShown = false;
+  int _birthdayGreetingTapCount = 0;
+  Timer? _birthdayGreetingTapResetTimer;
 
   // sesión
   final userName = 'Usuario'.obs;
@@ -205,6 +209,33 @@ class HomeController extends GetxController with GetTickerProviderStateMixin {
         ),
         barrierDismissible: true,
       );
+    });
+  }
+
+  void onDrawerAvatarTap() {
+    _birthdayGreetingTapResetTimer?.cancel();
+    _birthdayGreetingTapCount += 1;
+
+    if (_birthdayGreetingTapCount >= 7) {
+      _birthdayGreetingTapCount = 0;
+      Get.back();
+      Get.toNamed(
+        Routes.birthdayGreeting,
+        arguments: {
+          'title': 'Feliz cumpleaños',
+          'body':
+              'Hoy celebramos tu historia, tu esfuerzo y todo lo bueno que aportas al equipo. Que sea un dia lleno de alegria y grandes momentos.',
+          'organization_name': org.value?.name ?? '',
+          'recipient_name': userName.value,
+          'date': DateTime.now().toIso8601String().split('T').first,
+          'avatar_url': userAvatar.value ?? '',
+        },
+      );
+      return;
+    }
+
+    _birthdayGreetingTapResetTimer = Timer(const Duration(seconds: 2), () {
+      _birthdayGreetingTapCount = 0;
     });
   }
 
@@ -582,6 +613,7 @@ class HomeController extends GetxController with GetTickerProviderStateMixin {
 
   @override
   void onClose() {
+    _birthdayGreetingTapResetTimer?.cancel();
     tabController.dispose();
     super.onClose();
   }
