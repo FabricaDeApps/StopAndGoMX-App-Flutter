@@ -28,7 +28,38 @@ class EcommerceProductDetailView
           }),
         ],
       ),
-      bottomNavigationBar: EcommerceCheckoutBar(),
+      bottomNavigationBar: Obx(() {
+        final adding = controller.isAdding.value;
+
+        return Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            SafeArea(
+              top: false,
+              bottom: false,
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+                child: SizedBox(
+                  width: double.infinity,
+                  height: 48,
+                  child: ElevatedButton.icon(
+                    onPressed: adding ? null : controller.addToCart,
+                    icon: adding
+                        ? const SizedBox(
+                            width: 18,
+                            height: 18,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : const Icon(Icons.shopping_cart_checkout),
+                    label: Text(adding ? 'Agregando...' : 'Agregar al carrito'),
+                  ),
+                ),
+              ),
+            ),
+            const EcommerceCheckoutBar(),
+          ],
+        );
+      }),
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: Obx(() {
@@ -58,6 +89,7 @@ class EcommerceProductDetailView
             return const Center(child: Text('Producto no disponible.'));
 
           return ListView(
+            padding: const EdgeInsets.only(bottom: 24),
             children: [
               ClipRRect(
                 borderRadius: BorderRadius.circular(14),
@@ -175,27 +207,6 @@ class EcommerceProductDetailView
                   ),
                 ],
               ),
-
-              const SizedBox(height: 18),
-
-              Obx(() {
-                final adding = controller.isAdding.value;
-                return SizedBox(
-                  width: double.infinity,
-                  height: 48,
-                  child: ElevatedButton.icon(
-                    onPressed: adding ? null : controller.addToCart,
-                    icon: adding
-                        ? const SizedBox(
-                            width: 18,
-                            height: 18,
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          )
-                        : const Icon(Icons.shopping_cart_checkout),
-                    label: Text(adding ? 'Agregando...' : 'Agregar al carrito'),
-                  ),
-                );
-              }),
             ],
           );
         }),

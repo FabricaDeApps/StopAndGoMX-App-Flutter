@@ -4,6 +4,9 @@ Todos los cambios importantes del proyecto **StopAndGoMX** se documentan en este
 El formato sigue las recomendaciones de **Keep a Changelog**  
 y el versionado está basado en **Semantic Versioning (SemVer)**.
 
+## [1.0.64] - 2026-3-25
+• Fix para tienda
+
 ## [1.0.63] - 2026-3-21
 • Coaches pueden generar entrenamientos y pasar lista.
 • Felicitación de cumpleaños por notificación.

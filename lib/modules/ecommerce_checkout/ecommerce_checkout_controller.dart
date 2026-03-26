@@ -1,6 +1,7 @@
+import 'package:flutter/material.dart';
+import 'package:dio/dio.dart';
 import 'package:get/get.dart';
 import 'package:stopandgo/core/models/ecommerce/cart_model.dart';
-import 'package:stopandgo/core/models/ecommerce/checkout_result_model.dart';
 import 'package:stopandgo/core/network/api_repository.dart';
 import 'package:stopandgo/core/services/ecommerce_cart_service.dart';
 import 'package:stopandgo/routes/app_routes.dart';
@@ -38,6 +39,15 @@ class EcommerceCheckoutController extends GetxController {
     }
   }
 
+  String _extractServerMessage(DioException e) {
+    final data = e.response?.data;
+    if (data is Map) {
+      final msg = data['message'] ?? data['error'] ?? data['errors'];
+      if (msg != null) return msg.toString();
+    }
+    return e.message ?? e.toString();
+  }
+
   bool get canSubmit {
     final count = cartService.cartCount.value;
     return !isSubmitting.value && count > 0;
@@ -54,6 +64,26 @@ class EcommerceCheckoutController extends GetxController {
 
       final intentUrl = result.intentCreateUrl;
       if (intentUrl == null || intentUrl.isEmpty) {
+        if (result.orderId != null) {
+          await Get.dialog<void>(
+            AlertDialog(
+              title: const Text('Pedido generado'),
+              content: const Text(
+                'Tu pedido fue generado. Puedes revisarlo en tus ordenes.',
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Get.back<void>(),
+                  child: const Text('Ver ordenes'),
+                ),
+              ],
+            ),
+            barrierDismissible: false,
+          );
+          Get.offNamed(Routes.ecommerceOrders);
+          return;
+        }
+
         Get.snackbar('Checkout', 'No se recibió URL para crear el intent.');
         return;
       }
@@ -76,6 +106,10 @@ class EcommerceCheckoutController extends GetxController {
         Routes.ecommercePayment,
         arguments: {'url': url, 'orderId': result.orderId},
       );
+    } on DioException catch (e) {
+      final serverMsg = _extractServerMessage(e);
+      error.value = serverMsg;
+      Get.snackbar('Checkout', 'No se pudo finalizar: $serverMsg');
     } catch (e) {
       error.value = e.toString();
       Get.snackbar('Checkout', 'No se pudo finalizar: $e');

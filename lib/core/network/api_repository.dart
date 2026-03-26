@@ -2136,11 +2136,17 @@ class ApiRepository {
   Future<CheckoutResultModel> ecommerceCheckout({
     String fulfillmentType = "pickup",
   }) async {
+    final organization = AppStorage.getOrganization();
+    final provider =
+        organization?.payCardEnabled == true
+            ? 'mercadopago'
+            : 'cash_on_pickup';
+
     final res = await _dio.post(
       '/ecommerce/checkout',
       data: {
         'fulfillment_type': fulfillmentType,
-        'provider': FlavorConfig.I.paymentProvider ?? 'mercadopago',
+        'provider': provider,
       },
       options: Options(headers: _headers()),
     );
