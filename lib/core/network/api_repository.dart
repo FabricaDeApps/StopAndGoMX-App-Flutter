@@ -1024,6 +1024,54 @@ class ApiRepository {
     return [];
   }
 
+  Future<PlayerPositionsCatalog> getCategoryPlayerPositions({
+    required int categoryId,
+  }) async {
+    final res = await _dio.get(
+      '/categories/$categoryId/player-positions',
+      options: Options(headers: _headers()),
+    );
+
+    final body = Map<String, dynamic>.from(res.data as Map? ?? const {});
+    final rawList =
+        (body['data'] ?? body['positions'] ?? body['items']) as List?;
+    final allowsCustom =
+        body['allows_custom_position'] == true ||
+        body['meta'] is Map &&
+            (body['meta'] as Map)['allows_custom_position'] == true;
+
+    final options = (rawList ?? const [])
+        .whereType<Map>()
+        .map((e) => PlayerPositionOption.fromJson(Map<String, dynamic>.from(e)))
+        .where((e) => e.id > 0 && e.label.trim().isNotEmpty && e.active)
+        .toList();
+
+    return PlayerPositionsCatalog(
+      options: options,
+      allowsCustomPosition: allowsCustom,
+    );
+  }
+
+  Future<bool> updateCategoryPlayerPosition({
+    required int categoryId,
+    required int playerId,
+    int? positionId,
+    String? position,
+  }) async {
+    final payload = <String, dynamic>{
+      'position_id': positionId,
+      'position': position,
+    };
+
+    final res = await _dio.patch(
+      '/categories/$categoryId/players/$playerId/position',
+      data: payload,
+      options: Options(headers: _headers()),
+    );
+
+    return res.statusCode == 200 || res.statusCode == 201;
+  }
+
   // Guardar asistencia BULK (juego o entrenamiento)
   Future<bool> managerAttendanceBulk({
     required int categoryId,
@@ -1072,8 +1120,9 @@ class ApiRepository {
       return data is Map<String, dynamic> ? data : {'success': true};
     } on DioException catch (e) {
       final data = e.response?.data;
-      if (data is Map<String, dynamic>)
+      if (data is Map<String, dynamic>) {
         return data; // p.ej. {success:false,message:'...'}
+      }
       return {'success': false, 'message': e.message ?? 'Error en registro'};
     } catch (e) {
       return {'success': false, 'message': 'Error inesperado: $e'};
@@ -2137,17 +2186,13 @@ class ApiRepository {
     String fulfillmentType = "pickup",
   }) async {
     final organization = AppStorage.getOrganization();
-    final provider =
-        organization?.payCardEnabled == true
-            ? 'mercadopago'
-            : 'cash_on_pickup';
+    final provider = organization?.payCardEnabled == true
+        ? 'mercadopago'
+        : 'cash_on_pickup';
 
     final res = await _dio.post(
       '/ecommerce/checkout',
-      data: {
-        'fulfillment_type': fulfillmentType,
-        'provider': provider,
-      },
+      data: {'fulfillment_type': fulfillmentType, 'provider': provider},
       options: Options(headers: _headers()),
     );
 
@@ -2294,7 +2339,7 @@ class ApiRepository {
       }
 
       return null;
-    } on DioException catch (e) {
+    } on DioException catch (_) {
       return null;
     } catch (_) {
       return null;
@@ -2465,8 +2510,9 @@ class ApiRepository {
         'measured_at': measuredAt,
         'values': values,
       };
-      if (notes != null && notes.trim().isNotEmpty)
+      if (notes != null && notes.trim().isNotEmpty) {
         body['notes'] = notes.trim();
+      }
       if (overallScore != null) body['overall_score'] = overallScore;
 
       final res = await _dio.post(

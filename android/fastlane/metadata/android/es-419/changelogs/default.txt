@@ -1,1 +1,1 @@
-- Fix para tienda
+- Coaches y Managers pueden cambiar de posición a los jugadores

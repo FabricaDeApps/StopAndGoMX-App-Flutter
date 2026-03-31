@@ -130,29 +130,41 @@ class RosterView extends GetView<RosterController> {
                                 subtitle: Text(
                                   "#${player.number.toString()} - ${player.position} ",
                                 ),
-                                trailing:
-                                    hasManagerPrivileges(
+                                trailing: Wrap(
+                                  spacing: 6,
+                                  children: [
+                                    if (canEditRosterPosition(
                                       controller.userRole.value,
-                                    )
-                                    ? Wrap(
-                                        spacing: 6,
-                                        children: [
-                                          IconButton(
-                                            tooltip: 'Editar número',
-                                            icon: const Icon(Icons.numbers),
-                                            onPressed: () => controller
-                                                .editJerseyNumber(player),
-                                          ),
-                                          IconButton(
-                                            tooltip:
-                                                'Cambiar foto (cámara o galería)',
-                                            icon: const Icon(Icons.camera_alt),
-                                            onPressed: () => controller
-                                                .updatePlayerPhoto(player),
-                                          ),
-                                        ],
-                                      )
-                                    : const SizedBox(),
+                                    ))
+                                      IconButton(
+                                        tooltip: 'Cambiar posición',
+                                        icon: const Icon(
+                                          Icons.sports_football_outlined,
+                                        ),
+                                        onPressed: () => controller
+                                            .editPlayerPosition(player),
+                                      ),
+                                    if (hasManagerPrivileges(
+                                      controller.userRole.value,
+                                    ))
+                                      IconButton(
+                                        tooltip: 'Editar número',
+                                        icon: const Icon(Icons.numbers),
+                                        onPressed: () =>
+                                            controller.editJerseyNumber(player),
+                                      ),
+                                    if (hasManagerPrivileges(
+                                      controller.userRole.value,
+                                    ))
+                                      IconButton(
+                                        tooltip:
+                                            'Cambiar foto (cámara o galería)',
+                                        icon: const Icon(Icons.camera_alt),
+                                        onPressed: () => controller
+                                            .updatePlayerPhoto(player),
+                                      ),
+                                  ],
+                                ),
                               ),
                             );
                           },

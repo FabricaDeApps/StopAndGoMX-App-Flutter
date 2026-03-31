@@ -16,6 +16,7 @@ class RosterController extends GetxController {
   final isLoading =
       false.obs; // carga/refresh roster + subir foto + guardar numero
   final isSaving = false.obs; // guardar numero (opcional separado)
+  final isUpdatingPosition = false.obs;
   final error = RxnString();
 
   /// Lista original desde API
@@ -137,6 +138,120 @@ class RosterController extends GetxController {
         return name.contains(q) || numStr.contains(q);
       }).toList(),
     );
+  }
+
+  Future<void> editPlayerPosition(Player player) async {
+    try {
+      isUpdatingPosition.value = true;
+      final catalog = await _api.getCategoryPlayerPositions(
+        categoryId: categoryId,
+      );
+
+      int? selectedPositionId = player.positionId;
+      var customPosition = player.position;
+
+      if (player.positionId != null &&
+          player.positionCatalogName != null &&
+          player.position.trim() == (player.positionCatalogName ?? '').trim()) {
+        customPosition = '';
+      }
+
+      final formKey = GlobalKey<FormState>();
+
+      final result = await Get.dialog<_PositionDraft>(
+        AlertDialog(
+          title: Text('Posición de ${player.name}'),
+          content: Form(
+            key: formKey,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                DropdownButtonFormField<int?>(
+                  initialValue: selectedPositionId,
+                  decoration: const InputDecoration(
+                    labelText: 'Catálogo',
+                    border: OutlineInputBorder(),
+                  ),
+                  items: [
+                    const DropdownMenuItem<int?>(
+                      value: null,
+                      child: Text('Sin catálogo'),
+                    ),
+                    ...catalog.options.map(
+                      (option) => DropdownMenuItem<int?>(
+                        value: option.id,
+                        child: Text(option.label),
+                      ),
+                    ),
+                  ],
+                  onChanged: (value) => selectedPositionId = value,
+                ),
+                const SizedBox(height: 12),
+                TextFormField(
+                  initialValue: customPosition,
+                  autofocus: true,
+                  enabled: catalog.allowsCustomPosition,
+                  decoration: InputDecoration(
+                    labelText: catalog.allowsCustomPosition
+                        ? 'Texto libre'
+                        : 'Texto libre no disponible',
+                    hintText: 'Ej. Wing o Extremo derecho',
+                    border: const OutlineInputBorder(),
+                  ),
+                  onChanged: (value) => customPosition = value,
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Get.back(
+                  result: const _PositionDraft(
+                    shouldClear: true,
+                    positionId: null,
+                    position: null,
+                  ),
+                );
+              },
+              child: const Text('Limpiar'),
+            ),
+            TextButton(
+              onPressed: () => Get.back(),
+              child: const Text('Cancelar'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                if (!(formKey.currentState?.validate() ?? true)) return;
+
+                final trimmed = customPosition.trim();
+                Get.back(
+                  result: _PositionDraft(
+                    shouldClear: false,
+                    positionId: selectedPositionId,
+                    position: trimmed.isEmpty ? null : trimmed,
+                  ),
+                );
+              },
+              child: const Text('Guardar'),
+            ),
+          ],
+        ),
+        barrierDismissible: true,
+      );
+
+      if (result == null) return;
+
+      await _savePlayerPosition(player: player, draft: result);
+    } catch (e) {
+      Get.snackbar(
+        'Error',
+        'No se pudo cargar el catálogo de posiciones: $e',
+        snackPosition: SnackPosition.BOTTOM,
+      );
+    } finally {
+      isUpdatingPosition.value = false;
+    }
   }
 
   // ---------------------------
@@ -409,6 +524,41 @@ class RosterController extends GetxController {
     }
   }
 
+  Future<void> _savePlayerPosition({
+    required Player player,
+    required _PositionDraft draft,
+  }) async {
+    try {
+      isSaving.value = true;
+      error.value = null;
+
+      final ok = await _api.updateCategoryPlayerPosition(
+        categoryId: categoryId,
+        playerId: player.id,
+        positionId: draft.shouldClear ? null : draft.positionId,
+        position: draft.shouldClear ? null : draft.position,
+      );
+
+      if (!ok) {
+        _showErrorDialog(
+          title: 'Error',
+          message: 'No se pudo actualizar la posición.',
+        );
+        return;
+      }
+
+      _showSuccessDialog('Posición actualizada.');
+      await _loadPlayers();
+    } catch (e) {
+      _showErrorDialog(
+        title: 'Error',
+        message: 'No se pudo actualizar la posición: $e',
+      );
+    } finally {
+      isSaving.value = false;
+    }
+  }
+
   void _showErrorDialog({required String title, required String message}) {
     Get.dialog(
       AlertDialog(
@@ -470,4 +620,16 @@ class RosterController extends GetxController {
       barrierDismissible: true,
     );
   }
+}
+
+class _PositionDraft {
+  final bool shouldClear;
+  final int? positionId;
+  final String? position;
+
+  const _PositionDraft({
+    required this.shouldClear,
+    required this.positionId,
+    required this.position,
+  });
 }

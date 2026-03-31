@@ -9,3 +9,6 @@ bool hasManagerPrivileges(String? role) =>
 
 bool canManageNotices(String? role) =>
     hasManagerPrivileges(role) || normalizeRole(role) == 'coach';
+
+bool canEditRosterPosition(String? role) =>
+    hasManagerPrivileges(role) || normalizeRole(role) == 'coach';
