@@ -482,6 +482,11 @@ class GamesTabView extends GetView<GamesTabController> {
                               }
                             },
                           ),
+                        Icon(
+                          Icons.chevron_right,
+                          color: theme.colorScheme.onSurfaceVariant,
+                          size: 22,
+                        ),
                       ],
                     ),
                     onTap: () async {

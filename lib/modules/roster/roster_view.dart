@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:stopandgo/core/models/players.dart';
 import 'package:stopandgo/core/utils/role_utils.dart';
 import 'roster_controller.dart';
 
@@ -82,90 +83,17 @@ class RosterView extends GetView<RosterController> {
                           itemBuilder: (context, index) {
                             final player = list[index];
 
-                            return Card(
-                              margin: const EdgeInsets.symmetric(vertical: 6),
-                              child: ListTile(
-                                onTap: () => controller.openPlayerFile(player),
-                                leading: SizedBox(
-                                  width: 79, // ancho fijo para que no brinque
-                                  child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        '${index + 1}',
-                                        style: const TextStyle(
-                                          fontWeight: FontWeight.w600,
-                                          fontSize: 14,
-                                          color: Colors.black54,
-                                        ),
-                                      ),
-                                      const SizedBox(width: 4),
-                                      CircleAvatar(
-                                        backgroundImage:
-                                            (player.photoUrl != null &&
-                                                player.photoUrl!.isNotEmpty)
-                                            ? NetworkImage(player.photoUrl!)
-                                            : null,
-                                        child:
-                                            (player.photoUrl == null ||
-                                                player.photoUrl!.isEmpty)
-                                            ? Text(
-                                                (player.name)
-                                                    .trim()
-                                                    .split(' ')
-                                                    .map(
-                                                      (p) => p.isNotEmpty
-                                                          ? p[0]
-                                                          : '',
-                                                    )
-                                                    .take(2)
-                                                    .join(),
-                                              )
-                                            : null,
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                title: Text(player.name),
-                                subtitle: Text(
-                                  "#${player.number.toString()} - ${player.position} ",
-                                ),
-                                trailing: Wrap(
-                                  spacing: 6,
-                                  children: [
-                                    if (canEditRosterPosition(
-                                      controller.userRole.value,
-                                    ))
-                                      IconButton(
-                                        tooltip: 'Cambiar posición',
-                                        icon: const Icon(
-                                          Icons.sports_football_outlined,
-                                        ),
-                                        onPressed: () => controller
-                                            .editPlayerPosition(player),
-                                      ),
-                                    if (hasManagerPrivileges(
-                                      controller.userRole.value,
-                                    ))
-                                      IconButton(
-                                        tooltip: 'Editar número',
-                                        icon: const Icon(Icons.numbers),
-                                        onPressed: () =>
-                                            controller.editJerseyNumber(player),
-                                      ),
-                                    if (hasManagerPrivileges(
-                                      controller.userRole.value,
-                                    ))
-                                      IconButton(
-                                        tooltip:
-                                            'Cambiar foto (cámara o galería)',
-                                        icon: const Icon(Icons.camera_alt),
-                                        onPressed: () => controller
-                                            .updatePlayerPhoto(player),
-                                      ),
-                                  ],
-                                ),
-                              ),
+                            return _RosterPlayerCard(
+                              index: index,
+                              player: player,
+                              userRole: controller.userRole.value,
+                              onOpen: () => controller.openPlayerFile(player),
+                              onEditPosition: () =>
+                                  controller.editPlayerPosition(player),
+                              onEditNumber: () =>
+                                  controller.editJerseyNumber(player),
+                              onUpdatePhoto: () =>
+                                  controller.updatePlayerPhoto(player),
                             );
                           },
                         ),
@@ -174,6 +102,175 @@ class RosterView extends GetView<RosterController> {
             ],
           );
         }),
+      ),
+    );
+  }
+}
+
+class _RosterPlayerCard extends StatelessWidget {
+  const _RosterPlayerCard({
+    required this.index,
+    required this.player,
+    required this.userRole,
+    required this.onOpen,
+    required this.onEditPosition,
+    required this.onEditNumber,
+    required this.onUpdatePhoto,
+  });
+
+  final int index;
+  final Player player;
+  final String userRole;
+  final VoidCallback onOpen;
+  final VoidCallback onEditPosition;
+  final VoidCallback onEditNumber;
+  final VoidCallback onUpdatePhoto;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final canEditPosition = canEditRosterPosition(userRole);
+    final canManage = hasManagerPrivileges(userRole);
+    final numberLabel = player.number != null ? '#${player.number}' : 'Sin #';
+    final positionLabel = player.position.trim().isEmpty
+        ? 'Posicion pendiente'
+        : player.position.trim();
+
+    return Card(
+      margin: const EdgeInsets.symmetric(vertical: 6),
+      elevation: 0,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+      child: InkWell(
+        onTap: onOpen,
+        borderRadius: BorderRadius.circular(8),
+        child: Padding(
+          padding: const EdgeInsets.all(14),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    '${index + 1}',
+                    style: theme.textTheme.labelMedium?.copyWith(
+                      fontWeight: FontWeight.w700,
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  CircleAvatar(
+                    radius: 24,
+                    backgroundImage:
+                        (player.photoUrl != null && player.photoUrl!.isNotEmpty)
+                        ? NetworkImage(player.photoUrl!)
+                        : null,
+                    child: (player.photoUrl == null || player.photoUrl!.isEmpty)
+                        ? Text(player.initials)
+                        : null,
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          player.name,
+                          style: theme.textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Wrap(
+                          spacing: 8,
+                          runSpacing: 8,
+                          children: [
+                            _InfoChip(label: numberLabel),
+                            _InfoChip(
+                              icon: Icons.sports_football_outlined,
+                              label: positionLabel,
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Icon(
+                    Icons.chevron_right,
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                ],
+              ),
+              if (canEditPosition || canManage) ...[
+                const SizedBox(height: 14),
+                const Divider(height: 1),
+                const SizedBox(height: 10),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: [
+                    if (canEditPosition)
+                      OutlinedButton.icon(
+                        onPressed: onEditPosition,
+                        icon: const Icon(Icons.sports_football_outlined),
+                        label: const Text('Posición'),
+                      ),
+                    if (canManage)
+                      OutlinedButton.icon(
+                        onPressed: onEditNumber,
+                        icon: const Icon(Icons.numbers),
+                        label: const Text('Número'),
+                      ),
+                    if (canManage)
+                      OutlinedButton.icon(
+                        onPressed: onUpdatePhoto,
+                        icon: const Icon(Icons.camera_alt_outlined),
+                        label: const Text('Foto'),
+                      ),
+                  ],
+                ),
+              ],
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _InfoChip extends StatelessWidget {
+  const _InfoChip({this.icon, required this.label});
+
+  final IconData? icon;
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.6),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (icon != null) ...[
+            Icon(icon, size: 16, color: theme.colorScheme.onSurfaceVariant),
+            const SizedBox(width: 6),
+          ],
+          Flexible(
+            child: Text(
+              label,
+              style: theme.textTheme.bodySmall?.copyWith(
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

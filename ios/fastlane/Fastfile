@@ -115,6 +115,7 @@ platform :ios do
       submit_for_review: true,
       automatic_release: true,
       force: true,
+      skip_binary_upload: true,
       skip_screenshots: true,
       skip_metadata: false,
       run_precheck_before_submit: false,

@@ -4,6 +4,9 @@ Todos los cambios importantes del proyecto **StopAndGoMX** se documentan en este
 El formato sigue las recomendaciones de **Keep a Changelog**  
 y el versionado está basado en **Semantic Versioning (SemVer)**.
 
+## [1.0.71] - 2026-4-6
+• Mejora en vista de roster
+
 ## [1.0.65] - 2026-3-30
 • Coaches y Managers pueden cambiar de posición a los jugadores
 

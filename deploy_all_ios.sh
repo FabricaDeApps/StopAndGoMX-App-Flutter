@@ -15,7 +15,7 @@ cd ios
 # MAINAPP
 ########################################
 echo "📦 Deploy iOS: MAINAPP"
-#fastlane deploy_mainapp
+fastlane deploy_mainapp
 echo "✅ MAINAPP completado"
 echo ""
 
@@ -23,7 +23,7 @@ echo ""
 # ZORROS
 ########################################
 echo "🐺 Deploy iOS: ZORROS"
-#fastlane deploy_zorros
+fastlane deploy_zorros
 echo "✅ ZORROS completado"
 echo ""
 
@@ -31,7 +31,7 @@ echo ""
 # RAIDERSQRO
 ########################################
 echo "🏴‍☠️ Deploy iOS: RAIDERSQRO"
-#fastlane deploy_raidersqro
+fastlane deploy_raidersqro
 echo "✅ RAIDERSQRO completado"
 echo ""
 
@@ -39,7 +39,7 @@ echo ""
 # WOLVERINESQRO
 ########################################
 echo "🐺💛 Deploy iOS: WOLVERINESQRO"
-#fastlane deploy_wolverinesqro
+fastlane deploy_wolverinesqro
 echo "✅ WOLVERINESQRO completado"
 echo ""
 
