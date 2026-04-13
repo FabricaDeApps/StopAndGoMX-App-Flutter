@@ -568,11 +568,11 @@ class HomeView extends GetView<HomeController> {
                           vertical: 2,
                         ),
                         decoration: BoxDecoration(
-                          color: Colors.orange,
+                          color: Colors.green,
                           borderRadius: BorderRadius.circular(6),
                         ),
                         child: const Text(
-                          'BETA',
+                          'NUEVO',
                           style: TextStyle(
                             color: Colors.white,
                             fontSize: 10,

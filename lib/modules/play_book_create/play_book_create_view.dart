@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:stopandgo/core/playbook/playbook_catalog.dart';
 import 'package:stopandgo/modules/play_book_create/play_book_create_controller.dart';
 
 class PlayBookCreateView extends GetView<PlayBookCreateController> {
@@ -17,7 +18,7 @@ class PlayBookCreateView extends GetView<PlayBookCreateController> {
           onStepContinue: controller.next,
           onStepCancel: controller.back,
           controlsBuilder: (context, details) {
-            final isLast = controller.stepIndex.value == 3;
+            final isLast = controller.stepIndex.value == 4;
             final canContinue = controller.canContinue;
 
             return Padding(
@@ -43,10 +44,42 @@ class PlayBookCreateView extends GetView<PlayBookCreateController> {
           },
           steps: [
             Step(
-              title: const Text('Lado'),
-              subtitle: const Text('Ofensiva o Defensiva'),
+              title: const Text('Deporte'),
+              subtitle: const Text('Flag o football americano'),
               isActive: controller.stepIndex.value >= 0,
               state: controller.isStep0Valid
+                  ? StepState.complete
+                  : StepState.indexed,
+              content: Column(
+                children: [
+                  _optionCard(
+                    theme: theme,
+                    selected: controller.sport.value == PlaySport.flagFootball,
+                    title: 'Flag Football',
+                    subtitle: 'Formato corto, normalmente 5 a 7 jugadores',
+                    icon: Icons.sports_football,
+                    onTap: () => controller.setSport(PlaySport.flagFootball),
+                  ),
+                  const SizedBox(height: 10),
+                  _optionCard(
+                    theme: theme,
+                    selected:
+                        controller.sport.value == PlaySport.americanFootball,
+                    title: 'Football Americano',
+                    subtitle: 'Formato tackle, normalmente 11 jugadores',
+                    icon: Icons.shield,
+                    onTap: () =>
+                        controller.setSport(PlaySport.americanFootball),
+                  ),
+                ],
+              ),
+            ),
+
+            Step(
+              title: const Text('Lado'),
+              subtitle: const Text('Ofensiva o Defensiva'),
+              isActive: controller.stepIndex.value >= 1,
+              state: controller.isStep1Valid
                   ? StepState.complete
                   : StepState.indexed,
               content: Column(
@@ -75,18 +108,19 @@ class PlayBookCreateView extends GetView<PlayBookCreateController> {
             Step(
               title: const Text('Tipo'),
               subtitle: const Text('Clasificación principal'),
-              isActive: controller.stepIndex.value >= 1,
-              state: controller.isStep1Valid
+              isActive: controller.stepIndex.value >= 2,
+              state: controller.isStep2Valid
                   ? StepState.complete
                   : StepState.indexed,
               content: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  if (controller.side.value == null)
+                  if (controller.sport.value == null || controller.side.value == null)
                     const Text(
-                      'Primero selecciona si es ofensiva o defensiva.',
+                      'Primero selecciona deporte y lado.',
                     ),
-                  if (controller.side.value != null) ...[
+                  if (controller.sport.value != null &&
+                      controller.side.value != null) ...[
                     Wrap(
                       spacing: 10,
                       runSpacing: 10,
@@ -107,8 +141,8 @@ class PlayBookCreateView extends GetView<PlayBookCreateController> {
             Step(
               title: const Text('Jugadores'),
               subtitle: const Text('¿Cuántos participan?'),
-              isActive: controller.stepIndex.value >= 2,
-              state: controller.isStep2Valid
+              isActive: controller.stepIndex.value >= 3,
+              state: controller.isStep3Valid
                   ? StepState.complete
                   : StepState.indexed,
               content: Column(
@@ -138,8 +172,8 @@ class PlayBookCreateView extends GetView<PlayBookCreateController> {
             Step(
               title: const Text('Modo'),
               subtitle: const Text('Playbook GO o adjuntar archivo'),
-              isActive: controller.stepIndex.value >= 3,
-              state: controller.isStep3Valid
+              isActive: controller.stepIndex.value >= 4,
+              state: controller.isStep4Valid
                   ? StepState.complete
                   : StepState.indexed,
               content: Column(
@@ -150,7 +184,7 @@ class PlayBookCreateView extends GetView<PlayBookCreateController> {
                     title: 'Playbook GO',
                     subtitle: 'Editor: tokens + rutas (modo interactivo)',
                     icon: Icons.gesture,
-                    trailing: _betaPill(),
+                    trailing: _newPill(),
                     onTap: () => controller.setMode(PlayMode.playbookGo),
                   ),
                   const SizedBox(height: 10),
@@ -162,6 +196,8 @@ class PlayBookCreateView extends GetView<PlayBookCreateController> {
                     icon: Icons.attach_file,
                     onTap: () => controller.setMode(PlayMode.attachment),
                   ),
+                  const SizedBox(height: 12),
+                  _shareCategoriesSection(theme),
                   const SizedBox(height: 12),
                   if (controller.mode.value == PlayMode.attachment)
                     _attachmentSection(theme),
@@ -251,15 +287,65 @@ class PlayBookCreateView extends GetView<PlayBookCreateController> {
     );
   }
 
-  Widget _betaPill() {
+  Widget _shareCategoriesSection(ThemeData theme) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Compartir con otras categorías',
+          style: theme.textTheme.titleSmall,
+        ),
+        const SizedBox(height: 6),
+        Text(
+          'Opcional. La categoría principal sigue siendo la seleccionada en el home.',
+          style: theme.textTheme.bodySmall,
+        ),
+        const SizedBox(height: 10),
+        Obx(() {
+          if (controller.isLoadingShareCategories.value) {
+            return const Padding(
+              padding: EdgeInsets.symmetric(vertical: 8),
+              child: Center(child: CircularProgressIndicator()),
+            );
+          }
+
+          final categories = controller.shareableCategories;
+          if (categories.isEmpty) {
+            return Text(
+              'No hay más categorías disponibles para compartir.',
+              style: theme.textTheme.bodySmall,
+            );
+          }
+
+          return Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: categories.map((category) {
+              final selected = controller.selectedSharedCategoryIds.contains(
+                category.id,
+              );
+
+              return FilterChip(
+                label: Text(category.name),
+                selected: selected,
+                onSelected: (_) => controller.toggleSharedCategory(category.id),
+              );
+            }).toList(),
+          );
+        }),
+      ],
+    );
+  }
+
+  Widget _newPill() {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
       decoration: BoxDecoration(
-        color: Colors.orange,
+        color: Colors.green,
         borderRadius: BorderRadius.circular(999),
       ),
       child: const Text(
-        'BETA',
+        'Nuevo',
         style: TextStyle(
           color: Colors.white,
           fontWeight: FontWeight.bold,
@@ -285,7 +371,7 @@ class PlayBookCreateView extends GetView<PlayBookCreateController> {
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
           color: selected
-              ? theme.colorScheme.primary.withOpacity(0.08)
+              ? theme.colorScheme.primary.withValues(alpha: 0.08)
               : theme.colorScheme.surface,
           borderRadius: BorderRadius.circular(14),
           border: Border.all(

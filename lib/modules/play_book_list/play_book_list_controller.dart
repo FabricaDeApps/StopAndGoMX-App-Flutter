@@ -1,15 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:flutter/widgets.dart';
 import 'package:stopandgo/core/storage/app_storage.dart';
 import 'package:stopandgo/core/models/play_book_model.dart';
 import 'package:stopandgo/routes/app_routes.dart';
-import 'package:url_launcher/url_launcher.dart';
 import '../../../core/network/api_repository.dart';
 import '../../../core/network/paginated_response.dart';
 
 class PlayBookListController extends GetxController {
   final _api = Get.find<ApiRepository>();
+  static const String filterPass = 'pass';
+  static const String filterRun = 'run';
+  static const String filterBlitz = 'blitz';
+  static const String filterCoverage = 'coverage';
 
   final isLoading = false.obs; // carga inicial / refresh
   final isLoadingMore = false.obs; // paginación
@@ -24,6 +26,8 @@ class PlayBookListController extends GetxController {
   late final ScrollController scrollCtrl;
 
   final userRole = 'player'.obs;
+
+  int? get selectedCategoryId => AppStorage.getSelectedCategoryId();
 
   @override
   void onInit() {
@@ -58,8 +62,44 @@ class PlayBookListController extends GetxController {
   }
 
   Future<void> setType(String? type) async {
-    selectedType.value = (type == null || type.isEmpty) ? null : type;
+    selectedType.value = _normalizeType(type);
     await load(reset: true);
+  }
+
+  String? _normalizeType(String? type) {
+    final value = type?.trim().toLowerCase();
+    if (value == null || value.isEmpty) return null;
+
+    switch (value) {
+      case 'pass':
+      case 'pase':
+        return filterPass;
+      case 'run':
+      case 'carrera':
+        return filterRun;
+      case 'blitz':
+        return filterBlitz;
+      case 'coverage':
+      case 'cobertura':
+        return filterCoverage;
+      default:
+        return value;
+    }
+  }
+
+  String typeLabel(String rawType) {
+    switch (_normalizeType(rawType)) {
+      case filterPass:
+        return 'Pase';
+      case filterRun:
+        return 'Carrera';
+      case filterBlitz:
+        return 'Blitz';
+      case filterCoverage:
+        return 'Cobertura';
+      default:
+        return rawType.trim().isEmpty ? '-' : rawType;
+    }
   }
 
   Future<void> load({required bool reset}) async {
@@ -110,18 +150,9 @@ class PlayBookListController extends GetxController {
   }
 
   Future<void> goToDetail(PlaybookPlay play) async {
-    if (play.isAttachment && play.attachment?.url != null) {
-      final url = play.attachment!.url;
-
-      final uri = Uri.parse(url);
-
-      if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
-        Get.snackbar(
-          'Archivo',
-          'No se pudo abrir el archivo',
-          snackPosition: SnackPosition.BOTTOM,
-        );
-      }
+    if (play.isAttachment) {
+      await Get.toNamed(Routes.playbookRead, arguments: {'playId': play.id});
+      await load(reset: true);
       return;
     }
 
@@ -133,7 +164,99 @@ class PlayBookListController extends GetxController {
     }
 
     // refrescar lista al volver
-    load(reset: true);
+    await load(reset: true);
+  }
+
+  Future<void> goToReadDetail(PlaybookPlay play) async {
+    await Get.toNamed(Routes.playbookRead, arguments: {'playId': play.id});
+    await load(reset: true);
+  }
+
+  Future<void> sharePlay(PlaybookPlay play) async {
+    try {
+      final categories = await _api.getPlaybookCategories();
+      final options = categories
+          .where((e) => e.id != play.categoryId)
+          .where((e) => !play.sharedCategories.any((s) => s.id == e.id))
+          .toList();
+
+      if (options.isEmpty) {
+        Get.snackbar(
+          'Compartir jugada',
+          'No hay categorías nuevas disponibles para compartir.',
+          snackPosition: SnackPosition.BOTTOM,
+        );
+        return;
+      }
+
+      final selected = <int>{};
+      final result = await Get.dialog<List<int>>(
+        StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              title: Text('Compartir "${play.alias}"'),
+              content: SizedBox(
+                width: 420,
+                child: SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: options.map((category) {
+                      final isSelected = selected.contains(category.id);
+                      return CheckboxListTile(
+                        value: isSelected,
+                        dense: true,
+                        contentPadding: EdgeInsets.zero,
+                        title: Text(category.name),
+                        subtitle: category.code?.isNotEmpty == true
+                            ? Text(category.code!)
+                            : null,
+                        onChanged: (value) {
+                          setState(() {
+                            if (value == true) {
+                              selected.add(category.id);
+                            } else {
+                              selected.remove(category.id);
+                            }
+                          });
+                        },
+                      );
+                    }).toList(),
+                  ),
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Get.back(result: null),
+                  child: const Text('Cancelar'),
+                ),
+                FilledButton(
+                  onPressed: selected.isEmpty
+                      ? null
+                      : () => Get.back(result: selected.toList()),
+                  child: const Text('Compartir'),
+                ),
+              ],
+            );
+          },
+        ),
+      );
+
+      if (result == null || result.isEmpty) return;
+
+      await _api.playbookSharePlay(playId: play.id, categoryIds: result);
+      Get.snackbar(
+        'Compartir jugada',
+        'Jugada compartida con ${result.length} categor${result.length == 1 ? 'ía' : 'ías'}.',
+        snackPosition: SnackPosition.BOTTOM,
+      );
+      await load(reset: true);
+    } catch (e) {
+      Get.snackbar(
+        'Compartir jugada',
+        'No se pudo compartir: $e',
+        snackPosition: SnackPosition.BOTTOM,
+      );
+    }
   }
 
   Future<bool> deletePlayOnBackend(String playId) async {

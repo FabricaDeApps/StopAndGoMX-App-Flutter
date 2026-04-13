@@ -2,7 +2,7 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:stopandgo/core/models/play_book_model.dart';
-import 'package:stopandgo/modules/play_book_create/play_book_create_controller.dart';
+import 'package:stopandgo/core/playbook/playbook_catalog.dart';
 import 'play_book_controller.dart';
 import 'play_book_painter.dart';
 
@@ -13,7 +13,7 @@ class PlayBookView extends GetView<PlayBookController> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    Widget _metaBar() {
+    Widget metaBar() {
       return Container(
         margin: const EdgeInsets.fromLTRB(16, 10, 16, 0),
         padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 5),
@@ -23,6 +23,7 @@ class PlayBookView extends GetView<PlayBookController> {
           border: Border.all(color: theme.dividerColor),
         ),
         child: Obx(() {
+          final sport = controller.playSport.value ?? PlaySport.flagFootball;
           final side = controller.playSide.value ?? 'offense';
           final sideLabel = side == 'defense' ? 'Defensiva' : 'Ofensiva';
           final count = controller.playersCount.value > 0
@@ -34,6 +35,12 @@ class PlayBookView extends GetView<PlayBookController> {
           return Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
+              _pill(
+                theme,
+                icon: Icons.emoji_events_outlined,
+                label: controller.sportLabel(sport),
+              ),
+              const SizedBox(width: 8),
               _pill(
                 theme,
                 icon: side == 'defense' ? Icons.shield : Icons.sports_football,
@@ -63,7 +70,7 @@ class PlayBookView extends GetView<PlayBookController> {
             BoxShadow(
               blurRadius: 12,
               offset: const Offset(0, -2),
-              color: Colors.black.withOpacity(0.08),
+              color: Colors.black.withValues(alpha: 0.08),
             ),
           ],
         ),
@@ -133,7 +140,7 @@ class PlayBookView extends GetView<PlayBookController> {
             BoxShadow(
               blurRadius: 12,
               offset: const Offset(0, -2),
-              color: Colors.black.withOpacity(0.08),
+              color: Colors.black.withValues(alpha: 0.08),
             ),
           ],
         ),
@@ -164,7 +171,7 @@ class PlayBookView extends GetView<PlayBookController> {
                     final safeValue = controller.playType.value ?? PlayType.run;
 
                     return DropdownButtonFormField<PlayType>(
-                      value: safeValue,
+                      initialValue: safeValue,
                       decoration: const InputDecoration(
                         labelText: 'Tipo de jugada',
                         border: OutlineInputBorder(),
@@ -298,7 +305,7 @@ class PlayBookView extends GetView<PlayBookController> {
       ),
       body: Column(
         children: [
-          _metaBar(),
+          metaBar(),
           const SizedBox(height: 10),
 
           // SegmentedButton (3 modos)
@@ -472,11 +479,6 @@ class PlayBookView extends GetView<PlayBookController> {
                       onPanEnd: (_) => controller.onPanEnd(),
                       onPanCancel: controller.onPanEnd,
                       child: Obx(() {
-                        // forzar repaint
-                        final _ = controller.players.length;
-                        final __ = controller.activeRoutePoints.length;
-                        final ___ = controller.routesByPlayer.length;
-
                         final selected = controller.selectedPlayerId.value;
 
                         return CustomPaint(
@@ -525,12 +527,11 @@ class PlayBookView extends GetView<PlayBookController> {
 
     switch (tone) {
       case _PillTone.warning:
-        bg = Colors.orange.withOpacity(0.15);
+        bg = Colors.orange.withValues(alpha: 0.15);
         fg = Colors.orange.shade800;
         break;
       case _PillTone.neutral:
-      default:
-        bg = theme.colorScheme.primary.withOpacity(0.10);
+        bg = theme.colorScheme.primary.withValues(alpha: 0.10);
         fg = theme.colorScheme.primary;
         break;
     }

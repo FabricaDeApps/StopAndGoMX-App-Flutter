@@ -1,28 +1,32 @@
 import 'dart:io';
 
+import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:get/get.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:stopandgo/core/models/play_book_model.dart';
 import 'package:stopandgo/core/network/api_repository.dart';
+import 'package:stopandgo/core/playbook/playbook_catalog.dart';
 import 'package:stopandgo/core/storage/app_storage.dart';
 import 'package:stopandgo/routes/app_routes.dart';
-
-enum PlaySide { offense, defense }
-
-enum PlayType { run, pass, rpo, playAction, screen, trick, blitz, coverage }
 
 enum PlayMode { playbookGo, attachment }
 
 class PlayBookCreateController extends GetxController {
   final _api = Get.find<ApiRepository>();
+  final _picker = ImagePicker();
 
   // Wizard
   final stepIndex = 0.obs;
 
   // Selections
+  final sport = Rxn<PlaySport>();
   final side = Rxn<PlaySide>();
   final type = Rxn<PlayType>();
   final playersCount = 7.obs;
   final mode = Rxn<PlayMode>();
+  final availableShareCategories = <PlaybookCategoryRef>[].obs;
+  final selectedSharedCategoryIds = <int>[].obs;
 
   // Attachment fields
   final alias = ''.obs;
@@ -30,62 +34,47 @@ class PlayBookCreateController extends GetxController {
   final attachmentLabel = RxnString();
 
   // UI state
+  final isLoadingShareCategories = false.obs;
   final isPicking = false.obs;
   final isSaving = false.obs;
 
-  // ----- Labels
-  String sideLabel(PlaySide s) =>
-      s == PlaySide.offense ? 'Ofensiva' : 'Defensiva';
+  int? get selectedCategoryId => AppStorage.getSelectedCategoryId();
 
-  String typeLabel(PlayType t) {
-    switch (t) {
-      case PlayType.run:
-        return 'Carrera';
-      case PlayType.pass:
-        return 'Pase';
-      case PlayType.rpo:
-        return 'RPO';
-      case PlayType.playAction:
-        return 'Play Action';
-      case PlayType.screen:
-        return 'Screen';
-      case PlayType.trick:
-        return 'Trick / Engaño';
-      case PlayType.blitz:
-        return 'Blitz';
-      case PlayType.coverage:
-        return 'Cobertura';
-    }
-  }
+  // ----- Labels
+  String sportLabel(PlaySport s) => playSportLabel(s);
+
+  String sideLabel(PlaySide s) => playSideLabel(s);
+
+  String typeLabel(PlayType t) => playTypeLabel(t);
 
   String modeLabel(PlayMode m) =>
       m == PlayMode.playbookGo ? 'Playbook GO' : 'Adjuntar archivo';
 
   // ----- Options by side
   List<PlayType> get typeOptions {
-    final s = side.value;
-    if (s == PlaySide.offense) {
-      return [
-        PlayType.run,
-        PlayType.pass,
-        PlayType.rpo,
-        PlayType.playAction,
-        PlayType.screen,
-        PlayType.trick,
-      ];
-    }
-    if (s == PlaySide.defense) {
-      return [PlayType.blitz, PlayType.coverage];
-    }
-    return PlayType.values;
+    return playTypeOptions(sport: sport.value, side: side.value);
+  }
+
+  List<PlaybookCategoryRef> get shareableCategories {
+    final baseCategoryId = selectedCategoryId;
+    return availableShareCategories
+        .where((e) => baseCategoryId == null || e.id != baseCategoryId)
+        .toList();
+  }
+
+  @override
+  void onInit() {
+    super.onInit();
+    loadShareCategories();
   }
 
   // ----- Step validations
-  bool get isStep0Valid => side.value != null;
-  bool get isStep1Valid => type.value != null;
-  bool get isStep2Valid => playersCount.value >= 5 && playersCount.value <= 11;
+  bool get isStep0Valid => sport.value != null;
+  bool get isStep1Valid => side.value != null;
+  bool get isStep2Valid => type.value != null;
+  bool get isStep3Valid => playersCount.value >= 5 && playersCount.value <= 11;
 
-  bool get isStep3Valid {
+  bool get isStep4Valid {
     if (mode.value == null) return false;
 
     if (mode.value == PlayMode.attachment) {
@@ -107,16 +96,33 @@ class PlayBookCreateController extends GetxController {
         return isStep2Valid;
       case 3:
         return isStep3Valid;
+      case 4:
+        return isStep4Valid;
       default:
         return false;
     }
   }
 
   // ----- Mutations
+  void setSport(PlaySport s) {
+    final previous = sport.value;
+    sport.value = s;
+
+    if (previous != s) {
+      type.value = null;
+
+      if (playersCount.value == suggestedPlayersCountForSport(previous)) {
+        playersCount.value = suggestedPlayersCountForSport(s);
+      }
+    }
+
+    if (stepIndex.value > 0) stepIndex.value = 1;
+  }
+
   void setSide(PlaySide s) {
     side.value = s;
     type.value = null;
-    if (stepIndex.value > 0) stepIndex.value = 1;
+    if (stepIndex.value > 1) stepIndex.value = 2;
   }
 
   void setType(PlayType t) => type.value = t;
@@ -132,13 +138,175 @@ class PlayBookCreateController extends GetxController {
 
   void setAlias(String v) => alias.value = v;
 
+  void toggleSharedCategory(int categoryId) {
+    if (selectedSharedCategoryIds.contains(categoryId)) {
+      selectedSharedCategoryIds.remove(categoryId);
+    } else {
+      selectedSharedCategoryIds.add(categoryId);
+    }
+    selectedSharedCategoryIds.refresh();
+  }
+
   void clearAttachment() {
     attachmentPath.value = null;
     attachmentLabel.value = null;
   }
 
-  /// ✅ Selector real de archivo (PDF / Imagen / Video / Documento)
+  Future<void> loadShareCategories() async {
+    try {
+      isLoadingShareCategories.value = true;
+      final categories = await _api.getPlaybookCategories();
+      availableShareCategories.assignAll(categories);
+    } catch (_) {
+      availableShareCategories.clear();
+    } finally {
+      isLoadingShareCategories.value = false;
+    }
+  }
+
   Future<void> pickAttachment() async {
+    final choice = await _pickAttachmentSource();
+    if (choice == null) return;
+
+    switch (choice) {
+      case _AttachmentSource.galleryImage:
+        await _pickImageFromGallery();
+        return;
+      case _AttachmentSource.galleryVideo:
+        await _pickVideoFromGallery();
+        return;
+      case _AttachmentSource.cameraPhoto:
+        await _pickPhotoFromCamera();
+        return;
+      case _AttachmentSource.cameraVideo:
+        await _pickVideoFromCamera();
+        return;
+      case _AttachmentSource.file:
+        await _pickAttachmentFile();
+        return;
+    }
+  }
+
+  Future<_AttachmentSource?> _pickAttachmentSource() async {
+    return Get.bottomSheet<_AttachmentSource?>(
+      SafeArea(
+        child: Material(
+          color: Colors.white,
+          child: Wrap(
+            children: [
+              ListTile(
+                leading: const Icon(Icons.photo_library_outlined),
+                title: const Text('Elegir foto de galería'),
+                onTap: () => Get.back(result: _AttachmentSource.galleryImage),
+              ),
+              ListTile(
+                leading: const Icon(Icons.video_library_outlined),
+                title: const Text('Elegir video de galería'),
+                onTap: () => Get.back(result: _AttachmentSource.galleryVideo),
+              ),
+              ListTile(
+                leading: const Icon(Icons.photo_camera_outlined),
+                title: const Text('Tomar foto'),
+                onTap: () => Get.back(result: _AttachmentSource.cameraPhoto),
+              ),
+              ListTile(
+                leading: const Icon(Icons.videocam_outlined),
+                title: const Text('Grabar video'),
+                onTap: () => Get.back(result: _AttachmentSource.cameraVideo),
+              ),
+              ListTile(
+                leading: const Icon(Icons.attach_file),
+                title: const Text('Elegir archivo'),
+                onTap: () => Get.back(result: _AttachmentSource.file),
+              ),
+              ListTile(
+                leading: const Icon(Icons.close),
+                title: const Text('Cancelar'),
+                onTap: () => Get.back(result: null),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _pickImageFromGallery() async {
+    try {
+      isPicking.value = true;
+      final picked = await _picker.pickImage(
+        source: ImageSource.gallery,
+        imageQuality: 90,
+      );
+      if (picked == null) return;
+      _setAttachmentFromPath(picked.path, picked.name);
+    } catch (e) {
+      Get.snackbar(
+        'Adjuntar archivo',
+        'No se pudo seleccionar la imagen: $e',
+        snackPosition: SnackPosition.BOTTOM,
+      );
+    } finally {
+      isPicking.value = false;
+    }
+  }
+
+  Future<void> _pickVideoFromGallery() async {
+    try {
+      isPicking.value = true;
+      final picked = await _picker.pickVideo(source: ImageSource.gallery);
+      if (picked == null) return;
+      _setAttachmentFromPath(picked.path, picked.name);
+    } catch (e) {
+      Get.snackbar(
+        'Adjuntar archivo',
+        'No se pudo seleccionar el video: $e',
+        snackPosition: SnackPosition.BOTTOM,
+      );
+    } finally {
+      isPicking.value = false;
+    }
+  }
+
+  Future<void> _pickPhotoFromCamera() async {
+    try {
+      isPicking.value = true;
+      final picked = await _picker.pickImage(
+        source: ImageSource.camera,
+        imageQuality: 90,
+      );
+      if (picked == null) return;
+      _setAttachmentFromPath(picked.path, picked.name);
+    } catch (e) {
+      Get.snackbar(
+        'Adjuntar archivo',
+        'No se pudo tomar la foto: $e',
+        snackPosition: SnackPosition.BOTTOM,
+      );
+    } finally {
+      isPicking.value = false;
+    }
+  }
+
+  Future<void> _pickVideoFromCamera() async {
+    try {
+      isPicking.value = true;
+      final picked = await _picker.pickVideo(source: ImageSource.camera);
+      if (picked == null) return;
+      _setAttachmentFromPath(picked.path, picked.name);
+    } catch (e) {
+      Get.snackbar(
+        'Adjuntar archivo',
+        'No se pudo grabar el video: $e',
+        snackPosition: SnackPosition.BOTTOM,
+      );
+    } finally {
+      isPicking.value = false;
+    }
+  }
+
+  /// Selector real de archivo (PDF / Imagen / Video)
+  Future<void> _pickAttachmentFile() async {
     try {
       isPicking.value = true;
 
@@ -151,16 +319,10 @@ class PlayBookCreateController extends GetxController {
           'png',
           'jpg',
           'jpeg',
-          'heic',
           'mp4',
           'mov',
-          'doc',
-          'docx',
-          'xls',
-          'xlsx',
-          'ppt',
-          'pptx',
-          'txt',
+          'webm',
+          'webp',
         ],
       );
 
@@ -188,8 +350,7 @@ class PlayBookCreateController extends GetxController {
         return;
       }
 
-      attachmentPath.value = path;
-      attachmentLabel.value = picked.name;
+      _setAttachmentFromPath(path, picked.name);
     } catch (e) {
       Get.snackbar(
         'Adjuntar archivo',
@@ -199,6 +360,22 @@ class PlayBookCreateController extends GetxController {
     } finally {
       isPicking.value = false;
     }
+  }
+
+  void _setAttachmentFromPath(String path, String? label) {
+    final file = File(path);
+    if (!file.existsSync()) {
+      Get.snackbar(
+        'Adjuntar archivo',
+        'El archivo seleccionado no existe o no se pudo acceder.',
+        snackPosition: SnackPosition.BOTTOM,
+      );
+      return;
+    }
+
+    attachmentPath.value = path;
+    attachmentLabel.value =
+        (label?.trim().isNotEmpty == true) ? label!.trim() : file.uri.pathSegments.last;
   }
 
   // ----- Navigation
@@ -212,7 +389,7 @@ class PlayBookCreateController extends GetxController {
       return;
     }
 
-    if (stepIndex.value < 3) {
+    if (stepIndex.value < 4) {
       stepIndex.value++;
       return;
     }
@@ -231,11 +408,15 @@ class PlayBookCreateController extends GetxController {
   Future<void> submit() async {
     if (isSaving.value) return;
 
+    final selectedSport = sport.value?.name;
     final selectedSide = side.value?.name; // 'offense' | 'defense'
     final selectedType = type.value?.name; // 'run' | 'pass' | ...
     final selectedMode = mode.value;
 
-    if (selectedSide == null || selectedType == null || selectedMode == null) {
+    if (selectedSport == null ||
+        selectedSide == null ||
+        selectedType == null ||
+        selectedMode == null) {
       Get.snackbar(
         'Crear jugada',
         'Completa los campos requeridos',
@@ -259,10 +440,12 @@ class PlayBookCreateController extends GetxController {
       final result = await Get.toNamed(
         Routes.playbook,
         arguments: {
+          'sport': selectedSport,
           'side': selectedSide,
           'type': selectedType,
           'players_count': playersCount.value,
           'category_id': categoryId,
+          'shared_category_ids': selectedSharedCategoryIds.toList(),
         },
       );
 
@@ -305,6 +488,7 @@ class PlayBookCreateController extends GetxController {
         side: selectedSide,
         playersCount: playersCount.value,
         filePath: filePath,
+        sharedCategoryIds: selectedSharedCategoryIds.toList(),
       );
 
       Get.snackbar(
@@ -325,4 +509,12 @@ class PlayBookCreateController extends GetxController {
       isSaving.value = false;
     }
   }
+}
+
+enum _AttachmentSource {
+  galleryImage,
+  galleryVideo,
+  cameraPhoto,
+  cameraVideo,
+  file,
 }

@@ -1964,6 +1964,24 @@ class ApiRepository {
     );
   }
 
+  Future<List<PlaybookCategoryRef>> getPlaybookCategories() async {
+    final res = await _dio.get(
+      '/playbook/categories',
+      options: Options(headers: _headers()),
+    );
+
+    final rawData = (res.data is Map)
+        ? ((res.data as Map)['data'] as List? ?? const [])
+        : const [];
+
+    return rawData
+        .whereType<Map>()
+        .map(
+          (e) => PlaybookCategoryRef.fromJson(Map<String, dynamic>.from(e)),
+        )
+        .toList();
+  }
+
   Future<Map<String, dynamic>> playbookCreatePlayGo({
     required Map<String, dynamic> payload,
   }) async {
@@ -1993,6 +2011,7 @@ class ApiRepository {
     required String side,
     required int playersCount,
     required String filePath,
+    List<int> sharedCategoryIds = const [],
     String? notes,
   }) async {
     final file = File(filePath);
@@ -2010,6 +2029,8 @@ class ApiRepository {
       'type': type,
       'side': side,
       'players_count': playersCount,
+      if (sharedCategoryIds.isNotEmpty)
+        'shared_category_ids[]': sharedCategoryIds,
       if (notes != null && notes.trim().isNotEmpty) 'notes': notes.trim(),
       'file': await MultipartFile.fromFile(filePath, filename: fileName),
     });
@@ -2039,6 +2060,90 @@ class ApiRepository {
 
     final map = Map<String, dynamic>.from(res.data as Map);
     return PlaybookPlay.fromJson(map);
+  }
+
+  Future<Map<String, dynamic>> playbookSharePlay({
+    required String playId,
+    required List<int> categoryIds,
+  }) async {
+    final res = await _dio.post(
+      '/playbook/plays/$playId/share',
+      data: {'category_ids': categoryIds},
+      options: Options(headers: _headers()),
+    );
+
+    if (res.data is! Map) {
+      throw Exception('Respuesta inesperada al compartir jugada');
+    }
+
+    return Map<String, dynamic>.from(res.data as Map);
+  }
+
+  Future<List<PlaybookFeedback>> getPlaybookFeedback({
+    required String playId,
+    int limit = 50,
+  }) async {
+    final res = await _dio.get(
+      '/playbook/plays/$playId/feedback',
+      queryParameters: {'limit': limit},
+      options: Options(headers: _headers()),
+    );
+
+    final rawData = (res.data is Map)
+        ? ((res.data as Map)['data'] as List? ?? const [])
+        : const [];
+
+    return rawData
+        .whereType<Map>()
+        .map((e) => PlaybookFeedback.fromJson(Map<String, dynamic>.from(e)))
+        .toList();
+  }
+
+  Future<PlaybookFeedback> playbookCreateFeedback({
+    required String playId,
+    String? message,
+    String? filePath,
+  }) async {
+    final trimmedMessage = message?.trim();
+    final trimmedPath = filePath?.trim();
+
+    final formMap = <String, dynamic>{
+      if (trimmedMessage != null && trimmedMessage.isNotEmpty)
+        'message': trimmedMessage,
+    };
+
+    if (trimmedPath != null && trimmedPath.isNotEmpty) {
+      final file = File(trimmedPath);
+      if (!file.existsSync()) {
+        throw Exception('El archivo de feedback no existe: $trimmedPath');
+      }
+
+      final fileName = file.uri.pathSegments.isNotEmpty
+          ? file.uri.pathSegments.last
+          : 'feedback';
+      formMap['file'] = await MultipartFile.fromFile(
+        trimmedPath,
+        filename: fileName,
+      );
+    }
+
+    final res = await _dio.post(
+      '/playbook/plays/$playId/feedback',
+      data: FormData.fromMap(formMap),
+      options: Options(headers: _headers(), contentType: 'multipart/form-data'),
+    );
+
+    if (res.data is! Map) {
+      throw Exception('Respuesta inesperada al crear feedback');
+    }
+
+    final map = Map<String, dynamic>.from(res.data as Map);
+    if (map['data'] is Map) {
+      return PlaybookFeedback.fromJson(
+        Map<String, dynamic>.from(map['data'] as Map),
+      );
+    }
+    return PlaybookFeedback.fromJson(map);
   }
 
   // UPDATE  PUT /playbook/plays/{playId}

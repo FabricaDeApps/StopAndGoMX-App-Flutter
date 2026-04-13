@@ -1,1 +1,1 @@
-- Coaches y Managers pueden cambiar de posición a los jugadores
+- Mejora en vista de roster

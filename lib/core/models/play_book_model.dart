@@ -11,6 +11,19 @@ Offset offsetFromJson(Map<String, dynamic> json) {
 
 Map<String, dynamic> offsetToJson(Offset o) => {'x': o.dx, 'y': o.dy};
 
+DateTime? _dateTimeFromJson(dynamic raw) {
+  final value = raw?.toString().trim();
+  if (value == null || value.isEmpty) return null;
+  return DateTime.tryParse(value);
+}
+
+int? _intFromJson(dynamic raw) {
+  if (raw == null) return null;
+  if (raw is int) return raw;
+  if (raw is num) return raw.toInt();
+  return int.tryParse(raw.toString());
+}
+
 /// ------------------------------
 /// Player token (formación)
 /// ------------------------------
@@ -66,6 +79,15 @@ class PlayerToken {
 
 enum RouteEndType { arrow, block }
 
+RouteEndType routeEndTypeFromJson(dynamic raw) {
+  final value = raw?.toString().trim().toLowerCase();
+  return value == 'block' ? RouteEndType.block : RouteEndType.arrow;
+}
+
+String routeEndTypeToJson(RouteEndType endType) {
+  return endType == RouteEndType.block ? 'block' : 'arrow';
+}
+
 class PlayRoute {
   final String id;
   final String playerId;
@@ -86,13 +108,14 @@ class PlayRoute {
     String? playerId,
     Offset? origin,
     List<Offset>? points,
+    RouteEndType? endType,
   }) {
     return PlayRoute(
       id: id ?? this.id,
       playerId: playerId ?? this.playerId,
       origin: origin ?? this.origin,
       points: points ?? this.points,
-      endType: endType,
+      endType: endType ?? this.endType,
     );
   }
 
@@ -107,6 +130,7 @@ class PlayRoute {
       playerId: json['playerId'] as String,
       origin: offsetFromJson(originJson),
       points: pts,
+      endType: routeEndTypeFromJson(json['endType']),
     );
   }
 
@@ -115,6 +139,7 @@ class PlayRoute {
     'playerId': playerId,
     'origin': offsetToJson(origin),
     'points': points.map(offsetToJson).toList(),
+    'endType': routeEndTypeToJson(endType),
   };
 }
 
@@ -126,12 +151,14 @@ class PlaybookAttachment {
   final String? name;
   final String? mimeType;
   final int? sizeBytes;
+  final String? kind;
 
   const PlaybookAttachment({
     required this.url,
     this.name,
     this.mimeType,
     this.sizeBytes,
+    this.kind,
   });
 
   factory PlaybookAttachment.fromJson(Map<String, dynamic> json) {
@@ -139,7 +166,8 @@ class PlaybookAttachment {
       url: (json['url'] as String?) ?? '',
       name: json['name'] as String?,
       mimeType: json['mimeType'] as String?,
-      sizeBytes: json['sizeBytes'] as int?,
+      sizeBytes: _intFromJson(json['sizeBytes']),
+      kind: json['kind']?.toString(),
     );
   }
 
@@ -148,7 +176,119 @@ class PlaybookAttachment {
     if (name != null) 'name': name,
     if (mimeType != null) 'mimeType': mimeType,
     if (sizeBytes != null) 'sizeBytes': sizeBytes,
+    if (kind != null) 'kind': kind,
   };
+}
+
+class PlaybookCategoryRef {
+  final int id;
+  final String name;
+  final String? code;
+  final String? slug;
+
+  const PlaybookCategoryRef({
+    required this.id,
+    required this.name,
+    this.code,
+    this.slug,
+  });
+
+  factory PlaybookCategoryRef.fromJson(Map<String, dynamic> json) {
+    return PlaybookCategoryRef(
+      id: _intFromJson(json['id']) ?? 0,
+      name: json['name']?.toString() ?? '',
+      code: json['code']?.toString(),
+      slug: json['slug']?.toString(),
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'name': name,
+    if (code != null) 'code': code,
+    if (slug != null) 'slug': slug,
+  };
+}
+
+class PlaybookFeedbackAuthor {
+  final int? id;
+  final String name;
+  final String? role;
+  final String? profilePhotoUrl;
+
+  const PlaybookFeedbackAuthor({
+    this.id,
+    required this.name,
+    this.role,
+    this.profilePhotoUrl,
+  });
+
+  factory PlaybookFeedbackAuthor.fromJson(Map<String, dynamic> json) {
+    return PlaybookFeedbackAuthor(
+      id: _intFromJson(json['id']),
+      name: json['name']?.toString().trim().isNotEmpty == true
+          ? json['name'].toString().trim()
+          : 'Sin nombre',
+      role: json['role']?.toString(),
+      profilePhotoUrl: json['profile_photo_url']?.toString(),
+    );
+  }
+}
+
+class PlaybookFeedback {
+  final int id;
+  final String playId;
+  final int? categoryId;
+  final String? categoryName;
+  final String authorName;
+  final PlaybookFeedbackAuthor? author;
+  final String message;
+  final PlaybookAttachment? attachment;
+  final bool canDelete;
+  final DateTime? createdAt;
+
+  const PlaybookFeedback({
+    required this.id,
+    required this.playId,
+    this.categoryId,
+    this.categoryName,
+    required this.authorName,
+    this.author,
+    required this.message,
+    this.attachment,
+    required this.canDelete,
+    this.createdAt,
+  });
+
+  factory PlaybookFeedback.fromJson(Map<String, dynamic> json) {
+    final authorRaw = json['author'];
+    final attachmentRaw = json['attachment'];
+
+    return PlaybookFeedback(
+      id: _intFromJson(json['id']) ?? 0,
+      playId: json['play_id']?.toString() ?? '',
+      categoryId: _intFromJson(json['category_id']),
+      categoryName: json['category_name']?.toString(),
+      authorName: (json['author_name']?.toString().trim().isNotEmpty == true)
+          ? json['author_name'].toString().trim()
+          : (authorRaw is Map
+                ? (authorRaw['name']?.toString().trim().isNotEmpty == true
+                      ? authorRaw['name'].toString().trim()
+                      : 'Sin autor')
+                : 'Sin autor'),
+      author: authorRaw is Map
+          ? PlaybookFeedbackAuthor.fromJson(Map<String, dynamic>.from(authorRaw))
+          : null,
+      message: json['message']?.toString() ?? '',
+      attachment: attachmentRaw is Map
+          ? PlaybookAttachment.fromJson(
+              Map<String, dynamic>.from(attachmentRaw),
+            )
+          : null,
+      canDelete: json['can_delete'] == true,
+      createdAt: _dateTimeFromJson(json['created_at']),
+    );
+  }
 }
 
 class PlaybookPlay {
@@ -175,6 +315,12 @@ class PlaybookPlay {
 
   /// Solo para modo attachment
   final PlaybookAttachment? attachment;
+  final int? categoryId;
+  final PlaybookCategoryRef? category;
+  final List<PlaybookCategoryRef> sharedCategories;
+  final String? notes;
+  final DateTime? createdAt;
+  final DateTime? updatedAt;
 
   const PlaybookPlay({
     required this.id,
@@ -186,6 +332,12 @@ class PlaybookPlay {
     this.players = const [],
     this.routesByPlayer = const {},
     this.attachment,
+    this.categoryId,
+    this.category,
+    this.sharedCategories = const [],
+    this.notes,
+    this.createdAt,
+    this.updatedAt,
   });
 
   bool get isGo => mode == 'go' || mode == 'playbook_go';
@@ -201,6 +353,12 @@ class PlaybookPlay {
     List<PlayerToken>? players,
     Map<String, List<PlayRoute>>? routesByPlayer,
     PlaybookAttachment? attachment,
+    int? categoryId,
+    PlaybookCategoryRef? category,
+    List<PlaybookCategoryRef>? sharedCategories,
+    String? notes,
+    DateTime? createdAt,
+    DateTime? updatedAt,
   }) {
     return PlaybookPlay(
       id: id ?? this.id,
@@ -212,6 +370,12 @@ class PlaybookPlay {
       players: players ?? this.players,
       routesByPlayer: routesByPlayer ?? this.routesByPlayer,
       attachment: attachment ?? this.attachment,
+      categoryId: categoryId ?? this.categoryId,
+      category: category ?? this.category,
+      sharedCategories: sharedCategories ?? this.sharedCategories,
+      notes: notes ?? this.notes,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
     );
   }
 
@@ -227,7 +391,7 @@ class PlaybookPlay {
     final rawRoutes = json['routesByPlayer'];
 
     final Map<String, dynamic> rbpJson = (rawRoutes is Map)
-        ? Map<String, dynamic>.from(rawRoutes as Map)
+        ? Map<String, dynamic>.from(rawRoutes)
         : <String, dynamic>{};
 
     final rbp = <String, List<PlayRoute>>{};
@@ -243,8 +407,17 @@ class PlaybookPlay {
     // ---- attachment (puede ser null o map)
     final attachmentRaw = json['attachment'];
     final attachmentJson = attachmentRaw is Map
-        ? Map<String, dynamic>.from(attachmentRaw as Map)
+        ? Map<String, dynamic>.from(attachmentRaw)
         : null;
+    final categoryRaw = json['category'];
+    final categoryJson = categoryRaw is Map
+        ? Map<String, dynamic>.from(categoryRaw)
+        : null;
+    final sharedCategoriesRaw = (json['shared_categories'] as List?) ?? const [];
+    final sharedCategories = sharedCategoriesRaw
+        .whereType<Map>()
+        .map((e) => PlaybookCategoryRef.fromJson(Map<String, dynamic>.from(e)))
+        .toList();
 
     // ---- mode (compat)
     final inferredMode =
@@ -270,7 +443,25 @@ class PlaybookPlay {
       attachment: attachmentJson == null
           ? null
           : PlaybookAttachment.fromJson(attachmentJson),
+      categoryId: _intFromJson(json['category_id']),
+      category: categoryJson == null
+          ? null
+          : PlaybookCategoryRef.fromJson(categoryJson),
+      sharedCategories: sharedCategories,
+      notes: json['notes']?.toString(),
+      createdAt: _dateTimeFromJson(json['created_at']),
+      updatedAt: _dateTimeFromJson(json['updated_at']),
     );
+  }
+
+  bool isOwnedByCategory(int? selectedCategoryId) {
+    if (selectedCategoryId == null || categoryId == null) return false;
+    return categoryId == selectedCategoryId;
+  }
+
+  bool isSharedWithCategory(int? selectedCategoryId) {
+    if (selectedCategoryId == null) return false;
+    return sharedCategories.any((e) => e.id == selectedCategoryId);
   }
 
   Map<String, dynamic> toJson() => {
@@ -280,6 +471,13 @@ class PlaybookPlay {
     'side': side,
     'mode': mode,
     'playersCount': playersCount,
+    if (categoryId != null) 'category_id': categoryId,
+    if (category != null) 'category': category!.toJson(),
+    if (sharedCategories.isNotEmpty)
+      'shared_categories': sharedCategories.map((e) => e.toJson()).toList(),
+    if (notes != null) 'notes': notes,
+    if (createdAt != null) 'created_at': createdAt!.toIso8601String(),
+    if (updatedAt != null) 'updated_at': updatedAt!.toIso8601String(),
     // Solo manda players/rutas cuando es GO (si quieres)
     if (isGo) 'players': players.map((p) => p.toJson()).toList(),
     if (isGo)

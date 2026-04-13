@@ -48,15 +48,19 @@ class PlayBookListView extends GetView<PlayBookListController> {
               }
 
               return Wrap(
-                spacing: 10,
-                runSpacing: 6,
-                children: [
-                  chip('Todos', null),
-                  chip('Pase', 'Pase'),
-                  chip('Carrera', 'Carrera'),
-                  chip('Defensa', 'Defensa'),
-                ],
-              );
+                  spacing: 10,
+                  runSpacing: 6,
+                  children: [
+                    chip('Todos', null),
+                    chip('Pase', PlayBookListController.filterPass),
+                    chip('Carrera', PlayBookListController.filterRun),
+                    chip('Blitz', PlayBookListController.filterBlitz),
+                    chip(
+                      'Cobertura',
+                      PlayBookListController.filterCoverage,
+                    ),
+                  ],
+                );
             }),
           ),
 
@@ -108,6 +112,11 @@ class PlayBookListView extends GetView<PlayBookListController> {
                     final sideLabel = (play.side == 'defense')
                         ? 'Defensa'
                         : 'Ofensiva';
+                    final ownershipLabel = play.isOwnedByCategory(
+                          controller.selectedCategoryId,
+                        )
+                        ? 'Propia'
+                        : 'Compartida';
 
                     return Dismissible(
                       key: ValueKey('play_${play.id}'),
@@ -182,13 +191,25 @@ class PlayBookListView extends GetView<PlayBookListController> {
                           overflow: TextOverflow.ellipsis,
                         ),
                         subtitle: Text(
-                          '${play.type.isEmpty ? '-' : play.type} • $sideLabel',
+                          '${controller.typeLabel(play.type)} • $sideLabel • $ownershipLabel',
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
                         trailing: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
+                            if (play.sharedCategories.isNotEmpty)
+                              Padding(
+                                padding: const EdgeInsets.only(right: 6),
+                                child: Tooltip(
+                                  message:
+                                      'Compartida con ${play.sharedCategories.map((e) => e.name).join(', ')}',
+                                  child: const Icon(
+                                    Icons.groups_2_outlined,
+                                    size: 18,
+                                  ),
+                                ),
+                              ),
                             Chip(
                               visualDensity: VisualDensity.compact,
                               materialTapTargetSize:
@@ -199,6 +220,29 @@ class PlayBookListView extends GetView<PlayBookListController> {
                                 style: const TextStyle(fontSize: 12),
                               ),
                             ),
+                            if (controller.userRole.value == 'coach')
+                              PopupMenuButton<_CoachAction>(
+                                onSelected: (action) {
+                                  switch (action) {
+                                    case _CoachAction.viewDetail:
+                                      controller.goToReadDetail(play);
+                                      break;
+                                    case _CoachAction.share:
+                                      controller.sharePlay(play);
+                                      break;
+                                  }
+                                },
+                                itemBuilder: (context) => const [
+                                  PopupMenuItem(
+                                    value: _CoachAction.viewDetail,
+                                    child: Text('Ver detalle'),
+                                  ),
+                                  PopupMenuItem(
+                                    value: _CoachAction.share,
+                                    child: Text('Compartir'),
+                                  ),
+                                ],
+                              ),
                             const SizedBox(width: 8),
                             const Icon(Icons.chevron_right),
                           ],
@@ -217,3 +261,5 @@ class PlayBookListView extends GetView<PlayBookListController> {
     );
   }
 }
+
+enum _CoachAction { viewDetail, share }

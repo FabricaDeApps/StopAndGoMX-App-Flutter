@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:stopandgo/core/network/api_repository.dart';
+import 'package:stopandgo/core/playbook/playbook_catalog.dart';
 import 'package:stopandgo/core/storage/app_storage.dart';
 import 'package:stopandgo/core/models/play_book_model.dart';
-import 'package:stopandgo/modules/play_book_create/play_book_create_controller.dart';
 
 enum PlayBookMode { play, move, route }
 
@@ -59,13 +59,15 @@ class PlayBookController extends GetxController {
   final playAliasCtrl = TextEditingController();
 
   // ✅ Enum PlayType
-  final playTypes = PlayType.values;
+  final playSport = Rxn<PlaySport>();
   final playType = Rx<PlayType?>(null);
 
   // ✅ Nuevos campos (vienen del wizard o default)
   final playSide = RxnString(); // 'offense' | 'defense'
   final playersCount = 0.obs;
   final categoryId = RxnInt();
+  final sharedCategoryIds = <int>[].obs;
+  final sharedCategories = <PlaybookCategoryRef>[].obs;
 
   final isSavingPlay = false.obs;
   final isDeletingPlay = false.obs;
@@ -86,6 +88,9 @@ class PlayBookController extends GetxController {
     }
 
     // 2) CREAR DESDE WIZARD: side/type/players_count/category_id
+    final argSport = args?['sport']?.toString();
+    playSport.value = _mapSportFromArg(argSport);
+
     final argSide = args?['side']?.toString(); // 'offense' | 'defense'
     playSide.value = (argSide == 'defense' || argSide == 'offense')
         ? argSide
@@ -100,6 +105,13 @@ class PlayBookController extends GetxController {
     if (argCategoryId != null) {
       categoryId.value = int.tryParse(argCategoryId.toString());
     }
+
+    final argSharedCategoryIds = (args?['shared_category_ids'] as List?) ?? const [];
+    sharedCategoryIds.assignAll(
+      argSharedCategoryIds
+          .map((e) => int.tryParse(e.toString()))
+          .whereType<int>(),
+    );
 
     final argType = args?['type']?.toString(); // pass/run/...
     playType.value = _mapWizardTypeToEnum(argType ?? '') ?? PlayType.run;
@@ -123,28 +135,67 @@ class PlayBookController extends GetxController {
   }
 
   // ---------------- LABEL ----------------
-  String typeLabel(PlayType t) {
-    switch (t) {
-      case PlayType.run:
-        return 'Carrera';
-      case PlayType.pass:
-        return 'Pase';
-      case PlayType.rpo:
-        return 'RPO';
-      case PlayType.playAction:
-        return 'Play Action';
-      case PlayType.screen:
-        return 'Screen';
-      case PlayType.trick:
-        return 'Trick / Engaño';
-      case PlayType.blitz:
-        return 'Blitz';
-      case PlayType.coverage:
-        return 'Cobertura';
+  String sportLabel(PlaySport sport) => playSportLabel(sport);
+
+  String typeLabel(PlayType t) => playTypeLabel(t);
+
+  List<PlayType> get playTypes {
+    final side = _mapSideFromRaw(playSide.value);
+    final options = playTypeOptions(sport: playSport.value, side: side);
+    final current = playType.value;
+
+    if (current != null && !options.contains(current)) {
+      return [...options, current];
     }
+
+    return options;
   }
 
   // ---------------- TYPE MAPPING (wizard/backend) ----------------
+  PlaySport _inferSportFromContext({
+    int? playersCount,
+    String? type,
+  }) {
+    final normalizedType = _mapWizardTypeToEnum(type ?? '');
+    if (normalizedType == PlayType.playAction) {
+      return PlaySport.americanFootball;
+    }
+
+    if ((playersCount ?? 0) >= 9) {
+      return PlaySport.americanFootball;
+    }
+
+    return PlaySport.flagFootball;
+  }
+
+  PlaySport _mapSportFromArg(String? raw) {
+    final value = raw?.trim().toLowerCase();
+    switch (value) {
+      case 'americanfootball':
+      case 'american_football':
+      case 'american-football':
+      case 'football_americano':
+      case 'football-americano':
+        return PlaySport.americanFootball;
+      case 'flagfootball':
+      case 'flag_football':
+      case 'flag-football':
+      default:
+        return PlaySport.flagFootball;
+    }
+  }
+
+  PlaySide? _mapSideFromRaw(String? raw) {
+    switch (raw?.trim().toLowerCase()) {
+      case 'offense':
+        return PlaySide.offense;
+      case 'defense':
+        return PlaySide.defense;
+      default:
+        return null;
+    }
+  }
+
   PlayType? _mapWizardTypeToEnum(String raw) {
     final v = raw.trim().toLowerCase();
     if (v.isEmpty) return null;
@@ -208,6 +259,13 @@ class PlayBookController extends GetxController {
       // playersCount (si tu backend lo manda)
       final pc = play.playersCount;
       playersCount.value = pc;
+      playSport.value = _inferSportFromContext(
+        playersCount: pc,
+        type: play.type,
+      );
+      categoryId.value = play.categoryId;
+      sharedCategories.assignAll(play.sharedCategories);
+      sharedCategoryIds.assignAll(play.sharedCategories.map((e) => e.id));
 
       // Players
       players.assignAll(play.players);
@@ -609,6 +667,7 @@ class PlayBookController extends GetxController {
               "playerId": r.playerId,
               "origin": {"x": r.origin.dx, "y": r.origin.dy},
               "points": r.points.map((pt) => {"x": pt.dx, "y": pt.dy}).toList(),
+              "endType": routeEndTypeToJson(r.endType),
             },
           )
           .toList();
@@ -622,6 +681,8 @@ class PlayBookController extends GetxController {
       // ✅ manda string al backend
       "type": type.name,
       "side": playSide.value ?? 'offense',
+      if (!isEditingExisting && sharedCategoryIds.isNotEmpty)
+        "shared_category_ids": sharedCategoryIds.toList(),
       "notes": null,
       "players": playersJson,
       "routesByPlayer": routesJson,
