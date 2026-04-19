@@ -150,25 +150,18 @@ class PlayBookListController extends GetxController {
   }
 
   Future<void> goToDetail(PlaybookPlay play) async {
-    if (play.isAttachment) {
-      await Get.toNamed(Routes.playbookRead, arguments: {'playId': play.id});
-      await load(reset: true);
-      return;
-    }
-
-    // ✅ SI ES GO → editor / lector
-    if (userRole.value == "coach") {
-      await Get.toNamed(Routes.playbook, arguments: {'playId': play.id});
-    } else {
-      await Get.toNamed(Routes.playbookRead, arguments: {'playId': play.id});
-    }
-
-    // refrescar lista al volver
+    await Get.toNamed(Routes.playbookRead, arguments: {'playId': play.id});
     await load(reset: true);
   }
 
   Future<void> goToReadDetail(PlaybookPlay play) async {
     await Get.toNamed(Routes.playbookRead, arguments: {'playId': play.id});
+    await load(reset: true);
+  }
+
+  Future<void> goToEdit(PlaybookPlay play) async {
+    if (!play.isGo) return;
+    await Get.toNamed(Routes.playbook, arguments: {'playId': play.id});
     await load(reset: true);
   }
 

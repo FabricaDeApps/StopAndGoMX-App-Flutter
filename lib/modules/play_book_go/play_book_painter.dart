@@ -12,6 +12,7 @@ class PlayBookPainter extends CustomPainter {
   final bool isDrawMode;
   final Map<String, List<PlayRoute>> routesByPlayer;
   final List<Offset> activeRoutePoints;
+  final RouteEndType currentRouteType;
 
   PlayBookPainter({
     required this.fieldSize,
@@ -22,6 +23,7 @@ class PlayBookPainter extends CustomPainter {
     required this.isDrawMode,
     required this.routesByPlayer,
     required this.activeRoutePoints,
+    required this.currentRouteType,
   });
 
   @override
@@ -32,7 +34,7 @@ class PlayBookPainter extends CustomPainter {
 
     // Líneas
     final line = Paint()
-      ..color = Colors.white.withOpacity(0.18)
+      ..color = Colors.white.withValues(alpha: 0.18)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 2;
 
@@ -44,15 +46,59 @@ class PlayBookPainter extends CustomPainter {
     }
 
     // Helpers
-    Offset? _playerPos(String playerId) {
+    Offset? playerPos(String playerId) {
       for (final p in players) {
         if (p.id == playerId) return p.pos;
       }
       return null;
     }
 
+    void drawPathSegments(
+      Canvas canvas,
+      List<Offset> points,
+      Paint paint, {
+      List<double>? pattern,
+    }) {
+      if (points.length < 2) return;
+
+      if (pattern == null || pattern.isEmpty) {
+        final path = Path()..moveTo(points.first.dx, points.first.dy);
+        for (final p in points.skip(1)) {
+          path.lineTo(p.dx, p.dy);
+        }
+        canvas.drawPath(path, paint);
+        return;
+      }
+
+      for (int i = 0; i < points.length - 1; i++) {
+        final start = points[i];
+        final end = points[i + 1];
+        final vector = end - start;
+        final length = vector.distance;
+        if (length <= 0) continue;
+
+        final direction = Offset(vector.dx / length, vector.dy / length);
+        double distance = 0;
+        int patternIndex = 0;
+
+        while (distance < length) {
+          final segmentLength = pattern[patternIndex % pattern.length];
+          final nextDistance = (distance + segmentLength)
+              .clamp(0.0, length)
+              .toDouble();
+          if (patternIndex.isEven) {
+            final segmentStart = start + direction * distance;
+            final segmentEnd = start + direction * nextDistance;
+            canvas.drawLine(segmentStart, segmentEnd, paint);
+          }
+          distance = nextDistance;
+          patternIndex++;
+        }
+      }
+    }
+
     // Flecha (triángulo + colita)
-    void _drawArrow(Canvas canvas, Offset from, Offset to, Paint paint) {
+    void drawArrow(Canvas canvas, Offset from, Offset to, Paint paint) {
       final dir = to - from;
       final len = dir.distance;
       if (len < 1) return;
@@ -98,16 +144,70 @@ class PlayBookPainter extends CustomPainter {
       canvas.drawPath(tri, fill);
     }
 
+    void drawStopEnd(Canvas canvas, Offset from, Offset to, Paint paint) {
+      final dir = to - from;
+      final len = dir.distance;
+      if (len < 1) return;
+
+      final ux = dir.dx / len;
+      final uy = dir.dy / len;
+      final perp = Offset(-uy, ux);
+      const stopHalf = 10.0;
+      final left = to + perp * stopHalf;
+      final right = to - perp * stopHalf;
+
+      final stopPaint = Paint()
+        ..color = paint.color
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = paint.strokeWidth;
+      canvas.drawLine(left, right, stopPaint);
+    }
+
     // ----- RUTAS GUARDADAS -----
-    final routePaint = Paint()
-      ..color = Colors.amberAccent.withOpacity(0.9)
+    Paint routePaintFor(RouteEndType endType) => Paint()
+      ..color = switch (endType) {
+        RouteEndType.pitch => Colors.orangeAccent,
+        RouteEndType.motion => Colors.lightBlueAccent,
+        RouteEndType.adjustment => Colors.white70,
+        _ => Colors.amberAccent.withValues(alpha: 0.9),
+      }
       ..style = PaintingStyle.stroke
       ..strokeWidth = 4
       ..strokeCap = StrokeCap.round
       ..strokeJoin = StrokeJoin.round;
 
+    List<double>? patternFor(RouteEndType endType) => switch (endType) {
+      RouteEndType.motion => const [14, 10],
+      RouteEndType.pitch => const [10, 8],
+      RouteEndType.adjustment => const [3, 8],
+      _ => null,
+    };
+
+    void drawRouteEnding(
+      Canvas canvas,
+      Offset from,
+      Offset to,
+      Paint paint,
+      RouteEndType endType,
+    ) {
+      switch (endType) {
+        case RouteEndType.arrow:
+        case RouteEndType.motion:
+        case RouteEndType.pitch:
+        case RouteEndType.adjustment:
+          drawArrow(canvas, from, to, paint);
+          break;
+        case RouteEndType.block:
+          _drawBlockEnd(canvas, to, paint);
+          break;
+        case RouteEndType.stop:
+          drawStopEnd(canvas, from, to, paint);
+          break;
+      }
+    }
+
     routesByPlayer.forEach((playerId, list) {
-      final currentPos = _playerPos(playerId);
+      final currentPos = playerPos(playerId);
       if (currentPos == null) return;
 
       for (final r in list) {
@@ -115,44 +215,39 @@ class PlayBookPainter extends CustomPainter {
 
         // puntos RELATIVOS -> mundo con token actual
         final worldPoints = r.points.map((rel) => currentPos + rel).toList();
+        final routePaint = routePaintFor(r.endType);
 
-        // path
-        final path = Path()..moveTo(worldPoints.first.dx, worldPoints.first.dy);
-        for (final p in worldPoints.skip(1)) {
-          path.lineTo(p.dx, p.dy);
-        }
-        canvas.drawPath(path, routePaint);
+        drawPathSegments(
+          canvas,
+          worldPoints,
+          routePaint,
+          pattern: patternFor(r.endType),
+        );
 
-        // flecha en el último segmento
         final a = worldPoints[worldPoints.length - 2];
         final b = worldPoints.last;
-        if (r.endType == RouteEndType.arrow) {
-          _drawArrow(canvas, a, b, routePaint);
-        } else {
-          _drawBlockEnd(canvas, b, routePaint);
-        }
+        drawRouteEnding(canvas, a, b, routePaint, r.endType);
       }
     });
 
     // ----- RUTA ACTIVA (PREVIEW) -----
     if (isDrawMode && activeRoutePoints.length >= 2) {
-      final activePaint = Paint()
-        ..color = Colors.cyanAccent.withOpacity(0.95)
+      final activePaint = routePaintFor(currentRouteType)
         ..style = PaintingStyle.stroke
         ..strokeWidth = 4
         ..strokeCap = StrokeCap.round
         ..strokeJoin = StrokeJoin.round;
 
-      final path = Path()
-        ..moveTo(activeRoutePoints.first.dx, activeRoutePoints.first.dy);
-      for (final p in activeRoutePoints.skip(1)) {
-        path.lineTo(p.dx, p.dy);
-      }
-      canvas.drawPath(path, activePaint);
+      drawPathSegments(
+        canvas,
+        activeRoutePoints,
+        activePaint,
+        pattern: patternFor(currentRouteType),
+      );
 
       final a = activeRoutePoints[activeRoutePoints.length - 2];
       final b = activeRoutePoints.last;
-      _drawArrow(canvas, a, b, activePaint);
+      drawRouteEnding(canvas, a, b, activePaint, currentRouteType);
     }
 
     // ----- JUGADORES -----
@@ -166,7 +261,7 @@ class PlayBookPainter extends CustomPainter {
         ..color = isSelected ? Colors.white : Colors.blueAccent;
 
       final stroke = Paint()
-        ..color = Colors.black.withOpacity(0.35)
+        ..color = Colors.black.withValues(alpha: 0.35)
         ..style = PaintingStyle.stroke
         ..strokeWidth = 2;
 
@@ -186,6 +281,35 @@ class PlayBookPainter extends CustomPainter {
       )..layout();
 
       tp.paint(canvas, p.pos - Offset(tp.width / 2, tp.height / 2));
+
+      if (p.hasInfo) {
+        final badgeCenter = p.pos + Offset(r * 0.72, -r * 0.72);
+        final badgeFill = Paint()..color = Colors.amber.shade700;
+        final badgeStroke = Paint()
+          ..color = Colors.black.withValues(alpha: 0.25)
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 1.5;
+
+        canvas.drawCircle(badgeCenter, 8, badgeFill);
+        canvas.drawCircle(badgeCenter, 8, badgeStroke);
+
+        final infoPainter = TextPainter(
+          text: const TextSpan(
+            text: 'i',
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 10,
+              fontWeight: FontWeight.w900,
+            ),
+          ),
+          textDirection: TextDirection.ltr,
+        )..layout();
+
+        infoPainter.paint(
+          canvas,
+          badgeCenter - Offset(infoPainter.width / 2, infoPainter.height / 2),
+        );
+      }
     }
   }
 
@@ -197,7 +321,8 @@ class PlayBookPainter extends CustomPainter {
         old.draggingPlayerId != draggingPlayerId ||
         old.isDrawMode != isDrawMode ||
         old.routesByPlayer != routesByPlayer ||
-        old.activeRoutePoints != activeRoutePoints;
+        old.activeRoutePoints != activeRoutePoints ||
+        old.currentRouteType != currentRouteType;
   }
 
   void _drawBlockEnd(Canvas canvas, Offset center, Paint paint) {

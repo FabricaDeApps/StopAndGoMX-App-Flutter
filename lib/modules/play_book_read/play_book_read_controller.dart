@@ -25,6 +25,8 @@ class PlayBookReadController extends GetxController {
   final feedbackError = RxnString();
   final isPickingFeedbackFile = false.obs;
   final isSubmittingFeedback = false.obs;
+  final isLikingPlay = false.obs;
+  final deletingFeedbackIds = <int>{}.obs;
 
   // Args
   final playId = RxnString();
@@ -52,6 +54,7 @@ class PlayBookReadController extends GetxController {
   bool get canSendFeedback => playId.value != null && playId.value!.isNotEmpty;
   bool get isAttachmentMode => play.value?.isAttachment == true;
   bool get isGoMode => play.value?.isGo == true;
+  PlaybookLikes get likes => play.value?.likes ?? const PlaybookLikes();
   bool get hasFeedbackDraft {
     return feedbackCtrl.text.trim().isNotEmpty ||
         (selectedFeedbackFilePath.value?.isNotEmpty == true);
@@ -381,6 +384,105 @@ class PlayBookReadController extends GetxController {
       );
     } finally {
       isSubmittingFeedback.value = false;
+    }
+  }
+
+  bool isDeletingFeedback(int feedbackId) {
+    return deletingFeedbackIds.contains(feedbackId);
+  }
+
+  Future<void> togglePlayLike() async {
+    final currentPlay = play.value;
+    final id = playId.value;
+    if (currentPlay == null || id == null || id.isEmpty || isLikingPlay.value) {
+      return;
+    }
+
+    final previous = currentPlay.likes;
+    final optimisticLiked = !previous.isLiked;
+    final optimisticCount = optimisticLiked
+        ? previous.count + 1
+        : (previous.count - 1).clamp(0, 1 << 30).toInt();
+
+    isLikingPlay.value = true;
+    play.value = currentPlay.copyWith(
+      likes: previous.copyWith(
+        isLiked: optimisticLiked,
+        count: optimisticCount,
+      ),
+    );
+
+    try {
+      final updatedLikes = await _api.playbookToggleLike(playId: id);
+      play.value = play.value?.copyWith(likes: updatedLikes);
+    } catch (e) {
+      play.value = play.value?.copyWith(likes: previous);
+      Get.snackbar(
+        'Jugada',
+        'No se pudo actualizar el like: $e',
+        snackPosition: SnackPosition.BOTTOM,
+      );
+    } finally {
+      isLikingPlay.value = false;
+    }
+  }
+
+  Future<void> deleteFeedback(PlaybookFeedback item) async {
+    final id = playId.value;
+    if (id == null ||
+        id.isEmpty ||
+        !item.canDelete ||
+        deletingFeedbackIds.contains(item.id)) {
+      return;
+    }
+
+    final confirmed = await Get.dialog<bool>(
+      AlertDialog(
+        title: const Text('Eliminar feedback'),
+        content: const Text('¿Seguro que quieres eliminar este feedback?'),
+        actions: [
+          TextButton(
+            onPressed: () => Get.back(result: false),
+            child: const Text('Cancelar'),
+          ),
+          FilledButton(
+            onPressed: () => Get.back(result: true),
+            child: const Text('Eliminar'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true) return;
+
+    deletingFeedbackIds.add(item.id);
+    deletingFeedbackIds.refresh();
+
+    try {
+      final deleted = await _api.playbookDeleteFeedback(
+        playId: id,
+        feedbackId: item.id,
+      );
+      if (!deleted) {
+        throw Exception('El backend no confirmó el borrado.');
+      }
+
+      feedbackItems.removeWhere((e) => e.id == item.id);
+      feedbackItems.refresh();
+      Get.snackbar(
+        'Feedback',
+        'Comentario eliminado.',
+        snackPosition: SnackPosition.BOTTOM,
+      );
+    } catch (e) {
+      Get.snackbar(
+        'Feedback',
+        'No se pudo eliminar: $e',
+        snackPosition: SnackPosition.BOTTOM,
+      );
+    } finally {
+      deletingFeedbackIds.remove(item.id);
+      deletingFeedbackIds.refresh();
     }
   }
 

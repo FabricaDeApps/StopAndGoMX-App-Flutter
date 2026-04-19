@@ -35,11 +35,11 @@ class HomeView extends GetView<HomeController> {
       case 'player':
         return 'Jugador';
       case 'coach':
-        return 'Entrenador';
+        return 'Coach';
       case 'manager':
         return 'Manager';
       case 'staff':
-        return 'Personal';
+        return 'Staff';
       case 'admin':
         return 'Administrador';
       default:

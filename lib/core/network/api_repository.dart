@@ -2146,6 +2146,44 @@ class ApiRepository {
     return PlaybookFeedback.fromJson(map);
   }
 
+  Future<PlaybookLikes> playbookToggleLike({required String playId}) async {
+    final res = await _dio.post(
+      '/playbook/plays/$playId/like',
+      options: Options(headers: _headers()),
+    );
+
+    if (res.data is! Map) {
+      throw Exception('Respuesta inesperada al dar like a la jugada');
+    }
+
+    final map = Map<String, dynamic>.from(res.data as Map);
+    final likesRaw = map['likes'];
+    if (likesRaw is! Map) {
+      throw Exception('La respuesta no incluye el bloque likes');
+    }
+
+    return PlaybookLikes.fromJson(Map<String, dynamic>.from(likesRaw));
+  }
+
+  Future<bool> playbookDeleteFeedback({
+    required String playId,
+    required int feedbackId,
+  }) async {
+    final res = await _dio.delete(
+      '/playbook/plays/$playId/feedback/$feedbackId',
+      options: Options(headers: _headers()),
+    );
+
+    if (res.data is Map) {
+      final map = Map<String, dynamic>.from(res.data as Map);
+      if (map['ok'] is bool) return map['ok'] as bool;
+    }
+
+    return res.statusCode != null &&
+        res.statusCode! >= 200 &&
+        res.statusCode! < 300;
+  }
+
   // UPDATE  PUT /playbook/plays/{playId}
   Future<Map<String, dynamic>> playbookUpdatePlay({
     required String playId,

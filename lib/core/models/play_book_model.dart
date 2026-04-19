@@ -1,5 +1,7 @@
 import 'dart:ui';
 
+const Object _unset = Object();
+
 /// ------------------------------
 /// Helpers para (de)serializar Offset
 /// ------------------------------
@@ -32,12 +34,16 @@ class PlayerToken {
   final String name;
   final Offset pos;
   final bool isOffense;
+  final String? infoText;
+  final bool hasInfo;
 
   const PlayerToken({
     required this.id,
     required this.name,
     required this.pos,
     this.isOffense = true,
+    this.infoText,
+    this.hasInfo = false,
   });
 
   PlayerToken copyWith({
@@ -45,21 +51,32 @@ class PlayerToken {
     String? name,
     Offset? pos,
     bool? isOffense,
+    Object? infoText = _unset,
+    bool? hasInfo,
   }) {
     return PlayerToken(
       id: id ?? this.id,
       name: name ?? this.name,
       pos: pos ?? this.pos,
       isOffense: isOffense ?? this.isOffense,
+      infoText: identical(infoText, _unset) ? this.infoText : infoText as String?,
+      hasInfo: hasInfo ?? this.hasInfo,
     );
   }
 
   factory PlayerToken.fromJson(Map<String, dynamic> json) {
+    final info = json['infoText']?.toString();
+    final normalizedInfo = info?.trim().isEmpty == true ? null : info?.trim();
     return PlayerToken(
       id: json['id'] as String,
       name: json['name'] as String,
       pos: Offset((json['x'] as num).toDouble(), (json['y'] as num).toDouble()),
-      isOffense: (json['isOffense'] as bool?) ?? true,
+      isOffense:
+          (json['isOffense'] as bool?) ?? (json['is_offense'] as bool?) ?? true,
+      infoText: normalizedInfo,
+      hasInfo: (json['hasInfo'] as bool?) ??
+          (json['has_info'] as bool?) ??
+          (normalizedInfo != null && normalizedInfo.isNotEmpty),
     );
   }
 
@@ -69,6 +86,86 @@ class PlayerToken {
     'x': pos.dx,
     'y': pos.dy,
     'isOffense': isOffense,
+    'infoText': infoText,
+    'hasInfo': hasInfo,
+  };
+}
+
+class PlaybookLikeUser {
+  final int? id;
+  final String name;
+  final String? role;
+  final String? profilePhotoUrl;
+  final DateTime? likedAt;
+
+  const PlaybookLikeUser({
+    this.id,
+    required this.name,
+    this.role,
+    this.profilePhotoUrl,
+    this.likedAt,
+  });
+
+  factory PlaybookLikeUser.fromJson(Map<String, dynamic> json) {
+    return PlaybookLikeUser(
+      id: _intFromJson(json['id']),
+      name: json['name']?.toString().trim().isNotEmpty == true
+          ? json['name'].toString().trim()
+          : 'Sin nombre',
+      role: json['role']?.toString(),
+      profilePhotoUrl: json['profile_photo_url']?.toString(),
+      likedAt: _dateTimeFromJson(json['liked_at']),
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+    if (id != null) 'id': id,
+    'name': name,
+    if (role != null) 'role': role,
+    if (profilePhotoUrl != null) 'profile_photo_url': profilePhotoUrl,
+    if (likedAt != null) 'liked_at': likedAt!.toIso8601String(),
+  };
+}
+
+class PlaybookLikes {
+  final int count;
+  final bool isLiked;
+  final List<PlaybookLikeUser> users;
+
+  const PlaybookLikes({
+    this.count = 0,
+    this.isLiked = false,
+    this.users = const [],
+  });
+
+  PlaybookLikes copyWith({
+    int? count,
+    bool? isLiked,
+    List<PlaybookLikeUser>? users,
+  }) {
+    return PlaybookLikes(
+      count: count ?? this.count,
+      isLiked: isLiked ?? this.isLiked,
+      users: users ?? this.users,
+    );
+  }
+
+  factory PlaybookLikes.fromJson(Map<String, dynamic> json) {
+    final usersRaw = (json['users'] as List?) ?? const [];
+    return PlaybookLikes(
+      count: _intFromJson(json['count']) ?? 0,
+      isLiked: json['is_liked'] == true || json['isLiked'] == true,
+      users: usersRaw
+          .whereType<Map>()
+          .map((e) => PlaybookLikeUser.fromJson(Map<String, dynamic>.from(e)))
+          .toList(),
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+    'count': count,
+    'is_liked': isLiked,
+    'users': users.map((e) => e.toJson()).toList(),
   };
 }
 
@@ -77,15 +174,42 @@ class PlayerToken {
 /// ------------------------------
 ///
 
-enum RouteEndType { arrow, block }
+enum RouteEndType { arrow, block, stop, motion, pitch, adjustment }
 
 RouteEndType routeEndTypeFromJson(dynamic raw) {
   final value = raw?.toString().trim().toLowerCase();
-  return value == 'block' ? RouteEndType.block : RouteEndType.arrow;
+  switch (value) {
+    case 'block':
+      return RouteEndType.block;
+    case 'stop':
+      return RouteEndType.stop;
+    case 'motion':
+      return RouteEndType.motion;
+    case 'pitch':
+      return RouteEndType.pitch;
+    case 'adjustment':
+      return RouteEndType.adjustment;
+    case 'arrow':
+    default:
+      return RouteEndType.arrow;
+  }
 }
 
 String routeEndTypeToJson(RouteEndType endType) {
-  return endType == RouteEndType.block ? 'block' : 'arrow';
+  switch (endType) {
+    case RouteEndType.block:
+      return 'block';
+    case RouteEndType.stop:
+      return 'stop';
+    case RouteEndType.motion:
+      return 'motion';
+    case RouteEndType.pitch:
+      return 'pitch';
+    case RouteEndType.adjustment:
+      return 'adjustment';
+    case RouteEndType.arrow:
+      return 'arrow';
+  }
 }
 
 class PlayRoute {
@@ -319,6 +443,7 @@ class PlaybookPlay {
   final PlaybookCategoryRef? category;
   final List<PlaybookCategoryRef> sharedCategories;
   final String? notes;
+  final PlaybookLikes likes;
   final DateTime? createdAt;
   final DateTime? updatedAt;
 
@@ -336,6 +461,7 @@ class PlaybookPlay {
     this.category,
     this.sharedCategories = const [],
     this.notes,
+    this.likes = const PlaybookLikes(),
     this.createdAt,
     this.updatedAt,
   });
@@ -357,6 +483,7 @@ class PlaybookPlay {
     PlaybookCategoryRef? category,
     List<PlaybookCategoryRef>? sharedCategories,
     String? notes,
+    PlaybookLikes? likes,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) {
@@ -374,6 +501,7 @@ class PlaybookPlay {
       category: category ?? this.category,
       sharedCategories: sharedCategories ?? this.sharedCategories,
       notes: notes ?? this.notes,
+      likes: likes ?? this.likes,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );
@@ -418,6 +546,8 @@ class PlaybookPlay {
         .whereType<Map>()
         .map((e) => PlaybookCategoryRef.fromJson(Map<String, dynamic>.from(e)))
         .toList();
+    final likesRaw = json['likes'];
+    final likesJson = likesRaw is Map ? Map<String, dynamic>.from(likesRaw) : null;
 
     // ---- mode (compat)
     final inferredMode =
@@ -449,6 +579,9 @@ class PlaybookPlay {
           : PlaybookCategoryRef.fromJson(categoryJson),
       sharedCategories: sharedCategories,
       notes: json['notes']?.toString(),
+      likes: likesJson == null
+          ? const PlaybookLikes()
+          : PlaybookLikes.fromJson(likesJson),
       createdAt: _dateTimeFromJson(json['created_at']),
       updatedAt: _dateTimeFromJson(json['updated_at']),
     );
@@ -476,6 +609,7 @@ class PlaybookPlay {
     if (sharedCategories.isNotEmpty)
       'shared_categories': sharedCategories.map((e) => e.toJson()).toList(),
     if (notes != null) 'notes': notes,
+    'likes': likes.toJson(),
     if (createdAt != null) 'created_at': createdAt!.toIso8601String(),
     if (updatedAt != null) 'updated_at': updatedAt!.toIso8601String(),
     // Solo manda players/rutas cuando es GO (si quieres)

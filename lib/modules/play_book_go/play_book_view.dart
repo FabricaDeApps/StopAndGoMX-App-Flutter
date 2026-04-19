@@ -9,6 +9,23 @@ import 'play_book_painter.dart';
 class PlayBookView extends GetView<PlayBookController> {
   const PlayBookView({super.key});
 
+  String _routeTypeLabel(RouteEndType type) {
+    switch (type) {
+      case RouteEndType.arrow:
+        return 'Flecha';
+      case RouteEndType.block:
+        return 'Bloqueo';
+      case RouteEndType.stop:
+        return 'Stop';
+      case RouteEndType.motion:
+        return 'Motion';
+      case RouteEndType.pitch:
+        return 'Pitch';
+      case RouteEndType.adjustment:
+        return 'Ajuste';
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -32,32 +49,109 @@ class PlayBookView extends GetView<PlayBookController> {
 
           final type = controller.playType.value ?? PlayType.run;
 
-          return Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              _pill(
-                theme,
-                icon: Icons.emoji_events_outlined,
-                label: controller.sportLabel(sport),
-              ),
-              const SizedBox(width: 8),
-              _pill(
-                theme,
-                icon: side == 'defense' ? Icons.shield : Icons.sports_football,
-                label: sideLabel,
-              ),
-              const SizedBox(width: 8),
-              _pill(theme, icon: Icons.group, label: '$count jugadores'),
-              const SizedBox(width: 8),
-              // ✅ ahora label correcto del enum
-              _pill(
-                theme,
-                icon: Icons.category,
-                label: controller.typeLabel(type),
-              ),
-            ],
+          return SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                _pill(
+                  theme,
+                  icon: Icons.emoji_events_outlined,
+                  label: controller.sportLabel(sport),
+                ),
+                const SizedBox(width: 8),
+                _pill(
+                  theme,
+                  icon: side == 'defense'
+                      ? Icons.shield
+                      : Icons.sports_football,
+                  label: sideLabel,
+                ),
+                const SizedBox(width: 8),
+                _pill(theme, icon: Icons.group, label: '$count jugadores'),
+                const SizedBox(width: 8),
+                _pill(
+                  theme,
+                  icon: Icons.category,
+                  label: controller.typeLabel(type),
+                ),
+              ],
+            ),
           );
         }),
+      );
+    }
+
+    Widget likesCard() {
+      return Card(
+        margin: const EdgeInsets.fromLTRB(16, 10, 16, 0),
+        child: Padding(
+          padding: const EdgeInsets.all(14),
+          child: Obx(() {
+            final likes = controller.playLikes.value;
+
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        'Confirmación de vista',
+                        style: theme.textTheme.titleSmall,
+                      ),
+                    ),
+                    FilledButton.icon(
+                      onPressed: controller.isEditingExisting &&
+                              !controller.isLikingPlay.value
+                          ? controller.togglePlayLike
+                          : null,
+                      icon: controller.isLikingPlay.value
+                          ? const SizedBox(
+                              width: 16,
+                              height: 16,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                          : Icon(
+                              likes.isLiked
+                                  ? Icons.favorite
+                                  : Icons.favorite_border,
+                            ),
+                      label: Text(likes.isLiked ? 'Te gusta' : 'Dar like'),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  likes.count == 1
+                      ? '1 persona ya confirmó esta jugada.'
+                      : '${likes.count} personas ya confirmaron esta jugada.',
+                  style: theme.textTheme.bodyMedium,
+                ),
+                if (likes.users.isNotEmpty) ...[
+                  const SizedBox(height: 10),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: likes.users
+                        .map(
+                          (user) => Chip(
+                            avatar: Icon(
+                              user.role == 'coach'
+                                  ? Icons.sports
+                                  : Icons.person,
+                              size: 16,
+                            ),
+                            label: Text(user.name),
+                          ),
+                        )
+                        .toList(),
+                  ),
+                ],
+              ],
+            );
+          }),
+        ),
       );
     }
 
@@ -79,23 +173,21 @@ class PlayBookView extends GetView<PlayBookController> {
             Obx(() {
               final t = controller.routeEndType.value;
 
-              return Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  ChoiceChip(
-                    label: const Text('Flecha'),
-                    selected: t == RouteEndType.arrow,
-                    onSelected: (_) =>
-                        controller.routeEndType.value = RouteEndType.arrow,
-                  ),
-                  const SizedBox(width: 8),
-                  ChoiceChip(
-                    label: const Text('Bloqueo'),
-                    selected: t == RouteEndType.block,
-                    onSelected: (_) =>
-                        controller.routeEndType.value = RouteEndType.block,
-                  ),
-                ],
+              return SizedBox(
+                height: 42,
+                child: ListView.separated(
+                  scrollDirection: Axis.horizontal,
+                  itemCount: RouteEndType.values.length,
+                  separatorBuilder: (_, _) => const SizedBox(width: 8),
+                  itemBuilder: (context, index) {
+                    final option = RouteEndType.values[index];
+                    return ChoiceChip(
+                      label: Text(_routeTypeLabel(option)),
+                      selected: t == option,
+                      onSelected: (_) => controller.routeEndType.value = option,
+                    );
+                  },
+                ),
               );
             }),
             const SizedBox(height: 8),
@@ -306,6 +398,7 @@ class PlayBookView extends GetView<PlayBookController> {
       body: Column(
         children: [
           metaBar(),
+          if (controller.isEditingExisting) likesCard(),
           const SizedBox(height: 10),
 
           // SegmentedButton (3 modos)
@@ -362,6 +455,7 @@ class PlayBookView extends GetView<PlayBookController> {
                   controller.draggingPlayerId.value == selectedId;
 
               final name = selected?.name ?? '-';
+              final hasInfo = selected?.hasInfo == true;
               final txt = moving
                   ? 'Jugador: $name • moviendo...'
                   : 'Jugador: $name';
@@ -377,21 +471,47 @@ class PlayBookView extends GetView<PlayBookController> {
                               final ctrl = TextEditingController(
                                 text: selected.name,
                               );
+                              final infoCtrl = TextEditingController(
+                                text: selected.infoText ?? '',
+                              );
 
-                              final result = await Get.dialog<String>(
+                              final result =
+                                  await Get.dialog<Map<String, String>>(
                                 AlertDialog(
-                                  title: const Text('Renombrar jugador'),
-                                  content: TextField(
-                                    controller: ctrl,
-                                    maxLength: 3,
-                                    textCapitalization:
-                                        TextCapitalization.characters,
-                                    decoration: const InputDecoration(
-                                      hintText: 'Ej: WR2',
-                                      border: OutlineInputBorder(),
-                                      isDense: true,
-                                      counterText:
-                                          '', // oculta contador si quieres
+                                  title: const Text('Editar jugador'),
+                                  content: SizedBox(
+                                    width: 420,
+                                    child: Column(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        TextField(
+                                          controller: ctrl,
+                                          maxLength: 3,
+                                          textCapitalization:
+                                              TextCapitalization.characters,
+                                          decoration: const InputDecoration(
+                                            labelText: 'Nombre corto',
+                                            hintText: 'Ej: WR2',
+                                            border: OutlineInputBorder(),
+                                            isDense: true,
+                                            counterText: '',
+                                          ),
+                                        ),
+                                        const SizedBox(height: 12),
+                                        TextField(
+                                          controller: infoCtrl,
+                                          minLines: 3,
+                                          maxLines: 6,
+                                          maxLength: 3000,
+                                          decoration: const InputDecoration(
+                                            labelText: 'Info del jugador',
+                                            hintText:
+                                                'Ej: Lee primero al safety y si baja ataca seam.',
+                                            border: OutlineInputBorder(),
+                                            alignLabelWithHint: true,
+                                          ),
+                                        ),
+                                      ],
                                     ),
                                   ),
                                   actions: [
@@ -400,8 +520,12 @@ class PlayBookView extends GetView<PlayBookController> {
                                       child: const Text('Cancelar'),
                                     ),
                                     FilledButton(
-                                      onPressed: () =>
-                                          Get.back(result: ctrl.text),
+                                      onPressed: () => Get.back(
+                                        result: {
+                                          'name': ctrl.text,
+                                          'infoText': infoCtrl.text,
+                                        },
+                                      ),
                                       child: const Text('Guardar'),
                                     ),
                                   ],
@@ -409,7 +533,10 @@ class PlayBookView extends GetView<PlayBookController> {
                               );
 
                               if (result != null) {
-                                controller.renameSelectedPlayer(result);
+                                controller.updateSelectedPlayerDetails(
+                                  name: result['name'] ?? '',
+                                  infoText: result['infoText'] ?? '',
+                                );
                               }
                             },
                       child: Row(
@@ -424,6 +551,15 @@ class PlayBookView extends GetView<PlayBookController> {
                               ),
                             ),
                           ),
+                          if (hasInfo)
+                            Padding(
+                              padding: const EdgeInsets.only(left: 8),
+                              child: Icon(
+                                Icons.info,
+                                size: 18,
+                                color: theme.colorScheme.primary,
+                              ),
+                            ),
                           if (selected != null)
                             const Padding(
                               padding: EdgeInsets.only(left: 8),
@@ -434,6 +570,48 @@ class PlayBookView extends GetView<PlayBookController> {
                     ),
                   ),
                 ],
+              );
+            }),
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+            child: Obx(() {
+              final selectedId = controller.selectedPlayerId.value;
+              final selected = selectedId == null
+                  ? null
+                  : controller.players.firstWhereOrNull(
+                      (p) => p.id == selectedId,
+                    );
+              final info = selected?.infoText?.trim();
+
+              if (info == null || info.isEmpty) {
+                return Text(
+                  'Este jugador no tiene info adicional.',
+                  style: theme.textTheme.bodySmall,
+                );
+              }
+
+              return Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.primary.withValues(alpha: 0.06),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: theme.dividerColor),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Info de ${selected?.name ?? 'jugador'}',
+                      style: theme.textTheme.labelLarge?.copyWith(
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    Text(info),
+                  ],
+                ),
               );
             }),
           ),
@@ -493,6 +671,7 @@ class PlayBookView extends GetView<PlayBookController> {
                             routesByPlayer: controller.routesByPlayer,
                             activeRoutePoints: controller.activeRoutePoints
                                 .toList(),
+                            currentRouteType: controller.routeEndType.value,
                           ),
                         );
                       }),

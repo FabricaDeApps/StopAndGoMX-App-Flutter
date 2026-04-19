@@ -71,7 +71,9 @@ class PlayBookController extends GetxController {
 
   final isSavingPlay = false.obs;
   final isDeletingPlay = false.obs;
+  final isLikingPlay = false.obs;
   final playError = RxnString();
+  final playLikes = const PlaybookLikes().obs;
 
   final routeEndType = RouteEndType.arrow.obs;
 
@@ -266,6 +268,7 @@ class PlayBookController extends GetxController {
       categoryId.value = play.categoryId;
       sharedCategories.assignAll(play.sharedCategories);
       sharedCategoryIds.assignAll(play.sharedCategories.map((e) => e.id));
+      playLikes.value = play.likes;
 
       // Players
       players.assignAll(play.players);
@@ -652,6 +655,7 @@ class PlayBookController extends GetxController {
           (p) => {
             "id": p.id,
             "name": p.name,
+            "infoText": p.infoText?.trim().isNotEmpty == true ? p.infoText!.trim() : '',
             "x": p.pos.dx,
             "y": p.pos.dy,
             "isOffense": p.isOffense,
@@ -766,19 +770,66 @@ class PlayBookController extends GetxController {
   }
 
   void renameSelectedPlayer(String newName) {
+    updateSelectedPlayerDetails(name: newName);
+  }
+
+  void updateSelectedPlayerDetails({
+    required String name,
+    String? infoText,
+  }) {
     final id = selectedPlayerId.value;
     if (id == null) return;
 
-    final name = newName.trim();
-    if (name.isEmpty) return;
+    final trimmedName = name.trim();
+    if (trimmedName.isEmpty) return;
 
     final idx = players.indexWhere((p) => p.id == id);
     if (idx == -1) return;
 
     // 3 chars máx (por si llega más)
-    final fixed = name.length > 3 ? name.substring(0, 3) : name;
+    final fixed =
+        trimmedName.length > 3 ? trimmedName.substring(0, 3) : trimmedName;
+    final normalizedInfo = infoText?.trim();
+    final nextInfo = normalizedInfo == null || normalizedInfo.isEmpty
+        ? null
+        : normalizedInfo;
 
-    players[idx] = players[idx].copyWith(name: fixed.toUpperCase());
+    players[idx] = players[idx].copyWith(
+      name: fixed.toUpperCase(),
+      infoText: nextInfo,
+      hasInfo: nextInfo != null,
+    );
     players.refresh();
+  }
+
+  Future<void> togglePlayLike() async {
+    final id = playId.value;
+    if (id == null || id.isEmpty || isLikingPlay.value) return;
+
+    final previous = playLikes.value;
+    final optimisticLiked = !previous.isLiked;
+    final optimisticCount = optimisticLiked
+        ? previous.count + 1
+        : (previous.count - 1).clamp(0, 1 << 30).toInt();
+
+    isLikingPlay.value = true;
+    playLikes.value = previous.copyWith(
+      isLiked: optimisticLiked,
+      count: optimisticCount,
+    );
+
+    try {
+      final updated = await _api.playbookToggleLike(playId: id);
+      playLikes.value = updated;
+    } catch (e) {
+      playLikes.value = previous;
+      Get.snackbar(
+        'Jugada',
+        'No se pudo actualizar el like: $e',
+        snackPosition: SnackPosition.BOTTOM,
+      );
+    } finally {
+      isLikingPlay.value = false;
+    }
   }
 }

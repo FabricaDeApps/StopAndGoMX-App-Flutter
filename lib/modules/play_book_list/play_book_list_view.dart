@@ -224,6 +224,9 @@ class PlayBookListView extends GetView<PlayBookListController> {
                               PopupMenuButton<_CoachAction>(
                                 onSelected: (action) {
                                   switch (action) {
+                                    case _CoachAction.edit:
+                                      controller.goToEdit(play);
+                                      break;
                                     case _CoachAction.viewDetail:
                                       controller.goToReadDetail(play);
                                       break;
@@ -232,12 +235,17 @@ class PlayBookListView extends GetView<PlayBookListController> {
                                       break;
                                   }
                                 },
-                                itemBuilder: (context) => const [
-                                  PopupMenuItem(
+                                itemBuilder: (context) => [
+                                  if (play.isGo)
+                                    const PopupMenuItem(
+                                      value: _CoachAction.edit,
+                                      child: Text('Editar'),
+                                    ),
+                                  const PopupMenuItem(
                                     value: _CoachAction.viewDetail,
                                     child: Text('Ver detalle'),
                                   ),
-                                  PopupMenuItem(
+                                  const PopupMenuItem(
                                     value: _CoachAction.share,
                                     child: Text('Compartir'),
                                   ),
@@ -262,4 +270,4 @@ class PlayBookListView extends GetView<PlayBookListController> {
   }
 }
 
-enum _CoachAction { viewDetail, share }
+enum _CoachAction { edit, viewDetail, share }

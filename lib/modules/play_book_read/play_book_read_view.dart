@@ -69,6 +69,8 @@ class PlayBookReadView extends GetView<PlayBookReadController> {
             children: [
               _metaCard(theme),
               const SizedBox(height: 12),
+              _likesCard(theme),
+              const SizedBox(height: 12),
               if (controller.isGoMode) _goCanvas(theme) else _attachmentCard(theme),
               const SizedBox(height: 16),
               _feedbackSection(theme),
@@ -152,7 +154,24 @@ class PlayBookReadView extends GetView<PlayBookReadController> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Pizarra', style: theme.textTheme.titleMedium),
+            Row(
+              children: [
+                Expanded(
+                  child: Text('Pizarra', style: theme.textTheme.titleMedium),
+                ),
+                OutlinedButton.icon(
+                  onPressed: () {
+                    Get.to(
+                      () => _PlaybookGoFullscreenPage(
+                        controller: controller,
+                      ),
+                    );
+                  },
+                  icon: const Icon(Icons.fullscreen),
+                  label: const Text('Pantalla completa'),
+                ),
+              ],
+            ),
             const SizedBox(height: 10),
             SizedBox(
               height: 360,
@@ -171,10 +190,7 @@ class PlayBookReadView extends GetView<PlayBookReadController> {
                       child: GestureDetector(
                         behavior: HitTestBehavior.opaque,
                         onTapDown: (d) {
-                          final world = controller.transformation.toScene(
-                            d.localPosition,
-                          );
-                          final hit = controller.hitTestPlayer(world);
+                          final hit = controller.hitTestPlayer(d.localPosition);
                           if (hit != null) controller.selectPlayer(hit);
                         },
                         child: Obx(() {
@@ -189,6 +205,7 @@ class PlayBookReadView extends GetView<PlayBookReadController> {
                               isDrawMode: false,
                               routesByPlayer: controller.routesByPlayer,
                               activeRoutePoints: const [],
+                              currentRouteType: RouteEndType.arrow,
                             ),
                           );
                         }),
@@ -201,13 +218,120 @@ class PlayBookReadView extends GetView<PlayBookReadController> {
             const SizedBox(height: 10),
             Obx(() {
               final selId = controller.selectedPlayerId.value;
-              return Text(
-                selId == null ? 'Jugador: -' : 'Jugador seleccionado: $selId',
-                style: theme.textTheme.bodySmall,
+              final selected = selId == null
+                  ? null
+                  : controller.players.firstWhereOrNull((p) => p.id == selId);
+              final info = selected?.infoText?.trim();
+
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    selId == null
+                        ? 'Jugador: -'
+                        : 'Jugador seleccionado: ${selected?.name ?? selId}',
+                    style: theme.textTheme.bodySmall,
+                  ),
+                  if (info != null && info.isNotEmpty) ...[
+                    const SizedBox(height: 10),
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: theme.colorScheme.primary.withValues(alpha: 0.06),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: theme.dividerColor),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Info de ${selected?.name ?? selId}',
+                            style: theme.textTheme.labelLarge?.copyWith(
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                          const SizedBox(height: 6),
+                          Text(info),
+                        ],
+                      ),
+                    ),
+                  ],
+                ],
               );
             }),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _likesCard(ThemeData theme) {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(14),
+        child: Obx(() {
+          final likes = controller.likes;
+
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      'Confirmación de vista',
+                      style: theme.textTheme.titleMedium,
+                    ),
+                  ),
+                  FilledButton.icon(
+                    onPressed: controller.play.value != null &&
+                            !controller.isLikingPlay.value
+                        ? controller.togglePlayLike
+                        : null,
+                    icon: controller.isLikingPlay.value
+                        ? const SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : Icon(
+                            likes.isLiked
+                                ? Icons.favorite
+                                : Icons.favorite_border,
+                          ),
+                    label: Text(likes.isLiked ? 'Te gusta' : 'Dar like'),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              Text(
+                likes.count == 1
+                    ? '1 persona ya confirmó esta jugada.'
+                    : '${likes.count} personas ya confirmaron esta jugada.',
+                style: theme.textTheme.bodyMedium,
+              ),
+              if (likes.users.isNotEmpty) ...[
+                const SizedBox(height: 10),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: likes.users
+                      .map(
+                        (user) => Chip(
+                          avatar: Icon(
+                            user.role == 'coach' ? Icons.sports : Icons.person,
+                            size: 16,
+                          ),
+                          label: Text(user.name),
+                        ),
+                      )
+                      .toList(),
+                ),
+              ],
+            ],
+          );
+        }),
       ),
     );
   }
@@ -480,6 +604,24 @@ class PlayBookReadView extends GetView<PlayBookReadController> {
                   ],
                 ),
               ),
+              Obx(() {
+                final deleting = controller.isDeletingFeedback(item.id);
+                if (!item.canDelete) return const SizedBox.shrink();
+
+                return IconButton(
+                  tooltip: 'Eliminar feedback',
+                  onPressed: deleting
+                      ? null
+                      : () => controller.deleteFeedback(item),
+                  icon: deleting
+                      ? const SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Icon(Icons.delete_outline),
+                );
+              }),
             ],
           ),
           if (item.message.trim().isNotEmpty) ...[
@@ -515,6 +657,172 @@ class PlayBookReadView extends GetView<PlayBookReadController> {
         style: TextStyle(
           color: theme.colorScheme.primary,
           fontWeight: FontWeight.w600,
+        ),
+      ),
+    );
+  }
+}
+
+class _PlaybookGoFullscreenPage extends StatefulWidget {
+  final PlayBookReadController controller;
+
+  const _PlaybookGoFullscreenPage({required this.controller});
+
+  @override
+  State<_PlaybookGoFullscreenPage> createState() =>
+      _PlaybookGoFullscreenPageState();
+}
+
+class _PlaybookGoFullscreenPageState extends State<_PlaybookGoFullscreenPage> {
+  late final TransformationController _fullscreenTransformation;
+
+  @override
+  void initState() {
+    super.initState();
+    _fullscreenTransformation = TransformationController();
+  }
+
+  @override
+  void dispose() {
+    _fullscreenTransformation.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final controller = widget.controller;
+
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(
+          controller.playAlias.value.trim().isEmpty
+              ? 'Jugada'
+              : controller.playAlias.value.trim(),
+        ),
+        leading: IconButton(
+          tooltip: 'Regresar',
+          onPressed: Get.back,
+          icon: const Icon(Icons.arrow_back),
+        ),
+        actions: [
+          IconButton(
+            tooltip: 'Reset zoom',
+            onPressed: () {
+              _fullscreenTransformation.value = Matrix4.identity();
+            },
+            icon: const Icon(Icons.center_focus_strong),
+          ),
+        ],
+      ),
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(12, 12, 12, 20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(16),
+                  child: Container(
+                    width: double.infinity,
+                    color: Colors.black12,
+                    child: InteractiveViewer(
+                      transformationController: _fullscreenTransformation,
+                      minScale: 0.6,
+                      maxScale: 3.5,
+                      boundaryMargin: const EdgeInsets.all(200),
+                      child: SizedBox(
+                        width: controller.fieldSize.width,
+                        height: controller.fieldSize.height,
+                        child: GestureDetector(
+                          behavior: HitTestBehavior.opaque,
+                          onTapDown: (d) {
+                            final hit = controller.hitTestPlayer(
+                              d.localPosition,
+                            );
+                            if (hit != null) controller.selectPlayer(hit);
+                          },
+                          child: Obx(() {
+                            final selected = controller.selectedPlayerId.value;
+                            return CustomPaint(
+                              painter: PlayBookPainter(
+                                fieldSize: controller.fieldSize,
+                                players: controller.players.toList(),
+                                selectedPlayerId: selected,
+                                isDragging: false,
+                                draggingPlayerId: null,
+                                isDrawMode: false,
+                                routesByPlayer: controller.routesByPlayer,
+                                activeRoutePoints: const [],
+                                currentRouteType: RouteEndType.arrow,
+                              ),
+                            );
+                          }),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 12),
+              Obx(() {
+                final selId = controller.selectedPlayerId.value;
+                final selected = selId == null
+                    ? null
+                    : controller.players.firstWhereOrNull((p) => p.id == selId);
+                final info = selected?.infoText?.trim();
+
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      selId == null
+                          ? 'Jugador: -'
+                          : 'Jugador seleccionado: ${selected?.name ?? selId}',
+                      style: theme.textTheme.bodyMedium,
+                    ),
+                    if (info != null && info.isNotEmpty) ...[
+                      const SizedBox(height: 10),
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: theme.colorScheme.primary.withValues(
+                            alpha: 0.06,
+                          ),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: theme.dividerColor),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Info de ${selected?.name ?? selId}',
+                              style: theme.textTheme.labelLarge?.copyWith(
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                            const SizedBox(height: 6),
+                            Text(info),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ],
+                );
+              }),
+              const SizedBox(height: 12),
+              SizedBox(
+                width: double.infinity,
+                child: FilledButton.icon(
+                  onPressed: Get.back,
+                  icon: const Icon(Icons.fullscreen_exit),
+                  label: const Text('Regresar'),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

@@ -5,67 +5,67 @@
     
     
       
-      <testcase classname="fastlane.lanes" name="00: default_platform" time="0.000185">
+      <testcase classname="fastlane.lanes" name="00: default_platform" time="0.000174">
         
       </testcase>
     
       
-      <testcase classname="fastlane.lanes" name="01: Switch to ios deploy lane" time="5.3e-05">
+      <testcase classname="fastlane.lanes" name="01: Switch to ios deploy lane" time="5.8e-05">
         
       </testcase>
     
       
-      <testcase classname="fastlane.lanes" name="02: cd /Users/snakepitt/Developer/flutter_stopandgo &amp;&amp; ./scripts/use_logo.sh bearsqro" time="0.01329">
+      <testcase classname="fastlane.lanes" name="02: cd /Users/snakepitt/Developer/flutter_stopandgo &amp;&amp; ./scripts/use_logo.sh bearsqro" time="0.012089">
         
       </testcase>
     
       
-      <testcase classname="fastlane.lanes" name="03: cd /Users/snakepitt/Developer/flutter_stopandgo &amp;&amp; flutter build ios --config-only --release --flavor bearsqro --target=lib/main_bearsqro.dart" time="5.252709">
+      <testcase classname="fastlane.lanes" name="03: cd /Users/snakepitt/Developer/flutter_stopandgo &amp;&amp; flutter build ios --config-only --release --flavor bearsqro --target=lib/main_bearsqro.dart" time="4.96675">
         
       </testcase>
     
       
-      <testcase classname="fastlane.lanes" name="04: build_app" time="99.789829">
+      <testcase classname="fastlane.lanes" name="04: build_app" time="91.10958">
         
       </testcase>
     
       
-      <testcase classname="fastlane.lanes" name="05: rm -rf /tmp/ipa_bearsqro" time="0.004483">
+      <testcase classname="fastlane.lanes" name="05: rm -rf /tmp/ipa_bearsqro" time="0.004476">
         
       </testcase>
     
       
-      <testcase classname="fastlane.lanes" name="06: mkdir -p /tmp/ipa_bearsqro" time="0.006159">
+      <testcase classname="fastlane.lanes" name="06: mkdir -p /tmp/ipa_bearsqro" time="0.003437">
         
       </testcase>
     
       
-      <testcase classname="fastlane.lanes" name="07: unzip -o &apos;/Users/snakepitt/Developer/flutter_stopandgo/build/ios/ipa/bearsqro/stopandgo-bearsqro.ipa&apos; -d /tmp/ipa_bearsqro &gt;/dev/null" time="0.653006">
+      <testcase classname="fastlane.lanes" name="07: unzip -o &apos;/Users/snakepitt/Developer/flutter_stopandgo/build/ios/ipa/bearsqro/stopandgo-bearsqro.ipa&apos; -d /tmp/ipa_bearsqro &gt;/dev/null" time="0.58913">
         
       </testcase>
     
       
-      <testcase classname="fastlane.lanes" name="08: plutil -p /tmp/ipa_bearsqro/Payload/*.app/Info.plist | grep CFBundleIdentifier || echo &apos;CFBundleIdentifier no encontrado&apos;" time="0.015338">
+      <testcase classname="fastlane.lanes" name="08: plutil -p /tmp/ipa_bearsqro/Payload/*.app/Info.plist | grep CFBundleIdentifier || echo &apos;CFBundleIdentifier no encontrado&apos;" time="0.013074">
         
       </testcase>
     
       
-      <testcase classname="fastlane.lanes" name="09: app_store_connect_api_key" time="0.002924">
+      <testcase classname="fastlane.lanes" name="09: app_store_connect_api_key" time="0.003146">
         
       </testcase>
     
       
-      <testcase classname="fastlane.lanes" name="10: upload_to_testflight" time="317.009867">
+      <testcase classname="fastlane.lanes" name="10: upload_to_testflight" time="371.809873">
         
       </testcase>
     
       
-      <testcase classname="fastlane.lanes" name="11: app_store_connect_api_key" time="0.002686">
+      <testcase classname="fastlane.lanes" name="11: app_store_connect_api_key" time="0.003514">
         
       </testcase>
     
       
-      <testcase classname="fastlane.lanes" name="12: deliver" time="27.588228">
+      <testcase classname="fastlane.lanes" name="12: deliver" time="26.558868">
         
       </testcase>
     

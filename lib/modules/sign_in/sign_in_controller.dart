@@ -22,7 +22,7 @@ class SignInController extends GetxController {
   // 👇 Debe ser static const (o final) para que compile bien
   static const Map<String, String> roleLabelsEs = {
     'parent': 'Padre',
-    'coach': 'Entrenador',
+    'coach': 'Coach',
     'manager': 'Manager',
     'player': 'Jugador',
     'staff': 'Staff',
