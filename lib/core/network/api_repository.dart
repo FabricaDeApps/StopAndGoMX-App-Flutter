@@ -21,6 +21,7 @@ import 'package:stopandgo/core/models/ecommerce/ecommerce_order_list_item_model.
 import 'package:stopandgo/core/models/games/game_comment.dart';
 import 'package:stopandgo/core/models/games/games.dart';
 import 'package:stopandgo/core/models/gazzetta/gazzetta_models.dart';
+import 'package:stopandgo/core/models/news/news_models.dart';
 import 'package:stopandgo/core/models/player_document.dart';
 import 'package:stopandgo/core/models/player_file.dart';
 import 'package:stopandgo/core/models/player_documents_checklist.dart';
@@ -1865,6 +1866,55 @@ class ApiRepository {
     }
   }
 
+  Future<NewsPreferences> getNewsPreferences() async {
+    try {
+      final res = await _dio.get(
+        ApiEndpoints.newsPreferences,
+        options: Options(headers: _headers()),
+      );
+      final root = _asMap(res.data);
+      return NewsPreferences.fromJson(root);
+    } on DioException catch (e) {
+      throw _mapNewsError(e);
+    }
+  }
+
+  Future<NewsFeedResponse> getNewsFeed({
+    List<String>? sports,
+    int perPage = 15,
+    int page = 1,
+  }) async {
+    try {
+      final cleanSports = (sports ?? const <String>[])
+          .map((e) => e.trim())
+          .where((e) => e.isNotEmpty)
+          .toList();
+
+      final res = await _dio.get(
+        ApiEndpoints.newsFeed,
+        queryParameters: {
+          if (cleanSports.isNotEmpty) 'sports': cleanSports.join(','),
+          'per_page': perPage,
+          'page': page,
+        },
+        options: Options(headers: _headers()),
+      );
+
+      final root = _asMap(res.data);
+      return NewsFeedResponse.fromJson(root);
+    } on DioException catch (e) {
+      throw _mapNewsError(e);
+    }
+  }
+
+  Future<void> markNewsSeen(int id) async {
+    try {
+      await _dio.post('/news/$id/seen', options: Options(headers: _headers()));
+    } on DioException catch (e) {
+      throw _mapNewsError(e);
+    }
+  }
+
   /// helper: DateTime -> YYYY-MM-DD
   String _toYmd(DateTime d) {
     final dt = DateTime(d.year, d.month, d.day);
@@ -1901,6 +1951,25 @@ class ApiRepository {
     }
 
     return Exception(e.message ?? 'No se pudo consultar Gazzetta');
+  }
+
+  Exception _mapNewsError(DioException e) {
+    if (e.type == DioExceptionType.connectionTimeout ||
+        e.type == DioExceptionType.receiveTimeout ||
+        e.type == DioExceptionType.sendTimeout ||
+        e.type == DioExceptionType.connectionError) {
+      return Exception('Sin conexión o tiempo de espera agotado');
+    }
+
+    final data = e.response?.data;
+    if (data is Map<String, dynamic>) {
+      final message = data['message']?.toString().trim();
+      if (message != null && message.isNotEmpty) {
+        return Exception(message);
+      }
+    }
+
+    return Exception(e.message ?? 'No se pudieron consultar las noticias');
   }
 
   /// GET /dashboards/parent
@@ -1976,9 +2045,7 @@ class ApiRepository {
 
     return rawData
         .whereType<Map>()
-        .map(
-          (e) => PlaybookCategoryRef.fromJson(Map<String, dynamic>.from(e)),
-        )
+        .map((e) => PlaybookCategoryRef.fromJson(Map<String, dynamic>.from(e)))
         .toList();
   }
 

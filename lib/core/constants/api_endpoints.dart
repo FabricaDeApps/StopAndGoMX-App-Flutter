@@ -30,4 +30,8 @@ class ApiEndpoints {
   // ---- NOTICES ----
   static const getNotices = '/notices';
   static const createNotice = '$manager/notices';
+
+  // ---- NEWS ----
+  static const newsFeed = '/news/feed';
+  static const newsPreferences = '/news/preferences';
 }

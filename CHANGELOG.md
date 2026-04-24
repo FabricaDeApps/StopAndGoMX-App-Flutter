@@ -4,6 +4,9 @@ Todos los cambios importantes del proyecto **StopAndGoMX** se documentan en este
 El formato sigue las recomendaciones de **Keep a Changelog**  
 y el versionado está basado en **Semantic Versioning (SemVer)**.
 
+## [1.0.74] - 2026-4-23
+• Mejoras
+
 ## [1.0.73] - 2026-4-6
 • Mejora en vista de roster
 

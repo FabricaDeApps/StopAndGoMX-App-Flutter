@@ -116,6 +116,7 @@ class SplashController extends GetxController {
         'min_build_android': 0,
         'min_build_ios': 0,
         'force_update': false,
+        'show_news': false,
         'update_message':
             'Hay una nueva versión disponible. Actualiza para continuar.',
       });

@@ -63,5 +63,6 @@ abstract class Routes {
   static const gameGallery = '/gameGallery';
   static const gazzetta = '/gazzetta';
   static const gazzettaDetail = '/gazzettaDetail';
+  static const news = '/news';
   static const changeRole = '/changeRole';
 }

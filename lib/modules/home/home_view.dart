@@ -155,9 +155,9 @@ class HomeView extends GetView<HomeController> {
               case 'dashboard':
                 return Obx(() {
                   final d = controller.dashboardCtrl;
-                  final _ = d.upcomingGames.length;
-                  final __ = d.notices.length;
-                  final ___ = d.saldoPendiente.value; // si aplica
+                  d.upcomingGames.length;
+                  d.notices.length;
+                  d.saldoPendiente.value; // si aplica
 
                   return DashboardTabView(
                     onTapPay: () => controller.tabController.index =
@@ -416,6 +416,15 @@ class HomeView extends GetView<HomeController> {
                 title: const Text('Inicio'),
                 onTap: () => Get.back(),
               ),
+              if (controller.showNewsMenu.value)
+                ListTile(
+                  leading: const Icon(Icons.newspaper_outlined),
+                  title: const Text('Noticias'),
+                  onTap: () {
+                    Get.back();
+                    Get.toNamed(Routes.news);
+                  },
+                ),
               if (isManager || isCoach) ...[
                 ListTile(
                   leading: const Icon(Icons.group_add),

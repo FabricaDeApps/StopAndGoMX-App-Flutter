@@ -1,5 +1,4 @@
 import 'package:get/get.dart';
-import 'package:stopandgo/core/models/player_document.dart';
 import 'package:stopandgo/modules/assign_player/index.dart';
 import 'package:stopandgo/modules/admin_player_edit/index.dart';
 import 'package:stopandgo/modules/admin_roster/index.dart';
@@ -73,6 +72,7 @@ import 'package:stopandgo/modules/no_category/index.dart';
 import 'package:stopandgo/modules/no_category/no_category_view.dart';
 import 'package:stopandgo/modules/no_player/index.dart';
 import 'package:stopandgo/modules/notice_detail/index.dart';
+import 'package:stopandgo/modules/news/index.dart';
 import 'package:stopandgo/modules/parents_info/index.dart';
 import 'package:stopandgo/modules/parents_info/parents_info_view.dart';
 import 'package:stopandgo/modules/payment_detail/index.dart';
@@ -148,6 +148,11 @@ class AppPages {
       name: Routes.home,
       page: () => const HomeView(),
       binding: HomeBinding(),
+    ),
+    GetPage(
+      name: Routes.news,
+      page: () => const NewsView(),
+      binding: NewsBinding(),
     ),
     GetPage(
       name: Routes.makePayment,

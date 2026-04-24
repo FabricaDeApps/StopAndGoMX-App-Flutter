@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:get/get.dart';
 import 'package:flutter/material.dart';
+import 'package:firebase_remote_config/firebase_remote_config.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:stopandgo/core/config/flavor_config.dart';
 import 'package:stopandgo/core/models/category.dart';
@@ -25,6 +26,7 @@ import 'tabs/dashboard/dashboard_tab_controller.dart';
 
 class HomeController extends GetxController with GetTickerProviderStateMixin {
   final api = Get.find<ApiRepository>();
+  final _remoteConfig = FirebaseRemoteConfig.instance;
   final _picker = ImagePicker();
   bool _birthdayPromptShown = false;
   int _birthdayGreetingTapCount = 0;
@@ -37,6 +39,7 @@ class HomeController extends GetxController with GetTickerProviderStateMixin {
   final userRole = 'player'.obs;
   final isUploadingAvatar = false.obs;
   final org = Rxn<OrganizationResponse>();
+  final showNewsMenu = false.obs;
 
   // selects
   final categories = <Category>[].obs;
@@ -65,6 +68,7 @@ class HomeController extends GetxController with GetTickerProviderStateMixin {
     super.onInit();
     org.value = AppStorage.getOrganization();
     _loadSession();
+    _loadRemoteFlags();
 
     tabs.value = _resolveTabsForRole(userRole.value);
     tabController = TabController(length: tabs.length, vsync: this);
@@ -85,6 +89,10 @@ class HomeController extends GetxController with GetTickerProviderStateMixin {
     });
 
     _lastLoadedTabIndex = 0;
+  }
+
+  void _loadRemoteFlags() {
+    showNewsMenu.value = _remoteConfig.getBool('show_news');
   }
 
   @override
