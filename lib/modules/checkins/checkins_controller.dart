@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:stopandgo/core/models/checkin_checkout_request.dart';
 import 'package:stopandgo/core/models/checkin_model.dart';
 import 'package:stopandgo/core/models/checkin_model_response.dart';
 import 'package:stopandgo/core/models/checkin_response.dart';
+import 'package:stopandgo/core/models/checkin_today_status.dart';
 import '../../../core/network/api_repository.dart';
 
 class CheckinsController extends GetxController {
@@ -11,9 +13,11 @@ class CheckinsController extends GetxController {
 
   final isLoading = false.obs;
   final isSaving = false.obs;
+  final isCheckingOut = false.obs;
   final error = RxnString();
 
   final history = <CheckinModelResponse>[].obs;
+  final today = CheckinTodayStatus.empty.obs;
 
   final dateFrom = ''.obs;
   final dateTo = ''.obs;
@@ -22,7 +26,7 @@ class CheckinsController extends GetxController {
   void onInit() {
     super.onInit();
     _setDefaultMonth();
-    loadHistory();
+    loadData();
   }
 
   void _setDefaultMonth() {
@@ -38,10 +42,23 @@ class CheckinsController extends GetxController {
     return '${d.year}-${two(d.month)}-${two(d.day)}';
   }
 
+  Future<void> loadData() async {
+    await Future.wait([loadToday(), loadHistory()]);
+  }
+
+  Future<void> loadToday() async {
+    try {
+      error.value = null;
+      today.value = await _api.getCheckinToday();
+    } catch (e) {
+      error.value = e.toString();
+      today.value = CheckinTodayStatus.empty;
+    }
+  }
+
   Future<void> loadHistory() async {
     try {
       isLoading.value = true;
-      error.value = null;
 
       final items = await _api.getCheckinsHistory(
         dateFrom: dateFrom.value,
@@ -89,11 +106,50 @@ class CheckinsController extends GetxController {
       }
 
       _showSuccessDialog(response.message);
-      await loadHistory();
+      await loadData();
     } catch (e) {
       error.value = e.toString();
     } finally {
       isSaving.value = false;
+    }
+  }
+
+  Future<void> doCheckout() async {
+    if (isCheckingOut.value || !today.value.canCheckout) return;
+
+    try {
+      isCheckingOut.value = true;
+      error.value = null;
+
+      final position = await _getCurrentPosition();
+
+      final response = await _api.checkoutCheckin(
+        checkout: CheckinCheckoutRequest(
+          lat: position.latitude,
+          lng: position.longitude,
+          accuracyM: position.accuracy.isNaN ? null : position.accuracy.round(),
+        ),
+      );
+
+      if (response == null) {
+        _showErrorDialog(
+          title: 'Error',
+          message: 'No se pudo registrar el checkout.',
+        );
+        return;
+      }
+
+      if (!response.ok) {
+        _showRejectedDialog(response, title: 'Checkout rechazado');
+        return;
+      }
+
+      _showSuccessDialog(response.message);
+      await loadData();
+    } catch (e) {
+      error.value = e.toString();
+    } finally {
+      isCheckingOut.value = false;
     }
   }
 
@@ -119,13 +175,17 @@ class CheckinsController extends GetxController {
     );
   }
 
-  void _showRejectedDialog(CheckinResponse res) {
+  void _showRejectedDialog(
+    CheckinResponse res, {
+    String title = 'Check-in rechazado',
+  }) {
     final distance = res.data?['distance_m'];
     final radius = res.data?['radius_m'];
+    final locationLabel = res.data?['location_label'];
 
     Get.dialog(
       AlertDialog(
-        title: const Text('Check-in rechazado'),
+        title: Text(title),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -136,8 +196,15 @@ class CheckinsController extends GetxController {
                 radius != null) ...[
               const SizedBox(height: 12),
               Text(
-                'Distancia actual: ${distance} m\n'
-                'Radio permitido: ${radius} m',
+                '${locationLabel != null ? 'Ubicación: $locationLabel\n' : ''}'
+                'Distancia actual: $distance m\n'
+                'Radio permitido: $radius m',
+                style: const TextStyle(fontSize: 13, color: Colors.grey),
+              ),
+            ] else if (locationLabel != null) ...[
+              const SizedBox(height: 12),
+              Text(
+                'Ubicación: $locationLabel',
                 style: const TextStyle(fontSize: 13, color: Colors.grey),
               ),
             ],
@@ -172,8 +239,10 @@ class CheckinsController extends GetxController {
     }
 
     return Geolocator.getCurrentPosition(
-      desiredAccuracy: LocationAccuracy.high,
-      timeLimit: const Duration(seconds: 12),
+      locationSettings: const LocationSettings(
+        accuracy: LocationAccuracy.high,
+        timeLimit: Duration(seconds: 12),
+      ),
     );
   }
 
@@ -197,4 +266,10 @@ class CheckinsController extends GetxController {
       barrierDismissible: true,
     );
   }
+
+  bool get hasCheckinToday => today.value.hasCheckin;
+
+  bool get hasCheckoutToday => today.value.hasCheckout;
+
+  bool get canCheckoutToday => today.value.canCheckout;
 }

@@ -1,4 +1,8 @@
+import 'dart:io';
+
 import 'package:get/get.dart';
+import 'package:image/image.dart' as img;
+import 'package:image_picker/image_picker.dart';
 import 'package:stopandgo/core/models/attendance_dashboard.dart';
 import 'package:stopandgo/core/models/dashboard_models.dart';
 import 'package:stopandgo/core/models/dto/notice_model.dart';
@@ -6,9 +10,15 @@ import 'package:stopandgo/core/models/games/games.dart';
 import 'package:stopandgo/core/network/api_repository.dart';
 import 'package:stopandgo/core/storage/app_storage.dart';
 import 'package:stopandgo/core/utils/role_utils.dart';
+import 'package:stopandgo/modules/home/home_controller.dart';
+import 'package:stopandgo/modules/home/tabs/dashboard/models/dashboard_social_post.dart';
+import 'package:video_player/video_player.dart';
 
 class DashboardTabController extends GetxController {
   final api = Get.find<ApiRepository>();
+
+  bool get isSocialModuleEnabled =>
+      AppStorage.getOrganization()?.socialModule == true;
 
   // Inputs (los setea HomeController)
   final role = ''.obs; // manager/coach/staff/parent/player
@@ -23,6 +33,12 @@ class DashboardTabController extends GetxController {
   final notices = <Notice>[].obs;
   final playerCategories = <PlayerDashboardCategory>[].obs;
   final attendance = AttendanceDashboard.empty.obs;
+  final socialPosts = <DashboardSocialPost>[].obs;
+
+  @override
+  void onInit() {
+    super.onInit();
+  }
 
   void setContext({required String userRole, int? categoryId, int? playerId}) {
     role.value = userRole;
@@ -30,20 +46,27 @@ class DashboardTabController extends GetxController {
     selectedPlayerId.value = playerId;
   }
 
+  @override
   Future<void> refresh() async {
     if (hasManagerPrivileges(role.value)) {
-      return _loadDashboardForManager();
+      await _loadDashboardForManager();
+    } else {
+      switch (role.value) {
+        case 'coach':
+          await _loadDashboardForCoach();
+          break;
+        case 'staff':
+          await _loadDashboardForStaff();
+          break;
+        case 'parent':
+        case 'player':
+        default:
+          await _loadDashboardForPlayerOrParent();
+          break;
+      }
     }
-    switch (role.value) {
-      case 'coach':
-        return _loadDashboardForCoach();
-      case 'staff':
-        return _loadDashboardForStaff();
-      case 'parent':
-      case 'player':
-      default:
-        return _loadDashboardForPlayerOrParent();
-    }
+
+    await _loadSocialFeed();
   }
 
   // ---------------- MANAGER ----------------
@@ -284,6 +307,309 @@ class DashboardTabController extends GetxController {
           isPublished: true,
         ),
       );
+    }
+  }
+
+  Future<void> _loadSocialFeed() async {
+    if (!isSocialModuleEnabled) {
+      socialPosts.clear();
+      return;
+    }
+
+    try {
+      final posts = await api.getSocialFeed();
+      socialPosts.assignAll(posts);
+    } catch (e) {
+      Get.snackbar(
+        'Feed social',
+        'No se pudo cargar el feed: $e',
+        snackPosition: SnackPosition.BOTTOM,
+      );
+    }
+  }
+
+  Future<List<DashboardMentionableUser>> searchMentionableUsers(
+    String query,
+  ) async {
+    try {
+      return await api.searchMentionableUsers(query: query);
+    } catch (_) {
+      return const [];
+    }
+  }
+
+  Future<void> toggleLikePost(int postId) async {
+    final index = socialPosts.indexWhere((post) => post.id == postId);
+    if (index < 0) return;
+
+    final current = socialPosts[index];
+    final nextLiked = !current.isLiked;
+    socialPosts[index] = current.copyWith(
+      isLiked: nextLiked,
+      likesCount: current.likesCount + (nextLiked ? 1 : -1),
+    );
+
+    final response = await api.toggleSocialPostLike(postId: postId);
+    if (response == null) {
+      socialPosts[index] = current;
+      return;
+    }
+
+    socialPosts[index] = socialPosts[index].copyWith(
+      isLiked: response['is_liked'] == true,
+      likesCount: (response['likes_count'] as num?)?.toInt() ?? 0,
+    );
+  }
+
+  Future<void> toggleComments(int postId) async {
+    final index = socialPosts.indexWhere((post) => post.id == postId);
+    if (index < 0) return;
+
+    final current = socialPosts[index];
+    if (current.commentsExpanded) {
+      socialPosts[index] = current.copyWith(commentsExpanded: false);
+      return;
+    }
+
+    try {
+      final detail = await api.getSocialPostDetail(postId);
+      socialPosts[index] = detail.copyWith(commentsExpanded: true);
+    } catch (_) {
+      socialPosts[index] = current.copyWith(commentsExpanded: true);
+    }
+  }
+
+  Future<void> addCommentToPost(int postId, String message) async {
+    final trimmed = message.trim();
+    if (trimmed.isEmpty) return;
+
+    final index = socialPosts.indexWhere((post) => post.id == postId);
+    if (index < 0) return;
+
+    try {
+      final created = await api.createSocialComment(
+        postId: postId,
+        message: trimmed,
+      );
+
+      final current = socialPosts[index];
+      socialPosts[index] = current.copyWith(
+        commentsExpanded: true,
+        comments: [...current.comments, created],
+        commentsCount: current.commentsCount + 1,
+      );
+    } catch (e) {
+      Get.snackbar(
+        'Comentarios',
+        'No se pudo agregar el comentario: $e',
+        snackPosition: SnackPosition.BOTTOM,
+      );
+    }
+  }
+
+  Future<void> deletePost(int postId) async {
+    final index = socialPosts.indexWhere((post) => post.id == postId);
+    if (index < 0) return;
+
+    final removed = socialPosts[index];
+    socialPosts.removeAt(index);
+
+    final ok = await api.deleteSocialPost(postId: postId);
+    if (!ok) {
+      socialPosts.insert(index, removed);
+      Get.snackbar(
+        'Feed social',
+        'No se pudo borrar el post.',
+        snackPosition: SnackPosition.BOTTOM,
+      );
+    }
+  }
+
+  Future<void> toggleLikeComment(int postId, int commentId) async {
+    final postIndex = socialPosts.indexWhere((post) => post.id == postId);
+    if (postIndex < 0) return;
+
+    final currentPost = socialPosts[postIndex];
+    final commentIndex = currentPost.comments.indexWhere(
+      (c) => c.id == commentId,
+    );
+    if (commentIndex < 0) return;
+
+    final nextComments = List<DashboardSocialComment>.from(
+      currentPost.comments,
+    );
+    final currentComment = nextComments[commentIndex];
+    final nextLiked = !currentComment.isLiked;
+
+    nextComments[commentIndex] = currentComment.copyWith(
+      isLiked: nextLiked,
+      likesCount: currentComment.likesCount + (nextLiked ? 1 : -1),
+    );
+
+    socialPosts[postIndex] = currentPost.copyWith(comments: nextComments);
+
+    final response = await api.toggleSocialCommentLike(commentId: commentId);
+    if (response == null) {
+      socialPosts[postIndex] = currentPost;
+      return;
+    }
+
+    final refreshed = List<DashboardSocialComment>.from(
+      socialPosts[postIndex].comments,
+    );
+    refreshed[commentIndex] = refreshed[commentIndex].copyWith(
+      isLiked: response['is_liked'] == true,
+      likesCount: (response['likes_count'] as num?)?.toInt() ?? 0,
+    );
+    socialPosts[postIndex] = socialPosts[postIndex].copyWith(
+      comments: refreshed,
+    );
+  }
+
+  Future<void> createSocialPost({
+    required String caption,
+    required List<DashboardSocialMediaItem> media,
+    List<DashboardMentionableUser> mentions = const [],
+  }) async {
+    final homeCtrl = Get.isRegistered<HomeController>()
+        ? Get.find<HomeController>()
+        : null;
+    final user = AppStorage.getUser();
+    if (user == null) return;
+
+    try {
+      final created = await api.createSocialPost(
+        caption: caption.trim(),
+        mentionIds: mentions.map((e) => e.id).toList(),
+      );
+
+      final optimistic = created.copyWith(
+        authorAvatarUrl: (homeCtrl?.userAvatar.value ?? user.photoUrl ?? '')
+            .trim(),
+        commentsExpanded: false,
+      );
+      socialPosts.insert(0, optimistic);
+
+      if (media.isNotEmpty) {
+        await _uploadMediaForPost(postId: created.id, media: media);
+      }
+
+      final detail = await api.getSocialPostDetail(created.id);
+      _upsertSocialPost(detail);
+      await _loadSocialFeed();
+    } catch (e) {
+      Get.snackbar(
+        'Feed social',
+        'No se pudo publicar el post: $e',
+        snackPosition: SnackPosition.BOTTOM,
+      );
+      rethrow;
+    }
+  }
+
+  String _displayRole(String value) {
+    switch (value) {
+      case 'manager':
+        return 'Manager';
+      case 'coach':
+        return 'Coach';
+      case 'staff':
+        return 'Staff';
+      case 'parent':
+        return 'Papá o mamá';
+      case 'player':
+        return 'Jugador';
+      default:
+        return 'Comunidad';
+    }
+  }
+
+  Future<void> _uploadMediaForPost({
+    required int postId,
+    required List<DashboardSocialMediaItem> media,
+  }) async {
+    for (var i = 0; i < media.length; i++) {
+      final item = media[i];
+      if (!item.isLocal) continue;
+
+      final file = XFile(item.source);
+      if (item.type == DashboardSocialMediaType.image) {
+        final init = await api.initSocialImageUpload(postId);
+        if (init == null) continue;
+
+        final ok = await api.uploadFileToCloudflare(
+          uploadUrl: (init['uploadURL'] ?? '').toString(),
+          file: file,
+        );
+        if (!ok) continue;
+
+        final imageSize = _readImageSize(file.path);
+        await api.confirmSocialImageUpload(
+          postId: postId,
+          imageId: (init['imageId'] ?? '').toString(),
+          position: i,
+          width: imageSize?.$1,
+          height: imageSize?.$2,
+        );
+        continue;
+      }
+
+      final init = await api.initSocialVideoUpload(postId);
+      if (init == null) continue;
+
+      final ok = await api.uploadFileToCloudflare(
+        uploadUrl: (init['uploadURL'] ?? '').toString(),
+        file: file,
+      );
+      if (!ok) continue;
+
+      final videoMeta = await _readVideoMeta(file.path);
+      await api.confirmSocialVideoUpload(
+        postId: postId,
+        uid: (init['uid'] ?? '').toString(),
+        position: i,
+        width: videoMeta?.$1,
+        height: videoMeta?.$2,
+        durationSeconds: videoMeta?.$3,
+      );
+    }
+  }
+
+  (int, int)? _readImageSize(String path) {
+    try {
+      final bytes = File(path).readAsBytesSync();
+      final decoded = img.decodeImage(bytes);
+      if (decoded == null) return null;
+      return (decoded.width, decoded.height);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  Future<(int, int, int)?> _readVideoMeta(String path) async {
+    final controller = VideoPlayerController.file(File(path));
+    try {
+      await controller.initialize();
+      final size = controller.value.size;
+      return (
+        size.width.round(),
+        size.height.round(),
+        controller.value.duration.inSeconds,
+      );
+    } catch (_) {
+      return null;
+    } finally {
+      await controller.dispose();
+    }
+  }
+
+  void _upsertSocialPost(DashboardSocialPost post) {
+    final index = socialPosts.indexWhere((item) => item.id == post.id);
+    if (index >= 0) {
+      final expanded = socialPosts[index].commentsExpanded;
+      socialPosts[index] = post.copyWith(commentsExpanded: expanded);
+    } else {
+      socialPosts.insert(0, post);
     }
   }
 }

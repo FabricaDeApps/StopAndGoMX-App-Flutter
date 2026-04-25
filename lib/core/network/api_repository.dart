@@ -1,13 +1,16 @@
 import 'dart:io';
 
 import 'package:dio/dio.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:stopandgo/core/config/flavor_config.dart';
 import 'package:stopandgo/core/constants/api_endpoints.dart';
 import 'package:stopandgo/core/models/admin_player.dart';
 import 'package:stopandgo/core/models/category.dart';
 import 'package:stopandgo/core/models/checkin_model.dart';
+import 'package:stopandgo/core/models/checkin_checkout_request.dart';
 import 'package:stopandgo/core/models/checkin_model_response.dart';
 import 'package:stopandgo/core/models/checkin_response.dart';
+import 'package:stopandgo/core/models/checkin_today_status.dart';
 import 'package:stopandgo/core/models/combines/combine_event.dart';
 import 'package:stopandgo/core/models/combines/combine_event_results_response.dart';
 import 'package:stopandgo/core/models/dashboard_models.dart';
@@ -40,6 +43,7 @@ import 'package:stopandgo/core/storage/app_storage.dart';
 import 'package:stopandgo/core/utils/device_info.dart';
 import 'package:stopandgo/core/models/play_book_model.dart';
 import 'package:stopandgo/modules/combine_event_detail/combine_event_detail_controller.dart';
+import 'package:stopandgo/modules/home/tabs/dashboard/models/dashboard_social_post.dart';
 import 'api_client.dart';
 import 'token_storage.dart';
 import 'package:get/get.dart' hide FormData, MultipartFile, Response;
@@ -2945,6 +2949,22 @@ class ApiRepository {
     }
   }
 
+  Future<CheckinTodayStatus> getCheckinToday() async {
+    final res = await _dio.get(
+      '/checkins/today',
+      options: Options(
+        headers: _headers(),
+        validateStatus: (code) => code != null && code >= 200 && code < 500,
+      ),
+    );
+
+    final raw = res.data;
+    if (raw is Map<String, dynamic>) {
+      return CheckinTodayStatus.fromJson(raw);
+    }
+    return CheckinTodayStatus.empty;
+  }
+
   Future<CheckinResponse?> createCheckin({
     required CheckinModel checkin,
   }) async {
@@ -2952,6 +2972,36 @@ class ApiRepository {
       final res = await _dio.post(
         '/checkins',
         data: checkin.toJson(),
+        options: Options(
+          headers: _headers(),
+          validateStatus: (code) => code != null && code >= 200 && code < 500,
+        ),
+      );
+
+      final raw = res.data;
+      if (raw is Map<String, dynamic>) {
+        return CheckinResponse.fromJson(raw);
+      }
+
+      return null;
+    } on DioException catch (e) {
+      final raw = e.response?.data;
+      if (raw is Map<String, dynamic>) {
+        return CheckinResponse.fromJson(raw);
+      }
+      return null;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  Future<CheckinResponse?> checkoutCheckin({
+    required CheckinCheckoutRequest checkout,
+  }) async {
+    try {
+      final res = await _dio.post(
+        '/checkins/checkout',
+        data: checkout.toJson(),
         options: Options(
           headers: _headers(),
           validateStatus: (code) => code != null && code >= 200 && code < 500,
@@ -3162,6 +3212,295 @@ class ApiRepository {
       return null;
     } catch (_) {
       return null;
+    }
+  }
+
+  Future<List<DashboardSocialPost>> getSocialFeed({
+    int page = 1,
+    int perPage = 10,
+  }) async {
+    final res = await _dio.get(
+      '/social/posts',
+      queryParameters: {'page': page, 'per_page': perPage},
+      options: Options(headers: _headers()),
+    );
+
+    final root = Map<String, dynamic>.from(res.data as Map);
+    final data = (root['data'] as List?) ?? const [];
+    return data
+        .map(
+          (e) =>
+              DashboardSocialPost.fromJson(Map<String, dynamic>.from(e as Map)),
+        )
+        .toList();
+  }
+
+  Future<DashboardSocialPost> createSocialPost({
+    required String caption,
+    List<int> mentionIds = const [],
+  }) async {
+    final res = await _dio.post(
+      '/social/posts',
+      data: {
+        'caption': caption,
+        if (mentionIds.isNotEmpty) 'mentions': mentionIds,
+      },
+      options: Options(headers: _headers()),
+    );
+
+    final root = Map<String, dynamic>.from(res.data as Map);
+    return DashboardSocialPost.fromJson(
+      Map<String, dynamic>.from(root['data'] as Map),
+    );
+  }
+
+  Future<DashboardSocialPost> getSocialPostDetail(int postId) async {
+    final res = await _dio.get(
+      '/social/posts/$postId',
+      options: Options(headers: _headers()),
+    );
+
+    final root = Map<String, dynamic>.from(res.data as Map);
+    return DashboardSocialPost.fromJson(
+      Map<String, dynamic>.from(root['data'] as Map),
+    );
+  }
+
+  Future<DashboardSocialComment> createSocialComment({
+    required int postId,
+    required String message,
+  }) async {
+    final res = await _dio.post(
+      '/social/posts/$postId/comments',
+      data: {'message': message},
+      options: Options(headers: _headers()),
+    );
+
+    final root = Map<String, dynamic>.from(res.data as Map);
+    return DashboardSocialComment.fromJson(
+      Map<String, dynamic>.from(root['data'] as Map),
+    );
+  }
+
+  Future<Map<String, dynamic>?> toggleSocialPostLike({
+    required int postId,
+  }) async {
+    try {
+      final res = await _dio.post(
+        '/social/posts/$postId/like',
+        options: Options(
+          headers: _headers(),
+          validateStatus: (code) => code != null && code >= 200 && code < 500,
+        ),
+      );
+
+      if (res.statusCode == 200 && res.data != null) {
+        final root = Map<String, dynamic>.from(res.data as Map);
+        return Map<String, dynamic>.from((root['data'] as Map?) ?? const {});
+      }
+      return null;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  Future<Map<String, dynamic>?> toggleSocialCommentLike({
+    required int commentId,
+  }) async {
+    try {
+      final res = await _dio.post(
+        '/social/comments/$commentId/like',
+        options: Options(
+          headers: _headers(),
+          validateStatus: (code) => code != null && code >= 200 && code < 500,
+        ),
+      );
+
+      if (res.statusCode == 200 && res.data != null) {
+        final root = Map<String, dynamic>.from(res.data as Map);
+        return Map<String, dynamic>.from((root['data'] as Map?) ?? const {});
+      }
+      return null;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  Future<bool> deleteSocialPost({required int postId}) async {
+    try {
+      final res = await _dio.delete(
+        '/social/posts/$postId',
+        options: Options(
+          headers: _headers(),
+          validateStatus: (code) => code != null && code >= 200 && code < 500,
+        ),
+      );
+
+      return res.statusCode == 200;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  Future<List<DashboardMentionableUser>> searchMentionableUsers({
+    String query = '',
+    int limit = 20,
+  }) async {
+    final res = await _dio.get(
+      '/social/mentionable-users',
+      queryParameters: {'query': query, 'limit': limit},
+      options: Options(headers: _headers()),
+    );
+
+    final root = Map<String, dynamic>.from(res.data as Map);
+    final data = (root['data'] as List?) ?? const [];
+    return data
+        .map(
+          (e) => DashboardMentionableUser.fromJson(
+            Map<String, dynamic>.from(e as Map),
+          ),
+        )
+        .toList();
+  }
+
+  Future<Map<String, dynamic>?> initSocialImageUpload(int postId) async {
+    try {
+      final res = await _dio.post(
+        '/social/posts/$postId/images/init',
+        options: Options(
+          headers: _headers(),
+          validateStatus: (code) => code != null && code >= 200 && code < 500,
+        ),
+      );
+
+      if ((res.statusCode == 200 || res.statusCode == 201) &&
+          res.data != null) {
+        return Map<String, dynamic>.from(res.data as Map);
+      }
+      return null;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  Future<DashboardSocialMediaItem?> confirmSocialImageUpload({
+    required int postId,
+    required String imageId,
+    required int position,
+    int? width,
+    int? height,
+  }) async {
+    try {
+      final res = await _dio.post(
+        '/social/posts/$postId/images/confirm',
+        data: {
+          'imageId': imageId,
+          'position': position,
+          'variant': 'public',
+          if (width != null) 'width': width,
+          if (height != null) 'height': height,
+        },
+        options: Options(
+          headers: _headers(),
+          validateStatus: (code) => code != null && code >= 200 && code < 500,
+        ),
+      );
+
+      if ((res.statusCode == 200 || res.statusCode == 201) &&
+          res.data != null) {
+        final root = Map<String, dynamic>.from(res.data as Map);
+        return DashboardSocialMediaItem.fromJson(
+          Map<String, dynamic>.from((root['data'] as Map?) ?? const {}),
+        );
+      }
+      return null;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  Future<Map<String, dynamic>?> initSocialVideoUpload(int postId) async {
+    try {
+      final res = await _dio.post(
+        '/social/posts/$postId/videos/init',
+        options: Options(
+          headers: _headers(),
+          validateStatus: (code) => code != null && code >= 200 && code < 500,
+        ),
+      );
+
+      if ((res.statusCode == 200 || res.statusCode == 201) &&
+          res.data != null) {
+        return Map<String, dynamic>.from(res.data as Map);
+      }
+      return null;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  Future<DashboardSocialMediaItem?> confirmSocialVideoUpload({
+    required int postId,
+    required String uid,
+    required int position,
+    int? width,
+    int? height,
+    int? durationSeconds,
+  }) async {
+    try {
+      final res = await _dio.post(
+        '/social/posts/$postId/videos/confirm',
+        data: {
+          'uid': uid,
+          'position': position,
+          if (width != null) 'width': width,
+          if (height != null) 'height': height,
+          if (durationSeconds != null) 'duration_seconds': durationSeconds,
+        },
+        options: Options(
+          headers: _headers(),
+          validateStatus: (code) => code != null && code >= 200 && code < 500,
+        ),
+      );
+
+      if ((res.statusCode == 200 || res.statusCode == 201) &&
+          res.data != null) {
+        final root = Map<String, dynamic>.from(res.data as Map);
+        return DashboardSocialMediaItem.fromJson(
+          Map<String, dynamic>.from((root['data'] as Map?) ?? const {}),
+        );
+      }
+      return null;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  Future<bool> uploadFileToCloudflare({
+    required String uploadUrl,
+    required XFile file,
+    ProgressCallback? onProgress,
+  }) async {
+    try {
+      final formData = FormData.fromMap({
+        'file': await MultipartFile.fromFile(file.path, filename: file.name),
+      });
+
+      final res = await _dio.post(
+        uploadUrl,
+        data: formData,
+        options: Options(
+          headers: {'Accept': 'application/json'},
+          validateStatus: (code) => code != null && code >= 200 && code < 500,
+        ),
+        onSendProgress: onProgress,
+      );
+
+      return res.statusCode != null &&
+          res.statusCode! >= 200 &&
+          res.statusCode! < 300;
+    } catch (_) {
+      return false;
     }
   }
 

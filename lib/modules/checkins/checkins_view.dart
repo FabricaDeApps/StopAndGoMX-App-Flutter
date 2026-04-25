@@ -1,7 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:stopandgo/core/models/checkin_model_response.dart';
+import 'package:stopandgo/core/models/checkin_today_status.dart';
 import 'checkins_controller.dart';
+
+String _formatDateTime(DateTime d) {
+  String two(int v) => v.toString().padLeft(2, '0');
+
+  final day = two(d.day);
+  final month = two(d.month);
+  final year = d.year;
+
+  int hour = d.hour;
+  final minute = two(d.minute);
+  final ampm = hour >= 12 ? 'PM' : 'AM';
+  hour = hour % 12;
+  if (hour == 0) hour = 12;
+
+  return '$day/$month/$year • $hour:$minute $ampm';
+}
 
 class CheckinsView extends GetView<CheckinsController> {
   const CheckinsView({super.key});
@@ -12,6 +28,9 @@ class CheckinsView extends GetView<CheckinsController> {
       appBar: AppBar(title: const Text('Check-ins')),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
       floatingActionButton: Obx(() {
+        if (controller.hasCheckinToday) {
+          return const SizedBox.shrink();
+        }
         return SizedBox(
           width: double.infinity,
           child: Padding(
@@ -58,6 +77,19 @@ class CheckinsView extends GetView<CheckinsController> {
                 ),
                 const SizedBox(height: 12),
               ],
+
+              Obx(() {
+                final today = controller.today.value;
+                return _TodayStatusCard(
+                  today: today,
+                  isCheckingOut: controller.isCheckingOut.value,
+                  onCheckout: controller.canCheckoutToday
+                      ? controller.doCheckout
+                      : null,
+                );
+              }),
+
+              const SizedBox(height: 12),
 
               Row(
                 children: [
@@ -122,7 +154,7 @@ class CheckinsView extends GetView<CheckinsController> {
                         leading: const Icon(Icons.place),
                         title: Text('Lat: ${item.lat}, Lng: ${item.lng}'),
                         subtitle: Text(
-                          'Fecha: ${formatDateTime(item.checkedInAt)}',
+                          'Fecha: ${_formatDateTime(item.checkedInAt)}',
                         ),
                       );
                     },
@@ -155,21 +187,127 @@ class CheckinsView extends GetView<CheckinsController> {
     String two(int v) => v.toString().padLeft(2, '0');
     return '${picked.year}-${two(picked.month)}-${two(picked.day)}';
   }
+}
 
-  String formatDateTime(DateTime d) {
-    String two(int v) => v.toString().padLeft(2, '0');
+class _TodayStatusCard extends StatelessWidget {
+  final CheckinTodayStatus today;
+  final bool isCheckingOut;
+  final VoidCallback? onCheckout;
 
-    final day = two(d.day);
-    final month = two(d.month);
-    final year = d.year;
+  const _TodayStatusCard({
+    required this.today,
+    required this.isCheckingOut,
+    required this.onCheckout,
+  });
 
-    int hour = d.hour;
-    final minute = two(d.minute);
-    final ampm = hour >= 12 ? 'PM' : 'AM';
-    hour = hour % 12;
-    if (hour == 0) hour = 12;
+  @override
+  Widget build(BuildContext context) {
+    final hasCheckin = today.hasCheckin;
+    final hasCheckout = today.hasCheckout;
+    final theme = Theme.of(context);
 
-    return '$day/$month/$year • $hour:$minute $ampm';
+    final title = hasCheckout
+        ? 'Tu asistencia de hoy ya fue cerrada'
+        : hasCheckin
+        ? 'Ya tienes check-in hoy'
+        : 'Aún no haces check-in hoy';
+
+    final subtitle = hasCheckout
+        ? 'Tu checkout quedó registrado correctamente.'
+        : hasCheckin
+        ? 'Puedes cerrar tu asistencia cuando salgas.'
+        : 'Cuando registres tu entrada, aquí aparecerá el resumen del día.';
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(16),
+        color: hasCheckout
+            ? Colors.green.shade50
+            : hasCheckin
+            ? Colors.blue.shade50
+            : Colors.grey.shade100,
+        border: Border.all(
+          color: hasCheckout
+              ? Colors.green.shade200
+              : hasCheckin
+              ? Colors.blue.shade200
+              : Colors.black12,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(
+                hasCheckout
+                    ? Icons.verified_outlined
+                    : hasCheckin
+                    ? Icons.login_outlined
+                    : Icons.schedule_outlined,
+                color: hasCheckout
+                    ? Colors.green.shade700
+                    : hasCheckin
+                    ? Colors.blue.shade700
+                    : Colors.black54,
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  title,
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Text(subtitle),
+          if (today.locationLabel != null &&
+              today.locationLabel!.isNotEmpty) ...[
+            const SizedBox(height: 10),
+            Text(
+              'Ubicación: ${today.locationLabel}',
+              style: const TextStyle(fontWeight: FontWeight.w600),
+            ),
+          ],
+          if (today.checkedInAt != null) ...[
+            const SizedBox(height: 8),
+            Text('Check-in: ${_formatDateTime(today.checkedInAt!.toLocal())}'),
+          ],
+          if (today.checkedOutAt != null) ...[
+            const SizedBox(height: 4),
+            Text('Checkout: ${_formatDateTime(today.checkedOutAt!.toLocal())}'),
+          ],
+          if (today.durationMinutes != null) ...[
+            const SizedBox(height: 4),
+            Text('Duración: ${today.durationMinutes} min'),
+          ],
+          if (hasCheckin && !hasCheckout) ...[
+            const SizedBox(height: 14),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                onPressed: isCheckingOut ? null : onCheckout,
+                icon: isCheckingOut
+                    ? const SizedBox(
+                        height: 18,
+                        width: 18,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : const Icon(Icons.logout_outlined),
+                label: Text(
+                  isCheckingOut ? 'Registrando checkout...' : 'Hacer checkout',
+                ),
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
   }
 }
 

@@ -17,6 +17,7 @@ class OrganizationResponse {
   final bool streamingEnabled;
   final bool payCardEnabled;
   final bool gazettaEnabled;
+  final bool socialModule;
 
   // Ecommerce
   final EcommerceConfig ecommerce;
@@ -39,6 +40,7 @@ class OrganizationResponse {
     required this.streamingEnabled,
     required this.payCardEnabled,
     required this.gazettaEnabled,
+    required this.socialModule,
     required this.ecommerce,
     this.androidUrl,
     this.iosUrl,
@@ -97,6 +99,7 @@ class OrganizationResponse {
         json['gazetta_enabled'] ?? json['gazzetta_enabled'],
         fallback: false,
       ),
+      socialModule: _asBool(json['social_module'], fallback: false),
 
       // Ecommerce
       ecommerce: ecommerce,
@@ -123,6 +126,7 @@ class OrganizationResponse {
     'streaming_enabled': streamingEnabled,
     'pay_card_enabled': payCardEnabled,
     'gazetta_enabled': gazettaEnabled,
+    'social_module': socialModule,
     'ecommerce': ecommerce.toJson(),
     'android_url': androidUrl,
     'ios_url': iosUrl,

@@ -4,6 +4,12 @@ Todos los cambios importantes del proyecto **StopAndGoMX** se documentan en este
 El formato sigue las recomendaciones de **Keep a Changelog**  
 y el versionado está basado en **Semantic Versioning (SemVer)**.
 
+## [1.1.2] - 2026-4-25
+• Fix Dashboard
+
+## [1.1.0] - 2026-4-24
+• Nuevo Dashboard
+
 ## [1.0.74] - 2026-4-23
 • Mejoras
 

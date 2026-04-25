@@ -69,9 +69,9 @@ class User {
 
     final parsedRoles = (json['roles'] is List)
         ? (json['roles'] as List)
-              .map((e) => normalizeRole(e.toString()))
-              .where((e) => e.isNotEmpty)
-              .toList()
+            .map((e) => normalizeRole(e.toString()))
+            .where((e) => e.isNotEmpty)
+            .toList()
         : <String>[];
 
     final roleFromApi = normalizeRole((json['role'] ?? '').toString());
@@ -81,8 +81,8 @@ class User {
     final effectiveRole = activeRole.isNotEmpty
         ? activeRole
         : (roleFromApi.isNotEmpty
-              ? roleFromApi
-              : (primaryRole.isNotEmpty ? primaryRole : ''));
+            ? roleFromApi
+            : (primaryRole.isNotEmpty ? primaryRole : ''));
 
     final roles = parsedRoles.isNotEmpty
         ? parsedRoles
@@ -93,11 +93,12 @@ class User {
       id: json['id'] ?? 0,
       name: json['name'] ?? '',
       email: json['email'] ?? '',
-      photoUrl: json['profile_photo_url'] ?? '',
+      photoUrl: json['profile_photo_url']?.toString() ??
+          json['photo_url']?.toString() ??
+          '',
       phone: json['phone']?.toString(),
       curp: json['curp']?.toString(),
-      birthdate:
-          json['birthdate']?.toString() ??
+      birthdate: json['birthdate']?.toString() ??
           json['birth_date']?.toString() ??
           json['date_of_birth']?.toString(),
       role: effectiveRole,
@@ -145,21 +146,24 @@ class User {
   }
 
   Map<String, dynamic> toJson() => {
-    'id': id,
-    'name': name,
-    'email': email,
-    if (photoUrl != null && photoUrl!.isNotEmpty) 'photo_url': photoUrl,
-    if (phone != null && phone!.isNotEmpty) 'phone': phone,
-    if (curp != null && curp!.isNotEmpty) 'curp': curp,
-    if (birthdate != null && birthdate!.isNotEmpty) 'birthdate': birthdate,
-    'role': role,
-    'roles': roles,
-    'primary_role': primaryRole,
-    'active_role': activeRole,
-    if (so != null) 'so': so,
-    if (deviceToken != null) 'device_token': deviceToken,
-    if (deviceName != null) 'device_name': deviceName,
-  };
+        'id': id,
+        'name': name,
+        'email': email,
+        if (photoUrl != null && photoUrl!.isNotEmpty) ...{
+          'photo_url': photoUrl,
+          'profile_photo_url': photoUrl,
+        },
+        if (phone != null && phone!.isNotEmpty) 'phone': phone,
+        if (curp != null && curp!.isNotEmpty) 'curp': curp,
+        if (birthdate != null && birthdate!.isNotEmpty) 'birthdate': birthdate,
+        'role': role,
+        'roles': roles,
+        'primary_role': primaryRole,
+        'active_role': activeRole,
+        if (so != null) 'so': so,
+        if (deviceToken != null) 'device_token': deviceToken,
+        if (deviceName != null) 'device_name': deviceName,
+      };
 }
 
 class Organization {

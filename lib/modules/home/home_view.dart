@@ -166,8 +166,6 @@ class HomeView extends GetView<HomeController> {
                         _tabIndexOf('games', tabs),
                     onGoNoticesTab: () => controller.tabController.index =
                         _tabIndexOf('notices', tabs),
-                    onTapGame: controller.onTapGame,
-                    onTapNotice: controller.onTapNotice,
                   );
                 });
 
@@ -199,8 +197,8 @@ class HomeView extends GetView<HomeController> {
               labelPadding: const EdgeInsets.symmetric(vertical: 8),
               indicatorColor: theme.colorScheme.primary,
               labelColor: theme.colorScheme.primary,
-              unselectedLabelColor: theme.colorScheme.onSurface.withOpacity(
-                0.6,
+              unselectedLabelColor: theme.colorScheme.onSurface.withValues(
+                alpha: 0.6,
               ),
               tabs: tabs.map((t) => _buildTab(t)).toList(),
             ),
@@ -268,7 +266,7 @@ class HomeView extends GetView<HomeController> {
                   gradient: LinearGradient(
                     colors: [
                       theme.colorScheme.primary,
-                      theme.colorScheme.primary.withOpacity(.85),
+                      theme.colorScheme.primary.withValues(alpha: .85),
                     ],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
@@ -284,7 +282,7 @@ class HomeView extends GetView<HomeController> {
                           child: CircleAvatar(
                             radius: 70,
                             backgroundColor: theme.colorScheme.secondary
-                                .withOpacity(.1),
+                                .withValues(alpha: .1),
                             child: controller.userAvatar.value != null
                                 ? ClipOval(
                                     child: CachedNetworkImage(
@@ -358,7 +356,7 @@ class HomeView extends GetView<HomeController> {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: theme.textTheme.bodySmall?.copyWith(
-                        color: Colors.white.withOpacity(.9),
+                        color: Colors.white.withValues(alpha: .9),
                       ),
                     ),
                     const SizedBox(height: 10),
