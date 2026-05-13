@@ -26,10 +26,37 @@
 	<true/>
 	<key>NSCameraUsageDescription</key>
 	<string>Necesitamos usar la cámara para tomar fotos y adjuntarlas a tus reportes de pago.</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>Necesitamos tu ubicación para registrar tu check-in.</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>Necesitamos tu ubicación para registrar tu check-in.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Necesitamos el micrófono para transmitir en vivo.</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>
 	<string>Necesitamos guardar imágenes en tu galería cuando generes o descargues fotos desde la app.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>Necesitamos acceder a tus fotos para que puedas adjuntar imágenes desde tu galería.</string>
+	<key>UIApplicationSceneManifest</key>
+	<dict>
+		<key>UIApplicationSupportsMultipleScenes</key>
+		<false/>
+		<key>UISceneConfigurations</key>
+		<dict>
+			<key>UIWindowSceneSessionRoleApplication</key>
+			<array>
+				<dict>
+					<key>UISceneClassName</key>
+					<string>UIWindowScene</string>
+					<key>UISceneConfigurationName</key>
+					<string>flutter</string>
+					<key>UISceneDelegateClassName</key>
+					<string>FlutterSceneDelegate</string>
+					<key>UISceneStoryboardFile</key>
+					<string>Main</string>
+				</dict>
+			</array>
+		</dict>
+	</dict>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
 	<key>UIBackgroundModes</key>
@@ -54,11 +81,5 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
-    <key>NSMicrophoneUsageDescription</key>
-    <string>Necesitamos el micrófono para transmitir en vivo.</string>
-	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>Necesitamos tu ubicación para registrar tu check-in.</string>
-	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
-	<string>Necesitamos tu ubicación para registrar tu check-in.</string>
 </dict>
 </plist>

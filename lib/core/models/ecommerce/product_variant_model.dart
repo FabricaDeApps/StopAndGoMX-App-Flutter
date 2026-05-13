@@ -3,6 +3,8 @@ class ProductVariantListModel {
   final String title;
   final int priceCents;
   final int stock;
+  final bool isActive;
+  final List<int> valueIds;
   final List<String> values; // ["M", "Roja"]
 
   ProductVariantListModel({
@@ -10,8 +12,18 @@ class ProductVariantListModel {
     required this.title,
     required this.priceCents,
     required this.stock,
+    required this.isActive,
+    required this.valueIds,
     required this.values,
   });
+
+  static int _toInt(dynamic v, {int fallback = 0}) {
+    if (v == null) return fallback;
+    if (v is int) return v;
+    if (v is num) return v.toInt();
+    if (v is String) return int.tryParse(v) ?? fallback;
+    return fallback;
+  }
 
   factory ProductVariantListModel.fromJson(Map<String, dynamic> json) {
     final valuesJson = (json['values'] as List?) ?? const [];
@@ -19,12 +31,15 @@ class ProductVariantListModel {
         .map((e) => (e as Map)['value']?.toString() ?? '')
         .where((v) => v.isNotEmpty)
         .toList();
+    final valueIdsJson = (json['value_ids'] as List?) ?? const [];
 
     return ProductVariantListModel(
-      id: (json['id'] as num).toInt(),
+      id: _toInt(json['id'] ?? json['variant_id']),
       title: (json['title'] ?? '') as String,
-      priceCents: (json['price_cents'] as num?)?.toInt() ?? 0,
-      stock: (json['stock'] as num?)?.toInt() ?? 0,
+      priceCents: _toInt(json['price_cents']),
+      stock: _toInt(json['stock']),
+      isActive: (json['is_active'] as bool?) ?? true,
+      valueIds: valueIdsJson.map((e) => _toInt(e)).toList(),
       values: values,
     );
   }
@@ -34,6 +49,8 @@ class ProductVariantListModel {
     'title': title,
     'price_cents': priceCents,
     'stock': stock,
+    'is_active': isActive,
+    'value_ids': valueIds,
     'values': values.map((v) => {'value': v}).toList(),
   };
 }

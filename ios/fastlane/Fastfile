@@ -8,6 +8,16 @@ platform :ios do
   PROJECT_ROOT = File.expand_path('../..', __dir__)   # ios/
   IOS_DIR      = File.expand_path('..', __dir__)      # ios/fastlane/..
 
+  def flutter_bin
+    env_bin = ENV['FLUTTER_BIN']
+    return env_bin unless env_bin.to_s.strip.empty?
+
+    preferred_bin = File.join(ENV['HOME'], 'fvm', 'versions', '3.41.9', 'bin', 'flutter')
+    return preferred_bin if File.exist?(preferred_bin)
+
+    'flutter'
+  end
+
   ############################################
   # API key de App Store Connect
   ############################################
@@ -184,8 +194,9 @@ platform :ios do
                  end
 
     UI.message("   Usando entrypoint: #{entrypoint}")
+    UI.message("   Usando Flutter: #{flutter_bin}")
 
-    sh "cd #{PROJECT_ROOT} && flutter build ios --config-only --release --flavor #{flavor} --target=#{entrypoint}"
+    sh "cd #{PROJECT_ROOT} && '#{flutter_bin}' build ios --config-only --release --flavor #{flavor} --target=#{entrypoint}"
 
     ########################################
     # 3) Build IPA (xcodebuild vía build_app)

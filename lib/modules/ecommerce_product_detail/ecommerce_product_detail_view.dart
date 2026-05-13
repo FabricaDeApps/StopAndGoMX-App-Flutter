@@ -1,12 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:intl/intl.dart';
 import 'package:stopandgo/core/widgets/ecommerce_checkout_bar.dart';
 import 'package:stopandgo/routes/app_routes.dart';
+import '../../../core/models/ecommerce/product_detail_model.dart';
 import 'ecommerce_product_detail_controller.dart';
 
 class EcommerceProductDetailView
     extends GetView<EcommerceProductDetailController> {
   const EcommerceProductDetailView({super.key});
+
+  static final _money = NumberFormat.currency(
+    locale: 'es_MX',
+    symbol: '\$',
+    decimalDigits: 2,
+  );
 
   @override
   Widget build(BuildContext context) {
@@ -30,6 +38,8 @@ class EcommerceProductDetailView
       ),
       bottomNavigationBar: Obx(() {
         final adding = controller.isAdding.value;
+        final resolving = controller.isResolving.value;
+        final canAdd = controller.canAddToCart && !resolving;
 
         return Column(
           mainAxisSize: MainAxisSize.min,
@@ -43,15 +53,21 @@ class EcommerceProductDetailView
                   width: double.infinity,
                   height: 48,
                   child: ElevatedButton.icon(
-                    onPressed: adding ? null : controller.addToCart,
-                    icon: adding
+                    onPressed: adding || !canAdd ? null : controller.addToCart,
+                    icon: adding || resolving
                         ? const SizedBox(
                             width: 18,
                             height: 18,
                             child: CircularProgressIndicator(strokeWidth: 2),
                           )
                         : const Icon(Icons.shopping_cart_checkout),
-                    label: Text(adding ? 'Agregando...' : 'Agregar al carrito'),
+                    label: Text(
+                      adding
+                          ? 'Agregando...'
+                          : resolving
+                          ? 'Validando selección...'
+                          : 'Agregar al carrito',
+                    ),
                   ),
                 ),
               ),
@@ -85,8 +101,9 @@ class EcommerceProductDetailView
           }
 
           final p = controller.product.value;
-          if (p == null)
+          if (p == null) {
             return const Center(child: Text('Producto no disponible.'));
+          }
 
           return ListView(
             padding: const EdgeInsets.only(bottom: 24),
@@ -150,31 +167,102 @@ class EcommerceProductDetailView
               ],
               const SizedBox(height: 18),
 
-              const Text(
-                'Selecciona una variante',
-                style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
-              ),
-              const SizedBox(height: 10),
+              if (controller.usesAttributeSelection) ...[
+                const Text(
+                  'Selecciona tus opciones',
+                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
+                ),
+                const SizedBox(height: 10),
+                ...p.attributeGroups.map(
+                  (group) => Padding(
+                    padding: const EdgeInsets.only(bottom: 14),
+                    child: _AttributeGroupSection(
+                      group: group,
+                      controller: controller,
+                    ),
+                  ),
+                ),
+              ] else ...[
+                const Text(
+                  'Selecciona una variante',
+                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
+                ),
+                const SizedBox(height: 10),
+                Obx(() {
+                  final selected = controller.selectedVariantId.value;
+
+                  return Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: p.variants.map((v) {
+                      final isSelected = selected == v.id;
+                      final label = v.title.isNotEmpty
+                          ? v.title
+                          : v.values.join(' / ');
+                      final price = _money.format(v.priceCents / 100.0);
+
+                      return ChoiceChip(
+                        selected: isSelected,
+                        onSelected: (_) => controller.selectVariant(v.id),
+                        label: Text('$label  •  $price'),
+                      );
+                    }).toList(),
+                  );
+                }),
+              ],
+
+              const SizedBox(height: 4),
 
               Obx(() {
-                final selected = controller.selectedVariantId.value;
+                final variant = controller.selectedVariant;
+                final usesAttributes = controller.usesAttributeSelection;
 
-                return Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
-                  children: p.variants.map((v) {
-                    final isSelected = selected == v.id;
-                    final label = v.title.isNotEmpty
-                        ? v.title
-                        : v.values.join(' / ');
-                    final price = (v.priceCents / 100.0).toStringAsFixed(2);
+                if (variant == null) {
+                  final text = usesAttributes
+                      ? 'Elige todos los atributos para ver precio y disponibilidad.'
+                      : 'Selecciona una variante para ver precio y disponibilidad.';
+                  return Text(
+                    text,
+                    style: const TextStyle(color: Colors.black54),
+                  );
+                }
 
-                    return ChoiceChip(
-                      selected: isSelected,
-                      onSelected: (_) => controller.selectVariant(v.id),
-                      label: Text('$label  •  \$$price'),
-                    );
-                  }).toList(),
+                return Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: Colors.black12),
+                    color: Colors.white,
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        variant.title.isEmpty ? p.name : variant.title,
+                        style: const TextStyle(fontWeight: FontWeight.w800),
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        _money.format(variant.priceCents / 100.0),
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w900,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        variant.stock > 0
+                            ? 'Disponible: ${variant.stock}'
+                            : 'Agotado',
+                        style: TextStyle(
+                          color: variant.stock > 0
+                              ? Colors.black54
+                              : Colors.red,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ],
+                  ),
                 );
               }),
 
@@ -212,5 +300,47 @@ class EcommerceProductDetailView
         }),
       ),
     );
+  }
+}
+
+class _AttributeGroupSection extends StatelessWidget {
+  final ProductAttributeGroupModel group;
+  final EcommerceProductDetailController controller;
+
+  const _AttributeGroupSection({
+    required this.group,
+    required this.controller,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Obx(() {
+      final selectedValueId = controller.selectedValueIdsByGroup[group.id];
+
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            group.name,
+            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
+          ),
+          const SizedBox(height: 8),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: group.values.map((value) {
+              return ChoiceChip(
+                selected: selectedValueId == value.id,
+                onSelected: (_) => controller.selectAttributeValue(
+                  groupId: group.id,
+                  valueId: value.id,
+                ),
+                label: Text(value.label),
+              );
+            }).toList(),
+          ),
+        ],
+      );
+    });
   }
 }

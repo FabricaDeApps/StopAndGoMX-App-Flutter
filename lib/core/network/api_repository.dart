@@ -50,6 +50,7 @@ import 'package:get/get.dart' hide FormData, MultipartFile, Response;
 import '../models/ecommerce/product_category_model.dart';
 import '../models/ecommerce/product_model.dart';
 import '../models/ecommerce/product_detail_model.dart';
+import '../models/ecommerce/product_variant_model.dart';
 import '../models/ecommerce/cart_model.dart';
 
 class ApiRepository {
@@ -2329,8 +2330,23 @@ class ApiRepository {
       options: Options(headers: _headers()),
     );
 
+    return ProductDetailModel.fromApiResponse(
+      Map<String, dynamic>.from(res.data as Map),
+    );
+  }
+
+  Future<ProductVariantListModel> ecommerceResolveVariant({
+    required int productId,
+    required List<int> valueIds,
+  }) async {
+    final res = await _dio.post(
+      '/ecommerce/products/$productId/resolve-variant',
+      data: {'value_ids': valueIds},
+      options: Options(headers: _headers()),
+    );
+
     final data = Map<String, dynamic>.from(res.data['data'] as Map);
-    return ProductDetailModel.fromJson(data);
+    return ProductVariantListModel.fromJson(data);
   }
 
   // =========================
@@ -2348,12 +2364,22 @@ class ApiRepository {
   }
 
   Future<CartModel> ecommerceCartAddItem({
-    required int variantId,
+    int? variantId,
+    int? productId,
+    List<int>? valueIds,
     required int qty,
   }) async {
+    final data = <String, dynamic>{'qty': qty};
+    if (variantId != null) {
+      data['variant_id'] = variantId;
+    } else {
+      data['product_id'] = productId;
+      data['value_ids'] = valueIds ?? const <int>[];
+    }
+
     await _dio.post(
       '/ecommerce/cart/items',
-      data: {'variant_id': variantId, 'qty': qty},
+      data: data,
       options: Options(headers: _headers()),
     );
     return ecommerceCart();
