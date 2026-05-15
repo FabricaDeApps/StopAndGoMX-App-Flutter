@@ -4,6 +4,9 @@ Todos los cambios importantes del proyecto **StopAndGoMX** se documentan en este
 El formato sigue las recomendaciones de **Keep a Changelog**  
 y el versionado está basado en **Semantic Versioning (SemVer)**.
 
+## [1.1.4] - 2026-5-14
+• Fix urgente snackbar
+
 ## [1.1.3] - 2026-4-25
 • Mejoras UI
 
