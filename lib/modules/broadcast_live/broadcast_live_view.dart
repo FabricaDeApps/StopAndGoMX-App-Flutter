@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
 import 'package:get/get.dart';
+import 'package:stopandgo/core/utils/app_navigator.dart';
 import 'package:stopandgo/modules/broadcast_live/broadcast_live_controller.dart';
 
 class BroadcastLiveView extends GetView<BroadcastLiveController> {
@@ -45,7 +46,7 @@ class BroadcastLiveView extends GetView<BroadcastLiveController> {
                   ),
                   const SizedBox(height: 8),
                   OutlinedButton(
-                    onPressed: () => Get.back(),
+                    onPressed: () => AppNavigator.maybePop(context),
                     child: const Text('Volver'),
                   ),
                 ],
@@ -146,7 +147,7 @@ class BroadcastLiveView extends GetView<BroadcastLiveController> {
                         onPressed: controller.isLive.value
                             ? () async {
                                 await controller.stop();
-                                Get.back();
+                                AppNavigator.pop();
                               }
                             : null,
                       ),

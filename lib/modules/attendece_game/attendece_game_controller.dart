@@ -2,6 +2,7 @@
 import 'package:get/get.dart';
 import 'package:stopandgo/core/models/players.dart';
 import 'package:stopandgo/core/network/api_repository.dart';
+import 'package:stopandgo/core/utils/app_navigator.dart';
 
 enum AttStatus { present, absent, late }
 
@@ -173,7 +174,7 @@ class AttendanceGameController extends GetxController {
         return;
       }
 
-      Get.back(result: true);
+      AppNavigator.pop(result: true);
       Get.snackbar(
         'Asistencias',
         'Guardado correctamente',

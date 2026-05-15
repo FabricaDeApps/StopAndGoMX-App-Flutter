@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
+import 'package:stopandgo/core/utils/app_navigator.dart';
 import 'ecommerce_cart_controller.dart';
 
 class EcommerceCartView extends GetView<EcommerceCartController> {
@@ -142,7 +143,7 @@ class EcommerceCartView extends GetView<EcommerceCartController> {
                   const Text('Tu carrito está vacío.'),
                   const SizedBox(height: 12),
                   ElevatedButton(
-                    onPressed: () => Get.back(),
+                    onPressed: () => AppNavigator.maybePop(context),
                     child: const Text('Seguir comprando'),
                   ),
                 ],

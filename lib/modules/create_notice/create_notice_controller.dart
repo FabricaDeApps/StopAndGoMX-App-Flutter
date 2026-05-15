@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:stopandgo/core/network/api_repository.dart';
 import 'package:stopandgo/core/storage/app_storage.dart';
+import 'package:stopandgo/core/utils/app_navigator.dart';
 import 'package:stopandgo/core/utils/role_utils.dart';
 
 class CreateNoticeController extends GetxController {
@@ -184,7 +185,7 @@ class CreateNoticeController extends GetxController {
         throw Exception('Solo admin, manager o coach pueden crear avisos.');
       }
 
-      Get.back(result: true);
+      AppNavigator.pop(result: true);
       Get.snackbar(
         'Avisos',
         'Aviso creado correctamente.',

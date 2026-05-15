@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import 'dart:math' as math;
 import 'package:get/get.dart';
+import 'package:stopandgo/core/utils/app_navigator.dart';
 import 'package:stopandgo/core/utils/money.dart';
 import 'package:stopandgo/modules/home/tabs/payments/payments_controller.dart';
 import 'package:stopandgo/routes/app_routes.dart';
@@ -518,7 +519,7 @@ class PaymentsTabView extends GetView<PaymentsTabController> {
                     const SizedBox(width: 12),
                     Expanded(
                       child: FilledButton(
-                        onPressed: () => Get.back(),
+                        onPressed: () => AppNavigator.pop(context: context),
                         child: const Text('Listo'),
                       ),
                     ),
@@ -568,7 +569,7 @@ class PaymentsTabView extends GetView<PaymentsTabController> {
                   minimumSize: const Size.fromHeight(48),
                 ),
                 onPressed: () {
-                  Get.back();
+                  AppNavigator.pop(context: context);
                   Get.toNamed(Routes.imageView, arguments: {'url': url});
                 },
                 icon: const Icon(Icons.open_in_new),
@@ -576,7 +577,7 @@ class PaymentsTabView extends GetView<PaymentsTabController> {
               ),
               const SizedBox(height: 8),
               TextButton(
-                onPressed: () => Get.back(),
+                onPressed: () => AppNavigator.pop(context: context),
                 child: const Text('Cancelar'),
               ),
             ],

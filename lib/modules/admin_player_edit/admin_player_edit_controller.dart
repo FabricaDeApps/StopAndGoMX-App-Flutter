@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:stopandgo/core/models/admin_player.dart';
 import 'package:stopandgo/core/network/api_repository.dart';
+import 'package:stopandgo/core/utils/app_navigator.dart';
 
 class AdminPlayerEditController extends GetxController {
   final ApiRepository _api = Get.find<ApiRepository>();
@@ -122,7 +123,7 @@ class AdminPlayerEditController extends GetxController {
         playerId: player.id,
         data: payload,
       );
-      Get.back(result: updated);
+      AppNavigator.pop(result: updated);
       Get.snackbar(
         'Jugador actualizado',
         'Los cambios se guardaron correctamente.',

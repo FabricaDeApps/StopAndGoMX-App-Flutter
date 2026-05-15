@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:dropdown_search/dropdown_search.dart';
 import 'package:get/get.dart';
 import 'package:stopandgo/core/models/games/games.dart';
+import 'package:stopandgo/core/utils/app_navigator.dart';
 import 'create_trainning_controller.dart';
 
 class CreateTrainningView extends GetView<CreateTrainningController> {
@@ -35,7 +36,7 @@ class CreateTrainningView extends GetView<CreateTrainningController> {
                   ),
                   const SizedBox(height: 12),
                   ElevatedButton(
-                    onPressed: () => Get.back(),
+                    onPressed: () => AppNavigator.maybePop(context),
                     child: const Text('Volver'),
                   ),
                 ],

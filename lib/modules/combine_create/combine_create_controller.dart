@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 import 'package:stopandgo/core/models/category.dart';
 import 'package:stopandgo/core/models/games/games.dart';
 import 'package:stopandgo/core/storage/app_storage.dart';
+import 'package:stopandgo/core/utils/app_navigator.dart';
 import '../../../core/network/api_repository.dart';
 
 class CombineCreateController extends GetxController {
@@ -203,7 +204,7 @@ class CombineCreateController extends GetxController {
         return;
       }
 
-      Get.back(result: created); // devuelve el evento creado
+      AppNavigator.pop(result: created); // devuelve el evento creado
       Get.snackbar('Evaluación', 'Evento creado');
     } catch (e) {
       error.value = e.toString();

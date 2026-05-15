@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:stopandgo/core/models/dto/receipt_dto.dart';
+import 'package:stopandgo/core/utils/app_navigator.dart';
 import 'package:stopandgo/core/utils/money.dart';
 import 'package:stopandgo/routes/app_routes.dart';
 import 'payment_detail_controller.dart';
@@ -383,7 +384,7 @@ class PaymentDetailView extends GetView<PaymentDetailController> {
                   minimumSize: const Size.fromHeight(48),
                 ),
                 onPressed: () {
-                  Get.back();
+                  AppNavigator.pop(context: context);
                   Get.toNamed(Routes.imageView, arguments: {'url': url});
                 },
                 icon: const Icon(Icons.open_in_new),

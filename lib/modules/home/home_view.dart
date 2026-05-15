@@ -5,6 +5,7 @@ import 'package:get/get.dart';
 import 'package:stopandgo/core/models/category.dart';
 import 'package:stopandgo/core/services/ecommerce_cart_service.dart';
 import 'package:stopandgo/core/storage/app_storage.dart';
+import 'package:stopandgo/core/utils/app_navigator.dart';
 import 'package:stopandgo/core/utils/role_utils.dart';
 import 'package:stopandgo/core/widgets/category_picker_sheet.dart';
 import 'package:stopandgo/core/widgets/player_picker_sheet.dart';
@@ -63,7 +64,7 @@ class HomeView extends GetView<HomeController> {
       final tabs = controller.tabs.toList();
 
       return Scaffold(
-        drawer: _buildDrawer(theme),
+        drawer: _buildDrawer(context, theme),
         appBar: AppBar(
           title: Row(
             children: [
@@ -239,7 +240,7 @@ class HomeView extends GetView<HomeController> {
   }
 
   // ================= Drawer =================
-  Widget _buildDrawer(ThemeData theme) {
+  Widget _buildDrawer(BuildContext context, ThemeData theme) {
     return Drawer(
       child: SafeArea(
         child: Obx(() {
@@ -412,14 +413,14 @@ class HomeView extends GetView<HomeController> {
               ListTile(
                 leading: const Icon(Icons.home_outlined),
                 title: const Text('Inicio'),
-                onTap: () => Get.back(),
+                onTap: () => AppNavigator.pop(context: context),
               ),
               if (controller.showNewsMenu.value)
                 ListTile(
                   leading: const Icon(Icons.newspaper_outlined),
                   title: const Text('Noticias'),
                   onTap: () {
-                    Get.back();
+                    AppNavigator.pop(context: context);
                     Get.toNamed(Routes.news);
                   },
                 ),
@@ -428,7 +429,7 @@ class HomeView extends GetView<HomeController> {
                   leading: const Icon(Icons.group_add),
                   title: const Text('Asignar Jugador a Categoria'),
                   onTap: () async {
-                    Get.back();
+                    AppNavigator.pop(context: context);
 
                     if (isManager || isCoach) {
                       final picked = await _pickCategoryFromSheet();
@@ -444,7 +445,7 @@ class HomeView extends GetView<HomeController> {
                   leading: const Icon(Icons.supervised_user_circle),
                   title: const Text('Roster'),
                   onTap: () async {
-                    Get.back();
+                    AppNavigator.pop(context: context);
 
                     if (isManager || isCoach) {
                       final picked = await _pickCategoryFromSheet();
@@ -459,7 +460,7 @@ class HomeView extends GetView<HomeController> {
                     leading: const Icon(Icons.groups_2_outlined),
                     title: const Text('Roster General'),
                     onTap: () {
-                      Get.back();
+                      AppNavigator.pop(context: context);
                       Get.toNamed(Routes.adminRoster);
                     },
                   ),
@@ -468,7 +469,7 @@ class HomeView extends GetView<HomeController> {
                     leading: const Icon(Icons.fact_check_outlined),
                     title: const Text('Cumplimiento de documentos'),
                     onTap: () async {
-                      Get.back();
+                      AppNavigator.pop(context: context);
 
                       final picked = await _pickCategoryFromSheet();
                       if (picked == null) return;
@@ -491,7 +492,7 @@ class HomeView extends GetView<HomeController> {
                   leading: const Icon(Icons.list_alt_outlined),
                   title: const Text('Entrenamientos'),
                   onTap: () async {
-                    Get.back();
+                    AppNavigator.pop(context: context);
 
                     if (isManager || isCoach) {
                       final picked = await _pickCategoryFromSheet();
@@ -507,7 +508,7 @@ class HomeView extends GetView<HomeController> {
                   leading: const Icon(Icons.fitness_center),
                   title: const Text('Evaluación (Combine)'),
                   onTap: () {
-                    Get.back();
+                    AppNavigator.pop(context: context);
 
                     if (isCoach) {
                       if (controller.categories.isEmpty) {
@@ -550,7 +551,7 @@ class HomeView extends GetView<HomeController> {
                   leading: const Icon(Icons.list_alt_outlined),
                   title: const Text('Entrenamientos'),
                   onTap: () {
-                    Get.back();
+                    AppNavigator.pop(context: context);
                     Get.toNamed(Routes.playerTrainnings);
                   },
                 ),
@@ -562,7 +563,7 @@ class HomeView extends GetView<HomeController> {
                       leading: const Icon(Icons.route),
                       title: const Text('Playbook'),
                       onTap: () {
-                        Get.back();
+                        AppNavigator.pop(context: context);
                         Get.toNamed(Routes.playbookList);
                       },
                     ),
@@ -596,7 +597,7 @@ class HomeView extends GetView<HomeController> {
                   leading: const Icon(Icons.person_outline),
                   title: const Text('Documentos'),
                   onTap: () async {
-                    Get.back();
+                    AppNavigator.pop(context: context);
 
                     final user = AppStorage.getUser();
                     final role =
@@ -658,7 +659,7 @@ class HomeView extends GetView<HomeController> {
                 leading: const Icon(Icons.person_outline),
                 title: const Text('Perfil'),
                 onTap: () {
-                  Get.back();
+                  AppNavigator.pop(context: context);
                   Get.toNamed(Routes.myProfile);
                 },
               ),
@@ -677,7 +678,7 @@ class HomeView extends GetView<HomeController> {
 
                   final url = 'https://$orgSlug.stopandgomx.app/privacy-policy';
 
-                  Get.back();
+                  AppNavigator.pop(context: context);
                   Get.to(
                     () => AppWebViewPage(
                       title: 'Políticas de privacidad',

@@ -64,7 +64,7 @@ class BirthdayGreetingView extends GetView<BirthdayGreetingController> {
                         Align(
                           alignment: Alignment.centerLeft,
                           child: IconButton.filledTonal(
-                            onPressed: Get.back,
+                            onPressed: () => Navigator.of(context).maybePop(),
                             style: IconButton.styleFrom(
                               backgroundColor: Colors.white.withValues(alpha: 0.12),
                               foregroundColor: Colors.white,

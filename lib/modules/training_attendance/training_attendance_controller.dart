@@ -4,6 +4,7 @@ import 'package:stopandgo/core/models/players.dart';
 import 'package:stopandgo/core/models/trainning_attendance.dart';
 import 'package:stopandgo/core/network/api_repository.dart';
 import 'package:stopandgo/core/storage/app_storage.dart';
+import 'package:stopandgo/core/utils/app_navigator.dart';
 import 'package:stopandgo/core/utils/role_utils.dart';
 
 class AttendanceRow {
@@ -215,7 +216,7 @@ class TrainingAttendanceController extends GetxController {
             );
 
       if (ok) {
-        Get.back(result: true);
+        AppNavigator.pop(result: true);
         Get.snackbar('Éxito', 'Asistencia guardada correctamente');
       } else {
         Get.snackbar('Error', 'No se pudo guardar la asistencia');

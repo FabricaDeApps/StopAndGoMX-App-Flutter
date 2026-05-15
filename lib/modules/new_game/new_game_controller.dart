@@ -6,6 +6,7 @@ import 'package:stopandgo/core/network/api_repository.dart';
 import 'package:stopandgo/core/services/coach_games_service.dart';
 import 'package:stopandgo/core/services/manager_games_service.dart';
 import 'package:stopandgo/core/storage/app_storage.dart';
+import 'package:stopandgo/core/utils/app_navigator.dart';
 
 class NewGameController extends GetxController {
   final _api = Get.find<ApiRepository>();
@@ -221,7 +222,7 @@ class NewGameController extends GetxController {
         }
       }
 
-      Get.back(result: true);
+      AppNavigator.pop(result: true);
       Get.snackbar(
         'Éxito',
         isEditing

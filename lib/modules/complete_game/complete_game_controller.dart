@@ -3,8 +3,9 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:stopandgo/core/network/api_repository.dart';
 import 'package:flutter/services.dart';
+import 'package:stopandgo/core/network/api_repository.dart';
+import 'package:stopandgo/core/utils/app_navigator.dart';
 
 class CompleteGameController extends GetxController {
   final _api = Get.find<ApiRepository>();
@@ -117,7 +118,7 @@ class CompleteGameController extends GetxController {
         return;
       }
 
-      Get.back(result: true);
+      AppNavigator.pop(result: true);
       Get.snackbar(
         'Éxito',
         result.message.isEmpty ? 'Juego completado' : result.message,

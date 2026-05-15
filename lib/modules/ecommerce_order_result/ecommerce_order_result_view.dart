@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
+import 'package:stopandgo/core/utils/app_navigator.dart';
 import 'ecommerce_order_result_controller.dart';
 
 class EcommerceOrderResultView extends GetView<EcommerceOrderResultController> {
@@ -454,7 +455,7 @@ class _Actions extends StatelessWidget {
           width: double.infinity,
           height: 44,
           child: OutlinedButton(
-            onPressed: () => Get.back(),
+            onPressed: () => AppNavigator.maybePop(context),
             child: const Text('Volver'),
           ),
         ),

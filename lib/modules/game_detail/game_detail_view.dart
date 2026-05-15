@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:stopandgo/core/models/games/game_comment.dart';
 import 'package:stopandgo/core/models/games/games.dart';
+import 'package:stopandgo/core/utils/app_navigator.dart';
 import 'package:stopandgo/core/utils/helpers.dart';
 import 'package:stopandgo/modules/game_detail/game_detail_controller.dart';
 import 'package:stopandgo/routes/app_routes.dart';
@@ -21,7 +22,7 @@ class GameDetailView extends GetView<GameDetailController> {
         iconTheme: const IconThemeData(color: Colors.white),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
-          onPressed: () => Get.back(),
+          onPressed: () => AppNavigator.maybePop(context),
         ),
         actions: [
           IconButton(

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
+import 'package:stopandgo/core/utils/app_navigator.dart';
 import 'ecommerce_checkout_controller.dart';
 
 class EcommerceCheckoutView extends GetView<EcommerceCheckoutController> {
@@ -130,7 +131,7 @@ class EcommerceCheckoutView extends GetView<EcommerceCheckoutController> {
                   const Text('No hay artículos para pagar.'),
                   const SizedBox(height: 12),
                   ElevatedButton(
-                    onPressed: () => Get.back(),
+                    onPressed: () => AppNavigator.maybePop(context),
                     child: const Text('Volver'),
                   ),
                 ],
