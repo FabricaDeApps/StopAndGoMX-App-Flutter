@@ -163,6 +163,12 @@ class EcommerceProductDetailController extends GetxController {
     if (p == null) return;
 
     final vId = selectedVariantId.value;
+    final selectedValueIds = usesAttributeSelection
+        ? p.attributeGroups
+            .map((group) => selectedValueIdsByGroup[group.id])
+            .whereType<int>()
+            .toList()
+        : const <int>[];
     if (!isSelectionComplete) {
       final message = usesAttributeSelection
           ? 'Selecciona todos los atributos.'
@@ -187,7 +193,15 @@ class EcommerceProductDetailController extends GetxController {
     try {
       isAdding.value = true;
 
-      await _api.ecommerceCartAddItem(variantId: vId, qty: qty.value);
+      if (usesAttributeSelection) {
+        await _api.ecommerceCartAddItem(
+          productId: p.id,
+          valueIds: selectedValueIds,
+          qty: qty.value,
+        );
+      } else {
+        await _api.ecommerceCartAddItem(variantId: vId, qty: qty.value);
+      }
 
       cartService.addOptimistic(qty.value);
       Get.snackbar('Listo', 'Agregado al carrito');

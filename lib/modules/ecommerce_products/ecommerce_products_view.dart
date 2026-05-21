@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:stopandgo/core/utils/ecommerce_price_formatter.dart';
 import 'package:stopandgo/core/widgets/ecommerce_checkout_bar.dart';
 import 'ecommerce_products_controller.dart';
 
@@ -87,22 +88,27 @@ class EcommerceProductsView extends GetView<EcommerceProductsController> {
                           padding: const EdgeInsets.only(bottom: 8),
                           gridDelegate:
                               const SliverGridDelegateWithFixedCrossAxisCount(
-                                crossAxisCount: 2,
-                                mainAxisSpacing: 12,
-                                crossAxisSpacing: 12,
-                                childAspectRatio: 0.62,
-                              ),
+                            crossAxisCount: 2,
+                            mainAxisSpacing: 12,
+                            crossAxisSpacing: 12,
+                            childAspectRatio: 0.62,
+                          ),
                           itemCount: list.length,
                           itemBuilder: (_, index) {
                             final p = list[index];
 
                             final img = p.imageUrl;
-                            final showFromPrice = p.minPriceCents > 0;
-                            final priceText = showFromPrice
-                                ? 'Desde \$${p.minPrice.toStringAsFixed(2)}'
-                                : (p.activeVariants.isNotEmpty
-                                      ? 'Ver opciones'
-                                      : 'Sin precio');
+                            final pricedVariant = p.lowestDisplayPriceVariant;
+                            final priceText = pricedVariant == null
+                                ? (p.activeVariants.isNotEmpty
+                                    ? 'Ver opciones'
+                                    : 'Sin precio')
+                                : p.hasMixedDisplayCurrencies
+                                    ? 'Ver opciones'
+                                    : 'Desde ${formatEcommercePrice(
+                                        currency: pricedVariant.displayCurrency,
+                                        amount: pricedVariant.displayAmount,
+                                      )}';
 
                             return Container(
                               decoration: BoxDecoration(
@@ -141,10 +147,9 @@ class EcommerceProductsView extends GetView<EcommerceProductsController> {
                                                   fit: BoxFit.contain,
                                                   errorBuilder: (_, __, ___) =>
                                                       const Icon(
-                                                        Icons
-                                                            .broken_image_outlined,
-                                                        size: 36,
-                                                      ),
+                                                    Icons.broken_image_outlined,
+                                                    size: 36,
+                                                  ),
                                                 ),
                                               ),
                                       ),
@@ -195,21 +200,23 @@ class EcommerceProductsView extends GetView<EcommerceProductsController> {
                                                   scrollDirection:
                                                       Axis.horizontal,
                                                   child: Row(
-                                                    children: p.previewValues.map((
+                                                    children:
+                                                        p.previewValues.map((
                                                       v,
                                                     ) {
                                                       return Padding(
                                                         padding:
-                                                            const EdgeInsets.only(
-                                                              right: 6,
-                                                            ),
+                                                            const EdgeInsets
+                                                                .only(
+                                                          right: 6,
+                                                        ),
                                                         child: Chip(
                                                           label: Text(
                                                             v,
                                                             style:
                                                                 const TextStyle(
-                                                                  fontSize: 11,
-                                                                ),
+                                                              fontSize: 11,
+                                                            ),
                                                           ),
                                                           visualDensity:
                                                               VisualDensity
@@ -229,9 +236,8 @@ class EcommerceProductsView extends GetView<EcommerceProductsController> {
                                             // CTA al fondo siempre visible
                                             if (p.activeVariants.length == 1)
                                               Obx(() {
-                                                final loading =
-                                                    controller.quickAdding[p
-                                                        .id] ==
+                                                final loading = controller
+                                                        .quickAdding[p.id] ==
                                                     true;
                                                 return SizedBox(
                                                   width: double.infinity,
@@ -240,16 +246,15 @@ class EcommerceProductsView extends GetView<EcommerceProductsController> {
                                                     onPressed: loading
                                                         ? null
                                                         : () => controller
-                                                              .quickAdd(p),
+                                                            .quickAdd(p),
                                                     child: loading
                                                         ? const SizedBox(
                                                             width: 16,
                                                             height: 20,
                                                             child:
                                                                 CircularProgressIndicator(
-                                                                  strokeWidth:
-                                                                      2,
-                                                                ),
+                                                              strokeWidth: 2,
+                                                            ),
                                                           )
                                                         : const Text('Agregar'),
                                                   ),

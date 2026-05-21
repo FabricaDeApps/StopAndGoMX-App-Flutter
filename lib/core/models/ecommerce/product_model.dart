@@ -37,6 +37,27 @@ class ProductModel {
 
   double get minPrice => minPriceCents / 100.0;
 
+  Iterable<ProductVariantListModel> get _pricedVariants =>
+      activeVariants.where((variant) => variant.hasDisplayPrice);
+
+  bool get hasMixedDisplayCurrencies {
+    final currencies =
+        _pricedVariants.map((variant) => variant.displayCurrency).toSet();
+    return currencies.length > 1;
+  }
+
+  ProductVariantListModel? get lowestDisplayPriceVariant {
+    ProductVariantListModel? selected;
+
+    for (final variant in _pricedVariants) {
+      if (selected == null || variant.displayAmount < selected.displayAmount) {
+        selected = variant;
+      }
+    }
+
+    return selected;
+  }
+
   List<String> get previewValues {
     // toma los primeros valores de la primera variante (o mezcla)
     if (activeVariants.isEmpty) return const [];

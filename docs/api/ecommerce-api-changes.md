@@ -1,45 +1,86 @@
-# Ecommerce API Changes
+# Ecommerce Variants Front Contract
 
-Fecha: 2026-05-05
+Fecha: 2026-05-21
 
-Este documento resume los cambios realizados en la API de ecommerce para soportar seleccion de atributos por producto sin romper integraciones existentes ni pedidos historicos.
+Este documento resume dos cambios para frontend/app:
 
-## Objetivo
+1. Admin de variantes ahora permite marcar varios valores dentro de un mismo atributo.
+2. La API de ecommerce resuelve variantes a partir de una seleccion de un valor por atributo y ahora expone precio MXN/USD con fallback de visualizacion.
 
-Antes, la app debia conocer directamente la `variant_id` para agregar un producto al carrito.
+## 1. Cambio en admin
 
-Ahora la API tambien soporta este flujo:
+En `admin/ecommerce/variants/create` y `admin/ecommerce/variants/{id}/edit`:
 
-1. Obtener producto con atributos disponibles.
-2. Seleccionar valores de atributos, por ejemplo `Color=Rojo` y `Talla=M`.
-3. Resolver la variante correcta.
-4. Agregar al carrito usando la combinacion seleccionada.
+- cada `option set` ahora usa `checkbox` por valor;
+- una variante puede guardar varios valores dentro del mismo atributo;
+- ejemplo valido:
+  - `Color`: `Rojo`, `Negra`
+  - `Talla`: `M`, `L`
 
-## Compatibilidad hacia atras
+Eso significa que una sola variante puede representar varias combinaciones permitidas para el mismo producto.
 
-Los cambios son backward compatible.
+## 2. Regla de precio para frontend
 
-- Sigue funcionando `POST /api/ecommerce/cart/items` enviando `variant_id`.
-- Los pedidos existentes no cambian.
-- Los snapshots historicos de `ecommerce_order_items` no se modifican.
+Cada variante puede tener:
 
-## Endpoints actualizados
+- `price_cents` en MXN
+- `price_usd` en USD
 
-### 1. `GET /api/ecommerce/products/{product}`
+Regla de visualizacion:
 
-Sigue devolviendo el producto, pero ahora incluye dos bloques nuevos:
+- si la variante tiene MXN, ese es el precio default a mostrar;
+- si no tiene MXN pero si tiene USD, mostrar USD.
 
+La API ahora expone un bloque `pricing` por variante:
+
+```json
+{
+  "currency": "MXN",
+  "amount": 399.0,
+  "price_cents_mxn": 39900,
+  "price_usd": 24.99
+}
+```
+
+Notas:
+
+- `currency` es la moneda default para mostrar esa variante.
+- `amount` es el monto ya listo para UI en moneda mayor.
+- `price_cents_mxn` puede venir `null`.
+- `price_usd` puede venir `null`.
+
+## 3. Flujo que debe usar la app
+
+Para cada producto:
+
+1. cargar detalle del producto;
+2. renderizar `attribute_groups`;
+3. permitir al usuario elegir solo un valor por atributo;
+4. enviar esa seleccion al endpoint `resolve-variant`;
+5. con la variante resuelta, mostrar precio/stock y agregar al carrito.
+
+Importante:
+
+- aunque una variante en admin pueda tener varios valores por atributo, la app debe mandar solo un valor elegido por cada atributo;
+- el backend hara el matching contra las variantes activas que contengan esos valores seleccionados.
+
+## 4. Endpoints actualizados
+
+### `GET /api/ecommerce/products/{product}`
+
+Sigue devolviendo:
+
+- `data`
 - `attribute_groups`
 - `variant_matrix`
 
-#### Nuevo payload adicional
+Ejemplo:
 
 ```json
 {
   "data": {
     "id": 15,
-    "name": "Jersey Local",
-    "active_variants": []
+    "name": "Playera manga corta"
   },
   "attribute_groups": [
     {
@@ -47,7 +88,7 @@ Sigue devolviendo el producto, pero ahora incluye dos bloques nuevos:
       "name": "Color",
       "values": [
         { "id": 10, "value": "red", "label": "Rojo" },
-        { "id": 11, "value": "blue", "label": "Azul" }
+        { "id": 11, "value": "black", "label": "Negra" }
       ]
     },
     {
@@ -62,29 +103,36 @@ Sigue devolviendo el producto, pero ahora incluye dos bloques nuevos:
   "variant_matrix": [
     {
       "id": 100,
-      "title": "Jersey Local - Rojo - M",
+      "title": "Playera manga corta",
       "price_cents": 39900,
+      "price_usd": 24.99,
+      "pricing": {
+        "currency": "MXN",
+        "amount": 399.0,
+        "price_cents_mxn": 39900,
+        "price_usd": 24.99
+      },
       "stock": 8,
       "is_active": true,
-      "value_ids": [10, 20]
-    },
-    {
-      "id": 101,
-      "title": "Jersey Local - Rojo - L",
-      "price_cents": 39900,
-      "stock": 4,
-      "is_active": true,
-      "value_ids": [10, 21]
+      "value_ids": [10, 11, 20, 21],
+      "option_set_ids": [1, 2]
     }
   ]
 }
 ```
 
-### 2. Nuevo endpoint: `POST /api/ecommerce/products/{product}/resolve-variant`
+Interpretacion del ejemplo:
 
-Este endpoint permite resolver una variante activa a partir de los valores seleccionados.
+- la variante `100` acepta `Rojo` o `Negra`;
+- y acepta `M` o `L`.
+
+## 5. Resolve variant
+
+### `POST /api/ecommerce/products/{product}/resolve-variant`
 
 #### Request
+
+La app manda solo un valor por atributo:
 
 ```json
 {
@@ -92,14 +140,35 @@ Este endpoint permite resolver una variante activa a partir de los valores selec
 }
 ```
 
+Ejemplo:
+
+- `10` = `Color: Rojo`
+- `20` = `Talla: M`
+
+#### Regla de matching en backend
+
+Una variante hace match cuando:
+
+- contiene todos los `value_ids` seleccionados;
+- y cubre exactamente los mismos atributos seleccionados por el usuario.
+
+Si varias variantes hacen match, backend prioriza la mas especifica.
+
 #### Response
 
 ```json
 {
   "data": {
     "variant_id": 100,
-    "title": "Jersey Local - Rojo - M",
+    "title": "Playera manga corta",
     "price_cents": 39900,
+    "price_usd": 24.99,
+    "pricing": {
+      "currency": "MXN",
+      "amount": 399.0,
+      "price_cents_mxn": 39900,
+      "price_usd": 24.99
+    },
     "stock": 8,
     "is_active": true,
     "value_ids": [10, 20]
@@ -107,18 +176,23 @@ Este endpoint permite resolver una variante activa a partir de los valores selec
 }
 ```
 
-#### Uso recomendado en app
+#### Error de validacion esperado
 
-1. Cargar detalle del producto.
-2. Mostrar `attribute_groups`.
-3. Cuando el usuario termine de elegir atributos, llamar `resolve-variant`.
-4. Con la `variant_id` resuelta, mostrar precio/stock y permitir agregar al carrito.
+Si la app manda dos valores del mismo atributo:
 
-### 3. `POST /api/ecommerce/cart/items`
+```json
+{
+  "message": "Debes enviar solo un valor por atributo."
+}
+```
 
-Este endpoint ahora soporta dos modos.
+## 6. Carrito
 
-#### Modo anterior
+### `POST /api/ecommerce/cart/items`
+
+Sigue soportando dos modos.
+
+#### Modo legado
 
 ```json
 {
@@ -127,7 +201,7 @@ Este endpoint ahora soporta dos modos.
 }
 ```
 
-#### Nuevo modo
+#### Modo por seleccion
 
 ```json
 {
@@ -137,47 +211,37 @@ Este endpoint ahora soporta dos modos.
 }
 ```
 
-En el nuevo modo, el backend resuelve internamente la variante activa que coincide exactamente con esa combinacion.
+En este segundo modo:
 
-#### Respuesta
+- la app manda un valor por atributo;
+- backend resuelve la variante y la agrega al carrito.
 
-La respuesta sigue devolviendo el carrito con items, variante, producto y values asociados.
+## 7. Compatibilidad
 
-## Reglas nuevas de negocio
+Backward compatible:
 
-Se reforzo la consistencia de variantes en admin y backend:
+- sigue funcionando agregar al carrito con `variant_id`;
+- los pedidos historicos no cambian;
+- los snapshots historicos siguen validos.
 
-- Una variante solo puede tener un valor por `option_set`.
-- No se permiten combinaciones duplicadas dentro del mismo producto.
-- Si no existe una variante activa para la combinacion seleccionada, la API responde error.
+## 8. Consideraciones de moneda
 
-## Impacto para la app
+Backend usa esta prioridad por variante:
 
-Si la app actual ya usa `variant_id`:
+1. `price_cents` MXN si existe
+2. `price_usd` si MXN viene vacio
 
-- no necesita cambiar para seguir operando;
-- pero no aprovechara la nueva seleccion por atributos hasta implementar el nuevo flujo.
+Para checkout:
 
-Si la app quiere soportar atributos:
+- no se permite mezclar variantes MXN y USD en el mismo carrito;
+- si eso pasa, backend responde error.
 
-1. usar `GET /api/ecommerce/products/{product}`;
-2. renderizar `attribute_groups`;
-3. resolver variante con `POST /api/ecommerce/products/{product}/resolve-variant`;
-4. agregar al carrito con `variant_id` o con `product_id + value_ids`.
+## 9. Archivos backend relevantes
 
-## Archivos backend tocados
-
+- `app/Http/Controllers/Admin/Ecommerce/EcommerceVariantController.php`
+- `resources/views/admin/ecommerce/variants/create.blade.php`
+- `resources/views/admin/ecommerce/variants/edit.blade.php`
 - `app/Http/Controllers/Api/Ecommerce/CatalogController.php`
 - `app/Http/Controllers/Api/Ecommerce/CartController.php`
-- `routes/api.php`
-
-## Nota sobre pedidos existentes
-
-Los pedidos historicos siguen siendo validos porque el checkout mantiene snapshots en `ecommerce_order_items`, incluyendo:
-
-- `product_name_snapshot`
-- `variant_title_snapshot`
-- `variant_values_snapshot`
-- `unit_price_cents_snapshot`
-
-No se rehizo ni se reinterpretó informacion historica.
+- `app/Http/Controllers/Api/Ecommerce/CheckoutController.php`
+- `app/Models/EcommerceVariant.php`

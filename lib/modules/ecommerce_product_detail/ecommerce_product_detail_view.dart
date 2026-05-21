@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:intl/intl.dart';
+import 'package:stopandgo/core/utils/ecommerce_price_formatter.dart';
 import 'package:stopandgo/core/widgets/ecommerce_checkout_bar.dart';
 import 'package:stopandgo/routes/app_routes.dart';
 import '../../../core/models/ecommerce/product_detail_model.dart';
@@ -9,12 +9,6 @@ import 'ecommerce_product_detail_controller.dart';
 class EcommerceProductDetailView
     extends GetView<EcommerceProductDetailController> {
   const EcommerceProductDetailView({super.key});
-
-  static final _money = NumberFormat.currency(
-    locale: 'es_MX',
-    symbol: '\$',
-    decimalDigits: 2,
-  );
 
   @override
   Widget build(BuildContext context) {
@@ -65,8 +59,8 @@ class EcommerceProductDetailView
                       adding
                           ? 'Agregando...'
                           : resolving
-                          ? 'Validando selección...'
-                          : 'Agregar al carrito',
+                              ? 'Validando selección...'
+                              : 'Agregar al carrito',
                     ),
                   ),
                 ),
@@ -166,7 +160,6 @@ class EcommerceProductDetailView
                 ),
               ],
               const SizedBox(height: 18),
-
               if (controller.usesAttributeSelection) ...[
                 const Text(
                   'Selecciona tus opciones',
@@ -196,10 +189,14 @@ class EcommerceProductDetailView
                     runSpacing: 8,
                     children: p.variants.map((v) {
                       final isSelected = selected == v.id;
-                      final label = v.title.isNotEmpty
-                          ? v.title
-                          : v.values.join(' / ');
-                      final price = _money.format(v.priceCents / 100.0);
+                      final label =
+                          v.title.isNotEmpty ? v.title : v.values.join(' / ');
+                      final price = v.hasDisplayPrice
+                          ? formatEcommercePrice(
+                              currency: v.displayCurrency,
+                              amount: v.displayAmount,
+                            )
+                          : 'Sin precio';
 
                       return ChoiceChip(
                         selected: isSelected,
@@ -210,9 +207,7 @@ class EcommerceProductDetailView
                   );
                 }),
               ],
-
               const SizedBox(height: 4),
-
               Obx(() {
                 final variant = controller.selectedVariant;
                 final usesAttributes = controller.usesAttributeSelection;
@@ -243,7 +238,12 @@ class EcommerceProductDetailView
                       ),
                       const SizedBox(height: 6),
                       Text(
-                        _money.format(variant.priceCents / 100.0),
+                        variant.hasDisplayPrice
+                            ? formatEcommercePrice(
+                                currency: variant.displayCurrency,
+                                amount: variant.displayAmount,
+                              )
+                            : 'Sin precio',
                         style: const TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.w900,
@@ -255,9 +255,8 @@ class EcommerceProductDetailView
                             ? 'Disponible: ${variant.stock}'
                             : 'Agotado',
                         style: TextStyle(
-                          color: variant.stock > 0
-                              ? Colors.black54
-                              : Colors.red,
+                          color:
+                              variant.stock > 0 ? Colors.black54 : Colors.red,
                           fontWeight: FontWeight.w700,
                         ),
                       ),
@@ -265,15 +264,12 @@ class EcommerceProductDetailView
                   ),
                 );
               }),
-
               const SizedBox(height: 18),
-
               const Text(
                 'Cantidad',
                 style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
               ),
               const SizedBox(height: 10),
-
               Row(
                 children: [
                   IconButton(
