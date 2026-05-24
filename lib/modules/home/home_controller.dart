@@ -8,6 +8,7 @@ import 'package:stopandgo/core/config/flavor_config.dart';
 import 'package:stopandgo/core/models/category.dart';
 import 'package:stopandgo/core/models/dto/notice_model.dart';
 import 'package:stopandgo/core/models/games/games.dart';
+import 'package:stopandgo/core/models/league/club_league_overview.dart';
 import 'package:stopandgo/core/models/responses/organization_response.dart';
 import 'package:stopandgo/core/network/token_storage.dart';
 import 'package:stopandgo/core/storage/app_storage.dart';
@@ -52,9 +53,12 @@ class HomeController extends GetxController with GetTickerProviderStateMixin {
   final selectedPlayerCategoryId = RxnInt();
 
   // tabs
-  late final TabController tabController;
+  late TabController tabController;
   final tabs = <String>[].obs;
   int _lastLoadedTabIndex = -1;
+  final leagueOverview = Rxn<ClubLeagueOverviewResponse>();
+  final isLoadingLeagueModule = false.obs;
+  final leagueModuleError = RxnString();
 
   // tab controllers
   late final DashboardTabController dashboardCtrl;
@@ -70,23 +74,13 @@ class HomeController extends GetxController with GetTickerProviderStateMixin {
     _loadSession();
     _loadRemoteFlags();
 
-    tabs.value = _resolveTabsForRole(userRole.value);
-    tabController = TabController(length: tabs.length, vsync: this);
+    _configureTabsForCurrentState();
 
     dashboardCtrl = Get.put(DashboardTabController(), permanent: true);
     gamesCtrl = Get.put(GamesTabController(), permanent: true);
     paymentsCtrl = Get.put(PaymentsTabController(), permanent: true);
     noticesCtrl = Get.put(NoticesTabController(), permanent: true);
     gazzettaCtrl = Get.put(GazzettaController(), permanent: true);
-
-    tabController.addListener(() async {
-      if (tabController.indexIsChanging) return;
-      final idx = tabController.index;
-      if (_lastLoadedTabIndex == idx) return;
-      _lastLoadedTabIndex = idx;
-
-      await _loadCurrentTab();
-    });
 
     _lastLoadedTabIndex = 0;
   }
@@ -99,6 +93,7 @@ class HomeController extends GetxController with GetTickerProviderStateMixin {
   Future<void> onReady() async {
     super.onReady();
     await refreshAccount();
+    await refreshLeagueModule();
     _showBirthdayReminderIfNeeded();
     final user = AppStorage.getUser();
     if (user != null) {
@@ -146,12 +141,11 @@ class HomeController extends GetxController with GetTickerProviderStateMixin {
           ? profilePhotoUrl
           : null;
 
-      final birthdate =
-          (account['birthdate'] ??
-                  account['birth_date'] ??
-                  account['date_of_birth'])
-              ?.toString()
-              .trim();
+      final birthdate = (account['birthdate'] ??
+              account['birth_date'] ??
+              account['date_of_birth'])
+          ?.toString()
+          .trim();
       final phone = account['phone']?.toString().trim();
       final curp = account['curp']?.toString().trim();
 
@@ -162,9 +156,8 @@ class HomeController extends GetxController with GetTickerProviderStateMixin {
             name: userName.value,
             email: userEmail.value,
             photoUrl: userAvatar.value,
-            birthdate: (birthdate != null && birthdate.isNotEmpty)
-                ? birthdate
-                : null,
+            birthdate:
+                (birthdate != null && birthdate.isNotEmpty) ? birthdate : null,
             phone: (phone != null && phone.isNotEmpty) ? phone : null,
             curp: (curp != null && curp.isNotEmpty) ? curp : null,
           ),
@@ -316,8 +309,44 @@ class HomeController extends GetxController with GetTickerProviderStateMixin {
 
   List<String> _resolveTabsForRole(String role) {
     final configuredTabs = FlavorConfig.I.getTabsForRole(role);
-    if (org.value?.gazettaEnabled == true) return configuredTabs;
-    return configuredTabs.where((tab) => tab != 'gazzetta').toList();
+    final filteredTabs = org.value?.gazettaEnabled == true
+        ? configuredTabs
+        : configuredTabs.where((tab) => tab != 'gazzetta').toList();
+
+    if (!hasLeagueModule) return filteredTabs;
+    if (filteredTabs.contains('tournaments')) return filteredTabs;
+
+    final insertAt = filteredTabs.indexOf('games');
+    if (insertAt >= 0) {
+      return [
+        ...filteredTabs.take(insertAt + 1),
+        'tournaments',
+        ...filteredTabs.skip(insertAt + 1),
+      ];
+    }
+
+    return [...filteredTabs, 'tournaments'];
+  }
+
+  bool get hasLeagueModule =>
+      leagueOverview.value?.hasAvailableTournaments == true;
+
+  Future<void> openTournamentsTab() async {
+    if (!tabs.contains('tournaments')) {
+      await refreshLeagueModule();
+    }
+
+    final idx = tabs.indexOf('tournaments');
+    if (idx < 0) {
+      Get.snackbar(
+        'Torneos',
+        'El modulo de torneos no esta disponible para esta organizacion.',
+        snackPosition: SnackPosition.BOTTOM,
+      );
+      return;
+    }
+
+    tabController.index = idx;
   }
 
   List<String> get availableRoles {
@@ -554,7 +583,82 @@ class HomeController extends GetxController with GetTickerProviderStateMixin {
       case 'gazzetta':
         await gazzettaCtrl.refreshData();
         break;
+      case 'tournaments':
+        if (leagueOverview.value == null && !isLoadingLeagueModule.value) {
+          await refreshLeagueModule();
+        }
+        break;
     }
+  }
+
+  Future<void> refreshLeagueModule() async {
+    isLoadingLeagueModule.value = true;
+    leagueModuleError.value = null;
+
+    try {
+      final overview = await api.getClubLeagueOverview();
+      leagueOverview.value = overview;
+      final currentIndex = tabController.index;
+      _configureTabsForCurrentState(preferredIndex: currentIndex);
+    } catch (e) {
+      leagueOverview.value = null;
+      leagueModuleError.value = e.toString();
+      final currentIndex = tabController.index;
+      _configureTabsForCurrentState(preferredIndex: currentIndex);
+    } finally {
+      isLoadingLeagueModule.value = false;
+    }
+  }
+
+  void _configureTabsForCurrentState({int? preferredIndex}) {
+    final resolvedTabs = _resolveTabsForRole(userRole.value);
+    final previousTabs = tabs.toList();
+    final previousKey = (preferredIndex != null &&
+            preferredIndex >= 0 &&
+            preferredIndex < previousTabs.length)
+        ? previousTabs[preferredIndex]
+        : null;
+    final safeTabs =
+        resolvedTabs.isEmpty ? <String>['dashboard'] : resolvedTabs;
+
+    tabs.assignAll(safeTabs);
+
+    final nextIndex = previousKey == null
+        ? ((preferredIndex ?? 0).clamp(0, safeTabs.length - 1))
+        : (() {
+            final idx = safeTabs.indexOf(previousKey);
+            return idx >= 0 ? idx : 0;
+          })();
+
+    if (_hasTabControllerInstance) {
+      tabController.removeListener(_handleTabChanged);
+      tabController.dispose();
+    }
+
+    tabController = TabController(
+      length: safeTabs.length,
+      vsync: this,
+      initialIndex: nextIndex,
+    );
+    tabController.addListener(_handleTabChanged);
+  }
+
+  bool get _hasTabControllerInstance {
+    try {
+      tabController.length;
+      return true;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  Future<void> _handleTabChanged() async {
+    if (tabController.indexIsChanging) return;
+    final idx = tabController.index;
+    if (_lastLoadedTabIndex == idx) return;
+    _lastLoadedTabIndex = idx;
+
+    await _loadCurrentTab();
   }
 
   // Callbacks selectors (solo cambian selects + refrescan tab actual)

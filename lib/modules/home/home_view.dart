@@ -20,6 +20,7 @@ import 'tabs/games/games_tab_view.dart';
 import 'tabs/gazzetta/gazzetta_tab_view.dart';
 import 'tabs/payments/payments_tab_view.dart';
 import 'tabs/notices/notices_tab_view.dart';
+import 'tabs/tournaments/tournaments_tab_view.dart';
 
 class HomeView extends GetView<HomeController> {
   const HomeView({super.key});
@@ -178,6 +179,8 @@ class HomeView extends GetView<HomeController> {
 
               case 'notices':
                 return const NoticesTabView();
+              case 'tournaments':
+                return const TournamentsTabView();
               case 'gazzetta':
                 return const GazzettaTabView();
 
@@ -217,6 +220,8 @@ class HomeView extends GetView<HomeController> {
         return _tab(icon: Icons.sports_football, label: "Juegos");
       case "payments":
         return _tab(icon: Icons.payments_outlined, label: "Pagos");
+      case "tournaments":
+        return _tab(icon: Icons.emoji_events_outlined, label: "Torneos");
       case "notices":
         return _tab(icon: Icons.campaign_outlined, label: "Avisos");
       case "gazzetta":
@@ -253,9 +258,8 @@ class HomeView extends GetView<HomeController> {
           final isStaff = role == 'staff';
           final orgSlug = (controller.org.value?.slug ?? '').trim();
           final availableRoles = controller.availableRoles;
-          final selectedRole = availableRoles.contains(role)
-              ? role
-              : availableRoles.first;
+          final selectedRole =
+              availableRoles.contains(role) ? role : availableRoles.first;
 
           return ListView(
             padding: EdgeInsets.zero,
@@ -414,6 +418,14 @@ class HomeView extends GetView<HomeController> {
                 leading: const Icon(Icons.home_outlined),
                 title: const Text('Inicio'),
                 onTap: () => AppNavigator.pop(context: context),
+              ),
+              ListTile(
+                leading: const Icon(Icons.emoji_events_outlined),
+                title: const Text('Torneos'),
+                onTap: () async {
+                  AppNavigator.pop(context: context);
+                  await controller.openTournamentsTab();
+                },
               ),
               if (controller.showNewsMenu.value)
                 ListTile(
@@ -619,10 +631,10 @@ class HomeView extends GetView<HomeController> {
                     if (role == 'parent') {
                       final picked =
                           await Get.bottomSheet<Map<String, dynamic>?>(
-                            const PlayerPickerSheet(),
-                            isScrollControlled: true,
-                            backgroundColor: Colors.transparent,
-                          );
+                        const PlayerPickerSheet(),
+                        isScrollControlled: true,
+                        backgroundColor: Colors.transparent,
+                      );
 
                       if (picked == null) return;
 

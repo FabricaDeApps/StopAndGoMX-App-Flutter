@@ -34,4 +34,8 @@ class ApiEndpoints {
   // ---- NEWS ----
   static const newsFeed = '/news/feed';
   static const newsPreferences = '/news/preferences';
+
+  // ---- CLUB LEAGUE ----
+  static const clubLeague = '/club/league';
+  static const clubLeagueOverview = '$clubLeague/overview';
 }

@@ -24,6 +24,9 @@ import 'package:stopandgo/core/models/ecommerce/ecommerce_order_list_item_model.
 import 'package:stopandgo/core/models/games/game_comment.dart';
 import 'package:stopandgo/core/models/games/games.dart';
 import 'package:stopandgo/core/models/gazzetta/gazzetta_models.dart';
+import 'package:stopandgo/core/models/league/club_league_overview.dart';
+import 'package:stopandgo/core/models/league/club_league_roster_models.dart';
+import 'package:stopandgo/core/models/league/club_league_tournament_data.dart';
 import 'package:stopandgo/core/models/news/news_models.dart';
 import 'package:stopandgo/core/models/player_document.dart';
 import 'package:stopandgo/core/models/player_file.dart';
@@ -79,9 +82,8 @@ class ApiRepository {
     if (res.statusCode == 200) {
       final List data = res.data['data'] ?? [];
 
-      final orgs = data
-          .map((json) => OrganizationResponse.fromJson(json))
-          .toList();
+      final orgs =
+          data.map((json) => OrganizationResponse.fromJson(json)).toList();
 
       return orgs;
     } else {
@@ -117,9 +119,8 @@ class ApiRepository {
       // Guarda sesión completa (access + refresh + expiraciones)
       await _tokenStorage.setSession(
         accessToken: loginData.accessToken,
-        tokenType: (loginData.tokenType.isNotEmpty
-            ? loginData.tokenType
-            : 'Bearer'),
+        tokenType:
+            (loginData.tokenType.isNotEmpty ? loginData.tokenType : 'Bearer'),
         refreshToken: loginData.refreshToken,
         refreshExpiresAt: loginData.refreshExpiresAt,
         accessExpiresInMinutes: loginData.accessExpiresInMinutes,
@@ -133,8 +134,8 @@ class ApiRepository {
       // Mensaje más claro para UI
       final msg =
           e.response?.data is Map && (e.response?.data['message'] != null)
-          ? e.response?.data['message'].toString()
-          : e.message ?? 'Error de red';
+              ? e.response?.data['message'].toString()
+              : e.message ?? 'Error de red';
       throw Exception('Login fallido: $msg');
     } catch (e) {
       throw Exception('Login fallido: $e');
@@ -561,11 +562,11 @@ class ApiRepository {
   }
 
   Map<String, dynamic> _headers([Map<String, dynamic>? extra]) => {
-    ..._authHeader,
-    ..._orgHeader,
-    'Accept': 'application/json',
-    if (extra != null) ...extra,
-  };
+        ..._authHeader,
+        ..._orgHeader,
+        'Accept': 'application/json',
+        if (extra != null) ...extra,
+      };
 
   /// GET /api/home/dashboard (ejemplo)
   /// Puedes ajustar a tu ruta real: /api/player/home, etc.
@@ -616,6 +617,178 @@ class ApiRepository {
     }
 
     throw Exception('Respuesta inesperada al obtener cuenta');
+  }
+
+  Future<ClubLeagueOverviewResponse> getClubLeagueOverview() async {
+    final res = await _dio.get(
+      ApiEndpoints.clubLeagueOverview,
+      options: Options(headers: _headers()),
+    );
+
+    final payload = res.data;
+    if (payload is! Map<String, dynamic>) {
+      throw Exception('Respuesta inesperada al obtener torneos');
+    }
+
+    final data = payload['data'];
+    final rawOverview = data is Map<String, dynamic> ? data : payload;
+
+    return ClubLeagueOverviewResponse.fromJson(rawOverview);
+  }
+
+  Future<ClubLeagueTournamentStandingsResponse> getClubLeagueTournamentStandings(
+    int tournamentId, {
+    int? clubLinkId,
+  }) async {
+    final res = await _dio.get(
+      '${ApiEndpoints.clubLeague}/tournaments/$tournamentId/standings',
+      queryParameters: {
+        if (clubLinkId != null) 'club_link_id': clubLinkId,
+      },
+      options: Options(headers: _headers()),
+    );
+
+    final payload = res.data;
+    if (payload is! Map<String, dynamic>) {
+      throw Exception('Respuesta inesperada al obtener standings');
+    }
+
+    final data = payload['data'];
+    final rawData = data is Map<String, dynamic> ? data : payload;
+
+    return ClubLeagueTournamentStandingsResponse.fromJson(rawData);
+  }
+
+  Future<ClubLeagueTournamentFixturesResponse> getClubLeagueTournamentFixtures(
+    int tournamentId, {
+    int? clubLinkId,
+  }) async {
+    final res = await _dio.get(
+      '${ApiEndpoints.clubLeague}/tournaments/$tournamentId/fixtures',
+      queryParameters: {
+        if (clubLinkId != null) 'club_link_id': clubLinkId,
+      },
+      options: Options(headers: _headers()),
+    );
+
+    final payload = res.data;
+    if (payload is! Map<String, dynamic>) {
+      throw Exception('Respuesta inesperada al obtener fixtures');
+    }
+
+    final data = payload['data'];
+    final rawData = data is Map<String, dynamic> ? data : payload;
+
+    return ClubLeagueTournamentFixturesResponse.fromJson(rawData);
+  }
+
+  Future<ClubLeagueTeamDetailResponse> getClubLeagueTeamDetail(
+    int clubLinkId,
+  ) async {
+    final res = await _dio.get(
+      '${ApiEndpoints.clubLeague}/teams/$clubLinkId',
+      options: Options(headers: _headers()),
+    );
+
+    final payload = res.data;
+    if (payload is! Map<String, dynamic>) {
+      throw Exception('Respuesta inesperada al obtener equipo competitivo');
+    }
+
+    final data = payload['data'];
+    final rawData = data is Map<String, dynamic> ? data : payload;
+    return ClubLeagueTeamDetailResponse.fromJson(rawData);
+  }
+
+  Future<ClubLeagueRosterSourceResponse> getClubLeagueRosterSource(
+    int clubLinkId, {
+    int? categoryId,
+    int? tournamentId,
+    int? divisionId,
+    int? subDivisionId,
+  }) async {
+    final res = await _dio.get(
+      '${ApiEndpoints.clubLeague}/teams/$clubLinkId/roster-source',
+      queryParameters: {
+        if (categoryId != null) 'category_id': categoryId,
+        if (tournamentId != null) 'tournament_id': tournamentId,
+        if (divisionId != null) 'division_id': divisionId,
+        if (subDivisionId != null) 'sub_division_id': subDivisionId,
+      },
+      options: Options(headers: _headers()),
+    );
+
+    final payload = res.data;
+    if (payload is! Map<String, dynamic>) {
+      throw Exception('Respuesta inesperada al obtener roster elegible');
+    }
+
+    final data = payload['data'];
+    final rawData = data is Map<String, dynamic> ? data : payload;
+    return ClubLeagueRosterSourceResponse.fromJson(rawData);
+  }
+
+  Future<ClubLeagueRosterEntriesResponse> getClubLeagueRosterEntries(
+    int tournamentId,
+    int clubLinkId, {
+    int? divisionId,
+    int? subDivisionId,
+  }) async {
+    final res = await _dio.get(
+      '${ApiEndpoints.clubLeague}/tournaments/$tournamentId/teams/$clubLinkId/roster-entries',
+      queryParameters: {
+        if (divisionId != null) 'division_id': divisionId,
+        if (subDivisionId != null) 'sub_division_id': subDivisionId,
+      },
+      options: Options(headers: _headers()),
+    );
+
+    final payload = res.data;
+    if (payload is! Map<String, dynamic>) {
+      throw Exception('Respuesta inesperada al obtener roster enviado');
+    }
+
+    final data = payload['data'];
+    final rawData = data is Map<String, dynamic> ? data : payload;
+    return ClubLeagueRosterEntriesResponse.fromJson(rawData);
+  }
+
+  Future<ClubLeagueRosterSyncResponse> syncClubLeagueRosterEntries(
+    int tournamentId,
+    int clubLinkId, {
+    int? categoryId,
+    required int divisionId,
+    int? subDivisionId,
+    required List<Map<String, dynamic>> players,
+  }) async {
+    try {
+      final res = await _dio.put(
+        '${ApiEndpoints.clubLeague}/tournaments/$tournamentId/teams/$clubLinkId/roster-entries/sync',
+        data: {
+          if (categoryId != null) 'category_id': categoryId,
+          'division_id': divisionId,
+          if (subDivisionId != null) 'sub_division_id': subDivisionId,
+          'players': players,
+        },
+        options: Options(headers: _headers()),
+      );
+
+      final payload = res.data;
+      if (payload is! Map<String, dynamic>) {
+        throw Exception('Respuesta inesperada al enviar roster');
+      }
+
+      final data = payload['data'];
+      final rawData = data is Map<String, dynamic> ? data : payload;
+      return ClubLeagueRosterSyncResponse.fromJson(rawData);
+    } on DioException catch (e) {
+      final payload = e.response?.data;
+      final message =
+          payload is Map && payload['message'] != null
+              ? payload['message'].toString()
+              : e.message ?? 'No se pudo enviar el roster';
+      throw Exception(message);
+    }
   }
 
   /// PUT /account
@@ -1041,8 +1214,7 @@ class ApiRepository {
     final body = Map<String, dynamic>.from(res.data as Map? ?? const {});
     final rawList =
         (body['data'] ?? body['positions'] ?? body['items']) as List?;
-    final allowsCustom =
-        body['allows_custom_position'] == true ||
+    final allowsCustom = body['allows_custom_position'] == true ||
         body['meta'] is Map &&
             (body['meta'] as Map)['allows_custom_position'] == true;
 
@@ -1565,9 +1737,8 @@ class ApiRepository {
     );
 
     final rawDoc = response.data['document'] ?? response.data['data'];
-    final docJson = rawDoc is Map
-        ? Map<String, dynamic>.from(rawDoc)
-        : <String, dynamic>{};
+    final docJson =
+        rawDoc is Map ? Map<String, dynamic>.from(rawDoc) : <String, dynamic>{};
     return PlayerDocument.fromJson(docJson);
   }
 
@@ -2426,9 +2597,8 @@ class ApiRepository {
     String fulfillmentType = "pickup",
   }) async {
     final organization = AppStorage.getOrganization();
-    final provider = organization?.payCardEnabled == true
-        ? 'mercadopago'
-        : 'cash_on_pickup';
+    final provider =
+        organization?.payCardEnabled == true ? 'mercadopago' : 'cash_on_pickup';
 
     final res = await _dio.post(
       '/ecommerce/checkout',
