@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
@@ -264,7 +262,7 @@ class RosterController extends GetxController {
 
       final allowed = source == ImageSource.camera
           ? await _ensureCameraPermission()
-          : await _ensureGalleryPermission();
+          : true;
 
       if (!allowed) {
         Get.snackbar(
@@ -378,53 +376,6 @@ class RosterController extends GetxController {
     }
 
     return false;
-  }
-
-  Future<bool> _ensureGalleryPermission() async {
-    var photosStatus = await Permission.photos.status;
-    if (photosStatus.isGranted || photosStatus.isLimited) return true;
-
-    photosStatus = await Permission.photos.request();
-    if (photosStatus.isGranted || photosStatus.isLimited) return true;
-
-    if (Platform.isAndroid) {
-      var storageStatus = await Permission.storage.status;
-      if (storageStatus.isGranted) return true;
-      storageStatus = await Permission.storage.request();
-      if (storageStatus.isGranted) return true;
-      if (storageStatus.isPermanentlyDenied) {
-        await _showGalleryPermissionDialog();
-      }
-      return false;
-    }
-
-    if (photosStatus.isPermanentlyDenied) {
-      await _showGalleryPermissionDialog();
-    }
-
-    return false;
-  }
-
-  Future<void> _showGalleryPermissionDialog() async {
-    await Get.dialog(
-      AlertDialog(
-        title: const Text('Permiso de galería bloqueado'),
-        content: const Text(
-          'El acceso a la galería está bloqueado. '
-          'Ve a Configuración y habilita acceso a Fotos para esta app.',
-        ),
-        actions: [
-          TextButton(onPressed: () => Get.back(), child: const Text('Cerrar')),
-          TextButton(
-            onPressed: () {
-              openAppSettings();
-              Get.back();
-            },
-            child: const Text('Abrir Configuración'),
-          ),
-        ],
-      ),
-    );
   }
 
   // ---------------------------
