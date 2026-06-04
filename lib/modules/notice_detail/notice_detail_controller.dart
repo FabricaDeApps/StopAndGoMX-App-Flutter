@@ -22,15 +22,46 @@ class NoticeDetailController extends GetxController {
     return value.isNotEmpty;
   }
 
+  bool get hasExternalUrl {
+    final value = (notice.value?.externalUrl ?? '').trim();
+    return value.isNotEmpty;
+  }
+
   Future<void> openAttachment() async {
     final attachment = (notice.value?.attachment ?? '').trim();
     if (attachment.isEmpty) return;
 
-    final uri = Uri.tryParse(attachment);
+    await _openUrl(
+      attachment,
+      invalidMessage: 'URL inválida del adjunto',
+      cannotOpenMessage: 'No se pudo abrir el archivo adjunto',
+    );
+  }
+
+  Future<void> openExternalUrl() async {
+    final url = (notice.value?.externalUrl ?? '').trim();
+    if (url.isEmpty) return;
+
+    await _openUrl(
+      url,
+      invalidMessage: 'URL inválida del enlace',
+      cannotOpenMessage: 'No se pudo abrir el enlace externo',
+    );
+  }
+
+  Future<void> _openUrl(
+    String rawUrl, {
+    required String invalidMessage,
+    required String cannotOpenMessage,
+  }) async {
+    final normalizedUrl = rawUrl.trim();
+    if (normalizedUrl.isEmpty) return;
+
+    final uri = Uri.tryParse(normalizedUrl);
     if (uri == null) {
       Get.snackbar(
         'Error',
-        'URL inválida:\n$attachment',
+        '$invalidMessage:\n$normalizedUrl',
         snackPosition: SnackPosition.BOTTOM,
       );
       return;
@@ -50,7 +81,7 @@ class NoticeDetailController extends GetxController {
       if (!can) {
         Get.snackbar(
           'Error',
-          'No se pudo abrir el archivo adjunto:\n$attachment',
+          '$cannotOpenMessage:\n$normalizedUrl',
           snackPosition: SnackPosition.BOTTOM,
         );
         return;
@@ -60,14 +91,14 @@ class NoticeDetailController extends GetxController {
       if (!ok) {
         Get.snackbar(
           'Error',
-          'No se pudo abrir el archivo adjunto',
+          cannotOpenMessage,
           snackPosition: SnackPosition.BOTTOM,
         );
       }
     } catch (e) {
       Get.snackbar(
         'Error',
-        'No se pudo abrir el archivo adjunto: $e',
+        '$cannotOpenMessage: $e',
         snackPosition: SnackPosition.BOTTOM,
       );
     }

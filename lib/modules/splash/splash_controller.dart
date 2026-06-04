@@ -11,6 +11,7 @@ import 'package:firebase_remote_config/firebase_remote_config.dart';
 import 'package:stopandgo/core/config/flavor_config.dart';
 import 'package:stopandgo/core/network/api_repository.dart';
 import 'package:stopandgo/core/network/auth_repository.dart';
+import 'package:stopandgo/core/services/app_usage_session_service.dart';
 import 'package:stopandgo/core/theme/theme_controller.dart';
 import 'package:stopandgo/routes/app_routes.dart';
 import '../../../core/storage/app_storage.dart';
@@ -117,6 +118,16 @@ class SplashController extends GetxController {
         'min_build_ios': 0,
         'force_update': false,
         'show_news': false,
+        'announcement_enabled': false,
+        'announcement_id': '',
+        'announcement_type': 'image',
+        'announcement_title': '',
+        'announcement_body': '',
+        'announcement_image_url': '',
+        'announcement_video_url': '',
+        'announcement_cta_label': '',
+        'announcement_cta_url': '',
+        'announcement_dismissible': true,
         'update_message':
             'Hay una nueva versión disponible. Actualiza para continuar.',
       });
@@ -149,24 +160,22 @@ class SplashController extends GetxController {
     if (force) {
       // ⛔ Bloquea y NO navega
       _blockedByUpdate = true;
-      await _showForceUpdateDialog(message: message, storeUrl: storeUrl);
+      await _showUpdateDialog(
+        message: message,
+        storeUrl: storeUrl,
+        allowContinue: false,
+      );
       return;
     }
 
-    // ⚠️ No forzoso: solo aviso NO bloqueante y deja continuar
+    // ⚠️ No forzoso: muestra diálogo pero permite continuar
     _blockedByUpdate = false;
 
     if (!_navigated) {
-      Get.snackbar(
-        'Actualización disponible',
-        message,
-        snackPosition: SnackPosition.BOTTOM,
-        duration: const Duration(seconds: 6),
-        margin: const EdgeInsets.all(12),
-        mainButton: TextButton(
-          onPressed: () async => _openStoreUrl(storeUrl),
-          child: const Text('Actualizar'),
-        ),
+      await _showUpdateDialog(
+        message: message,
+        storeUrl: storeUrl,
+        allowContinue: true,
       );
     }
   }
@@ -196,21 +205,29 @@ class SplashController extends GetxController {
     }
   }
 
-  Future<void> _showForceUpdateDialog({
+  Future<void> _showUpdateDialog({
     required String message,
     required String storeUrl,
+    required bool allowContinue,
   }) async {
     await Get.dialog(
-      WillPopScope(
-        onWillPop: () async => false, // no se puede cerrar
+      PopScope(
+        canPop: allowContinue,
         child: AlertDialog(
-          title: const Text('Actualización requerida'),
+          title: Text(
+            allowContinue
+                ? 'Actualización disponible'
+                : 'Actualización requerida',
+          ),
           content: Text(message),
           actions: [
+            if (allowContinue)
+              TextButton(
+                onPressed: () => Get.back(),
+                child: const Text('Continuar'),
+              ),
             FilledButton(
               onPressed: () async {
-                // En forzoso no permitimos cerrar,
-                // solo intentamos abrir tienda y si falla mostramos mensaje.
                 await _openStoreUrl(storeUrl);
               },
               child: const Text('Actualizar'),
@@ -218,7 +235,7 @@ class SplashController extends GetxController {
           ],
         ),
       ),
-      barrierDismissible: false,
+      barrierDismissible: allowContinue,
     );
   }
 
@@ -241,6 +258,10 @@ class SplashController extends GetxController {
     debugPrint('session bootstrap: ${result.reason}');
     if (!result.isAuthenticated) {
       debugPrint('navigating unauthenticated कारण ${result.reason}');
+    } else if (Get.isRegistered<AppUsageSessionService>()) {
+      await Get.find<AppUsageSessionService>().handleAuthenticatedEntry(
+        source: 'app_open',
+      );
     }
     Get.offAllNamed(next);
   }

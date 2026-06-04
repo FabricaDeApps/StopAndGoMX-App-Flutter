@@ -126,39 +126,43 @@ class NoticeDetailView extends GetView<NoticeDetailController> {
                 ),
               ),
             ],
+            if (controller.hasExternalUrl) ...[
+              const SizedBox(height: 12),
+              Card(
+                elevation: 0,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Enlace',
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      const SizedBox(height: 14),
+                      SizedBox(
+                        width: double.infinity,
+                        child: FilledButton.icon(
+                          onPressed: () async {
+                            await controller.openExternalUrl();
+                          },
+                          icon: const Icon(Icons.link_outlined),
+                          label: const Text('Abrir enlace'),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
           ],
         ),
       );
     });
-  }
-
-  Widget _kv(String k, String v) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 4),
-      child: RichText(
-        text: TextSpan(
-          text: '$k: ',
-          style: const TextStyle(
-            color: Colors.black87,
-            fontWeight: FontWeight.w700,
-          ),
-          children: [
-            TextSpan(
-              text: v,
-              style: const TextStyle(
-                color: Colors.black87,
-                fontWeight: FontWeight.w400,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  static String _fmtDateTime(DateTime? d) {
-    if (d == null) return 'N/A';
-    final two = (int v) => v.toString().padLeft(2, '0');
-    return '${two(d.day)}/${two(d.month)}/${d.year} ${two(d.hour)}:${two(d.minute)}';
   }
 }

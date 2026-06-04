@@ -722,8 +722,10 @@ class _InlineVideoPlayerState extends State<_InlineVideoPlayer> {
         videoPlayerController: controller,
         autoPlay: false,
         looping: false,
-        allowFullScreen: true,
-        allowMuting: true,
+        allowFullScreen: false,
+        allowMuting: false,
+        allowPlaybackSpeedChanging: false,
+        showOptions: false,
         showControls: true,
         materialProgressColors: ChewieProgressColors(
           playedColor: Colors.white,

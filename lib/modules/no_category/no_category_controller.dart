@@ -1,6 +1,4 @@
 import 'package:get/get.dart';
-import 'package:stopandgo/core/network/token_storage.dart';
-import 'package:stopandgo/core/storage/app_storage.dart';
 import 'package:stopandgo/routes/app_routes.dart';
 import '../../../core/network/api_repository.dart';
 
@@ -12,10 +10,7 @@ class NoCategoryController extends GetxController {
 
   Future<void> logout() async {
     try {
-      final tokenStorage = Get.find<TokenStorage>();
-      await tokenStorage.clear();
-      await AppStorage.clearAll();
-      await _api.logout();
+      await _api.logout(reason: 'logout');
     } catch (_) {
       Get.offAllNamed(Routes.login);
     } finally {

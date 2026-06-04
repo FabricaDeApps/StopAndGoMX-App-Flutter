@@ -15,6 +15,7 @@ class CreateNoticeController extends GetxController {
   final formKey = GlobalKey<FormState>();
   final titleCtrl = TextEditingController();
   final messageCtrl = TextEditingController();
+  final externalUrlCtrl = TextEditingController();
 
   final isPublished = true.obs;
   final publishedAt = Rxn<DateTime>();
@@ -50,6 +51,7 @@ class CreateNoticeController extends GetxController {
   void onClose() {
     titleCtrl.dispose();
     messageCtrl.dispose();
+    externalUrlCtrl.dispose();
     super.onClose();
   }
 
@@ -159,6 +161,7 @@ class CreateNoticeController extends GetxController {
     try {
       final title = titleCtrl.text.trim();
       final message = messageCtrl.text.trim();
+      final externalUrl = externalUrlCtrl.text.trim();
       final attachment = attachmentPath.value;
 
       if (role == 'coach') {
@@ -166,6 +169,7 @@ class CreateNoticeController extends GetxController {
           categoryId: categoryId,
           title: title,
           message: message,
+          externalUrl: externalUrl.isEmpty ? null : externalUrl,
           isPublished: isPublished.value,
           publishedAt: publishedAt.value,
           expiresAt: expiresAt.value,
@@ -176,6 +180,7 @@ class CreateNoticeController extends GetxController {
           categoryId: categoryId,
           title: title,
           message: message,
+          externalUrl: externalUrl.isEmpty ? null : externalUrl,
           isPublished: isPublished.value,
           publishedAt: publishedAt.value,
           expiresAt: expiresAt.value,

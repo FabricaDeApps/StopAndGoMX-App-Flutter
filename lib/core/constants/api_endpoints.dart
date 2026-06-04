@@ -38,4 +38,10 @@ class ApiEndpoints {
   // ---- CLUB LEAGUE ----
   static const clubLeague = '/club/league';
   static const clubLeagueOverview = '$clubLeague/overview';
+
+  // ---- APP USAGE ----
+  static const appUsageSessions = '/app-usage/sessions';
+  static const appUsageSessionsStart = '$appUsageSessions/start';
+  static const appUsageSessionsHeartbeat = '$appUsageSessions/heartbeat';
+  static const appUsageSessionsEnd = '$appUsageSessions/end';
 }

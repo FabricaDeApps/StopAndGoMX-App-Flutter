@@ -1,5 +1,6 @@
 import 'package:get/get.dart';
 import 'package:stopandgo/core/network/game_gallery_repository.dart';
+import 'package:stopandgo/core/services/app_usage_session_service.dart';
 import 'package:stopandgo/core/services/coach_games_service.dart';
 import 'package:stopandgo/core/services/coach_trainings_service.dart';
 import 'package:stopandgo/core/services/ecommerce_cart_service.dart';
@@ -37,6 +38,13 @@ class AppBinding extends Bindings {
 
     if (!Get.isRegistered<CoachTrainingsService>()) {
       Get.put<CoachTrainingsService>(CoachTrainingsService(), permanent: true);
+    }
+
+    if (!Get.isRegistered<AppUsageSessionService>()) {
+      Get.putAsync<AppUsageSessionService>(
+        () async => AppUsageSessionService().init(),
+        permanent: true,
+      );
     }
   }
 }

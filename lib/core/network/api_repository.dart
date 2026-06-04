@@ -42,6 +42,7 @@ import 'package:stopandgo/core/models/trainings/training_player_response.dart';
 import 'package:stopandgo/core/models/trainning_attendance.dart';
 import 'package:stopandgo/core/network/gazzetta_exceptions.dart';
 import 'package:stopandgo/core/network/paginated_response.dart';
+import 'package:stopandgo/core/services/app_usage_session_service.dart';
 import 'package:stopandgo/core/storage/app_storage.dart';
 import 'package:stopandgo/core/utils/device_info.dart';
 import 'package:stopandgo/core/models/play_book_model.dart';
@@ -82,8 +83,9 @@ class ApiRepository {
     if (res.statusCode == 200) {
       final List data = res.data['data'] ?? [];
 
-      final orgs =
-          data.map((json) => OrganizationResponse.fromJson(json)).toList();
+      final orgs = data
+          .map((json) => OrganizationResponse.fromJson(json))
+          .toList();
 
       return orgs;
     } else {
@@ -119,8 +121,9 @@ class ApiRepository {
       // Guarda sesión completa (access + refresh + expiraciones)
       await _tokenStorage.setSession(
         accessToken: loginData.accessToken,
-        tokenType:
-            (loginData.tokenType.isNotEmpty ? loginData.tokenType : 'Bearer'),
+        tokenType: (loginData.tokenType.isNotEmpty
+            ? loginData.tokenType
+            : 'Bearer'),
         refreshToken: loginData.refreshToken,
         refreshExpiresAt: loginData.refreshExpiresAt,
         accessExpiresInMinutes: loginData.accessExpiresInMinutes,
@@ -134,17 +137,20 @@ class ApiRepository {
       // Mensaje más claro para UI
       final msg =
           e.response?.data is Map && (e.response?.data['message'] != null)
-              ? e.response?.data['message'].toString()
-              : e.message ?? 'Error de red';
+          ? e.response?.data['message'].toString()
+          : e.message ?? 'Error de red';
       throw Exception('Login fallido: $msg');
     } catch (e) {
       throw Exception('Login fallido: $e');
     }
   }
 
-  Future<void> logout() async {
+  Future<void> logout({String reason = 'logout'}) async {
     final rt = _tokenStorage.refreshToken;
     try {
+      if (Get.isRegistered<AppUsageSessionService>()) {
+        await Get.find<AppUsageSessionService>().endSession(reason: reason);
+      }
       await _dio.post(
         ApiEndpoints.authLogout,
         data: {if (rt != null && rt.isNotEmpty) 'refresh_token': rt},
@@ -562,11 +568,11 @@ class ApiRepository {
   }
 
   Map<String, dynamic> _headers([Map<String, dynamic>? extra]) => {
-        ..._authHeader,
-        ..._orgHeader,
-        'Accept': 'application/json',
-        if (extra != null) ...extra,
-      };
+    ..._authHeader,
+    ..._orgHeader,
+    'Accept': 'application/json',
+    if (extra != null) ...extra,
+  };
 
   /// GET /api/home/dashboard (ejemplo)
   /// Puedes ajustar a tu ruta real: /api/player/home, etc.
@@ -636,15 +642,11 @@ class ApiRepository {
     return ClubLeagueOverviewResponse.fromJson(rawOverview);
   }
 
-  Future<ClubLeagueTournamentStandingsResponse> getClubLeagueTournamentStandings(
-    int tournamentId, {
-    int? clubLinkId,
-  }) async {
+  Future<ClubLeagueTournamentStandingsResponse>
+  getClubLeagueTournamentStandings(int tournamentId, {int? clubLinkId}) async {
     final res = await _dio.get(
       '${ApiEndpoints.clubLeague}/tournaments/$tournamentId/standings',
-      queryParameters: {
-        if (clubLinkId != null) 'club_link_id': clubLinkId,
-      },
+      queryParameters: {if (clubLinkId != null) 'club_link_id': clubLinkId},
       options: Options(headers: _headers()),
     );
 
@@ -665,9 +667,7 @@ class ApiRepository {
   }) async {
     final res = await _dio.get(
       '${ApiEndpoints.clubLeague}/tournaments/$tournamentId/fixtures',
-      queryParameters: {
-        if (clubLinkId != null) 'club_link_id': clubLinkId,
-      },
+      queryParameters: {if (clubLinkId != null) 'club_link_id': clubLinkId},
       options: Options(headers: _headers()),
     );
 
@@ -783,10 +783,9 @@ class ApiRepository {
       return ClubLeagueRosterSyncResponse.fromJson(rawData);
     } on DioException catch (e) {
       final payload = e.response?.data;
-      final message =
-          payload is Map && payload['message'] != null
-              ? payload['message'].toString()
-              : e.message ?? 'No se pudo enviar el roster';
+      final message = payload is Map && payload['message'] != null
+          ? payload['message'].toString()
+          : e.message ?? 'No se pudo enviar el roster';
       throw Exception(message);
     }
   }
@@ -1214,7 +1213,8 @@ class ApiRepository {
     final body = Map<String, dynamic>.from(res.data as Map? ?? const {});
     final rawList =
         (body['data'] ?? body['positions'] ?? body['items']) as List?;
-    final allowsCustom = body['allows_custom_position'] == true ||
+    final allowsCustom =
+        body['allows_custom_position'] == true ||
         body['meta'] is Map &&
             (body['meta'] as Map)['allows_custom_position'] == true;
 
@@ -1386,6 +1386,7 @@ class ApiRepository {
     required int categoryId,
     required String title,
     required String message,
+    String? externalUrl,
     int? seasonId,
     bool isPublished = true,
     bool pinned = false,
@@ -1397,6 +1398,7 @@ class ApiRepository {
       endpoint: '/manager/$categoryId/notices',
       title: title,
       message: message,
+      externalUrl: externalUrl,
       seasonId: seasonId,
       isPublished: isPublished,
       pinned: pinned,
@@ -1410,6 +1412,7 @@ class ApiRepository {
     required int categoryId,
     required String title,
     required String message,
+    String? externalUrl,
     int? seasonId,
     bool isPublished = true,
     bool pinned = false,
@@ -1421,6 +1424,7 @@ class ApiRepository {
       endpoint: '/coach/categories/$categoryId/notices',
       title: title,
       message: message,
+      externalUrl: externalUrl,
       seasonId: seasonId,
       isPublished: isPublished,
       pinned: pinned,
@@ -1434,6 +1438,7 @@ class ApiRepository {
     required String endpoint,
     required String title,
     required String message,
+    String? externalUrl,
     int? seasonId,
     required bool isPublished,
     required bool pinned,
@@ -1444,6 +1449,8 @@ class ApiRepository {
     final payload = <String, dynamic>{
       'title': title.trim(),
       'message': message.trim(),
+      if (externalUrl != null && externalUrl.trim().isNotEmpty)
+        'external_url': externalUrl.trim(),
       'is_published': isPublished,
       'pinned': pinned,
       if (seasonId != null) 'season_id': seasonId,
@@ -1737,8 +1744,9 @@ class ApiRepository {
     );
 
     final rawDoc = response.data['document'] ?? response.data['data'];
-    final docJson =
-        rawDoc is Map ? Map<String, dynamic>.from(rawDoc) : <String, dynamic>{};
+    final docJson = rawDoc is Map
+        ? Map<String, dynamic>.from(rawDoc)
+        : <String, dynamic>{};
     return PlayerDocument.fromJson(docJson);
   }
 
@@ -2597,8 +2605,9 @@ class ApiRepository {
     String fulfillmentType = "pickup",
   }) async {
     final organization = AppStorage.getOrganization();
-    final provider =
-        organization?.payCardEnabled == true ? 'mercadopago' : 'cash_on_pickup';
+    final provider = organization?.payCardEnabled == true
+        ? 'mercadopago'
+        : 'cash_on_pickup';
 
     final res = await _dio.post(
       '/ecommerce/checkout',

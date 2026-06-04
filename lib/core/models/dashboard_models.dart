@@ -12,6 +12,7 @@ class DashboardNotice {
   final int? categoryId;
   final String? image;
   final String? attachment;
+  final String? externalUrl;
   final bool isPublished;
   final bool pinned;
   final DateTime? publishedAt;
@@ -29,6 +30,7 @@ class DashboardNotice {
     required this.categoryId,
     required this.image,
     required this.attachment,
+    required this.externalUrl,
     required this.isPublished,
     required this.pinned,
     required this.publishedAt,
@@ -39,7 +41,7 @@ class DashboardNotice {
   });
 
   factory DashboardNotice.fromJson(Map<String, dynamic> json) {
-    DateTime? _parseDate(String? value) =>
+    DateTime? parseDate(String? value) =>
         (value == null) ? null : DateTime.parse(value);
 
     return DashboardNotice(
@@ -51,13 +53,14 @@ class DashboardNotice {
       categoryId: json['category_id'] as int?,
       image: json['image'] as String?,
       attachment: json['attachment'] as String?,
+      externalUrl: json['external_url'] as String?,
       isPublished: json['is_published'] == true || json['is_published'] == 1,
       pinned: json['pinned'] == true || json['pinned'] == 1,
-      publishedAt: _parseDate(json['published_at'] as String?),
-      pushSentAt: _parseDate(json['push_sent_at'] as String?),
-      expiresAt: _parseDate(json['expires_at'] as String?),
-      createdAt: _parseDate(json['created_at'] as String?),
-      updatedAt: _parseDate(json['updated_at'] as String?),
+      publishedAt: parseDate(json['published_at'] as String?),
+      pushSentAt: parseDate(json['push_sent_at'] as String?),
+      expiresAt: parseDate(json['expires_at'] as String?),
+      createdAt: parseDate(json['created_at'] as String?),
+      updatedAt: parseDate(json['updated_at'] as String?),
     );
   }
 }

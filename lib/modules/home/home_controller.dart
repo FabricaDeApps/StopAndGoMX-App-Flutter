@@ -5,16 +5,17 @@ import 'package:flutter/material.dart';
 import 'package:firebase_remote_config/firebase_remote_config.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:stopandgo/core/config/flavor_config.dart';
+import 'package:stopandgo/core/models/app_announcement.dart';
 import 'package:stopandgo/core/models/category.dart';
 import 'package:stopandgo/core/models/dto/notice_model.dart';
 import 'package:stopandgo/core/models/games/games.dart';
 import 'package:stopandgo/core/models/league/club_league_overview.dart';
 import 'package:stopandgo/core/models/responses/organization_response.dart';
-import 'package:stopandgo/core/network/token_storage.dart';
 import 'package:stopandgo/core/storage/app_storage.dart';
 import 'package:stopandgo/core/network/api_repository.dart';
 import 'package:stopandgo/core/services/clarity_service.dart';
 import 'package:stopandgo/core/services/notification_service.dart';
+import 'package:stopandgo/core/widgets/app_announcement_dialog.dart';
 import 'package:stopandgo/modules/home/models/simple_player.dart';
 import 'package:stopandgo/modules/gazzetta/gazzetta_controller.dart';
 import 'package:stopandgo/modules/home/tabs/games/games_tab_controller.dart';
@@ -26,6 +27,8 @@ import 'package:stopandgo/core/utils/role_utils.dart';
 import 'tabs/dashboard/dashboard_tab_controller.dart';
 
 class HomeController extends GetxController with GetTickerProviderStateMixin {
+  static const int _announcementMaxAttempts = 20;
+
   final api = Get.find<ApiRepository>();
   final _remoteConfig = FirebaseRemoteConfig.instance;
   final _picker = ImagePicker();
@@ -108,6 +111,7 @@ class HomeController extends GetxController with GetTickerProviderStateMixin {
     await _syncTabContext();
     await dashboardCtrl.refresh();
     NotificationService.consumePendingNavigationIfAny();
+    _scheduleAnnouncementIfNeeded();
   }
 
   void _loadSession() {
@@ -141,11 +145,12 @@ class HomeController extends GetxController with GetTickerProviderStateMixin {
           ? profilePhotoUrl
           : null;
 
-      final birthdate = (account['birthdate'] ??
-              account['birth_date'] ??
-              account['date_of_birth'])
-          ?.toString()
-          .trim();
+      final birthdate =
+          (account['birthdate'] ??
+                  account['birth_date'] ??
+                  account['date_of_birth'])
+              ?.toString()
+              .trim();
       final phone = account['phone']?.toString().trim();
       final curp = account['curp']?.toString().trim();
 
@@ -156,8 +161,9 @@ class HomeController extends GetxController with GetTickerProviderStateMixin {
             name: userName.value,
             email: userEmail.value,
             photoUrl: userAvatar.value,
-            birthdate:
-                (birthdate != null && birthdate.isNotEmpty) ? birthdate : null,
+            birthdate: (birthdate != null && birthdate.isNotEmpty)
+                ? birthdate
+                : null,
             phone: (phone != null && phone.isNotEmpty) ? phone : null,
             curp: (curp != null && curp.isNotEmpty) ? curp : null,
           ),
@@ -195,12 +201,16 @@ class HomeController extends GetxController with GetTickerProviderStateMixin {
           ),
           actions: [
             TextButton(
-              onPressed: () => Get.back(),
+              onPressed: () {
+                Get.back();
+                _scheduleAnnouncementIfNeeded();
+              },
               child: const Text('Después'),
             ),
             FilledButton.icon(
               onPressed: () {
                 Get.back();
+                _scheduleAnnouncementIfNeeded();
                 Get.toNamed(Routes.myProfile);
               },
               icon: const Icon(Icons.person_outline),
@@ -211,6 +221,44 @@ class HomeController extends GetxController with GetTickerProviderStateMixin {
         barrierDismissible: true,
       );
     });
+  }
+
+  void _scheduleAnnouncementIfNeeded() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      unawaited(_showAnnouncementAfterDelay());
+    });
+  }
+
+  Future<void> _showAnnouncementAfterDelay() async {
+    await Future.delayed(const Duration(seconds: 2));
+    await _showAnnouncementIfNeeded(attempt: 0);
+  }
+
+  Future<void> _showAnnouncementIfNeeded({required int attempt}) async {
+    if (attempt >= _announcementMaxAttempts) return;
+    if (Get.context == null) return;
+
+    if (Get.isDialogOpen == true || Get.isBottomSheetOpen == true) {
+      await Future.delayed(const Duration(seconds: 1));
+      await _showAnnouncementIfNeeded(attempt: attempt + 1);
+      return;
+    }
+
+    final announcement = AppAnnouncement.fromRemoteConfig(_remoteConfig);
+    if (announcement == null) return;
+
+    final lastSeenId = AppStorage.getLastSeenAnnouncementId();
+    if (lastSeenId == announcement.id) return;
+
+    await Get.dialog<void>(
+      PopScope(
+        canPop: announcement.dismissible,
+        child: AppAnnouncementDialog(announcement: announcement),
+      ),
+      barrierDismissible: announcement.dismissible,
+    );
+
+    await AppStorage.setLastSeenAnnouncementId(announcement.id);
   }
 
   void onDrawerAvatarTap() {
@@ -613,13 +661,15 @@ class HomeController extends GetxController with GetTickerProviderStateMixin {
   void _configureTabsForCurrentState({int? preferredIndex}) {
     final resolvedTabs = _resolveTabsForRole(userRole.value);
     final previousTabs = tabs.toList();
-    final previousKey = (preferredIndex != null &&
+    final previousKey =
+        (preferredIndex != null &&
             preferredIndex >= 0 &&
             preferredIndex < previousTabs.length)
         ? previousTabs[preferredIndex]
         : null;
-    final safeTabs =
-        resolvedTabs.isEmpty ? <String>['dashboard'] : resolvedTabs;
+    final safeTabs = resolvedTabs.isEmpty
+        ? <String>['dashboard']
+        : resolvedTabs;
 
     tabs.assignAll(safeTabs);
 
@@ -745,12 +795,9 @@ class HomeController extends GetxController with GetTickerProviderStateMixin {
 
   Future<void> logout() async {
     try {
-      final tokenStorage = Get.find<TokenStorage>();
-      await tokenStorage.clear();
-      await AppStorage.clearAll();
       ClarityService.clearUserContext();
       ClarityService.trackEvent('logout');
-      await api.logout();
+      await api.logout(reason: 'logout');
     } catch (_) {
       Get.offAllNamed(Routes.splash);
     } finally {

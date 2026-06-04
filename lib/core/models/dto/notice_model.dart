@@ -10,6 +10,7 @@ class Notice {
   final String? message;
   final String? image;
   final String? attachment;
+  final String? externalUrl;
 
   final bool isPublished;
   final DateTime? publishedAt;
@@ -28,6 +29,7 @@ class Notice {
     this.message,
     this.image,
     this.attachment,
+    this.externalUrl,
     this.publishedAt,
     this.expiresAt,
     this.pushSentAt,
@@ -46,6 +48,7 @@ class Notice {
       message: json['message'] as String?,
       image: json['image'] as String?,
       attachment: json['attachment'] as String?,
+      externalUrl: json['external_url'] as String?,
 
       isPublished: _bool(json['is_published']),
       publishedAt: _date(json['published_at']),

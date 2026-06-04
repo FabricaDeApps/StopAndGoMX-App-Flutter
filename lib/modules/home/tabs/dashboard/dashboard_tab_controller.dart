@@ -35,11 +35,6 @@ class DashboardTabController extends GetxController {
   final attendance = AttendanceDashboard.empty.obs;
   final socialPosts = <DashboardSocialPost>[].obs;
 
-  @override
-  void onInit() {
-    super.onInit();
-  }
-
   void setContext({required String userRole, int? categoryId, int? playerId}) {
     role.value = userRole;
     selectedCategoryId.value = categoryId;
@@ -242,6 +237,7 @@ class DashboardTabController extends GetxController {
         message: n.message?.toString(),
         image: n.image?.toString(),
         attachment: n.attachment?.toString(),
+        externalUrl: n.externalUrl?.toString(),
         publishedAt: date,
         organizationId: 0,
         isPublished: true,
@@ -298,6 +294,7 @@ class DashboardTabController extends GetxController {
           message: n['message']?.toString(),
           image: n['image']?.toString(),
           attachment: n['attachment']?.toString(),
+          externalUrl: n['external_url']?.toString(),
           publishedAt:
               DateTime.tryParse(
                 (n['published_at'] ?? n['created_at'] ?? '').toString(),
@@ -504,23 +501,6 @@ class DashboardTabController extends GetxController {
         snackPosition: SnackPosition.BOTTOM,
       );
       rethrow;
-    }
-  }
-
-  String _displayRole(String value) {
-    switch (value) {
-      case 'manager':
-        return 'Manager';
-      case 'coach':
-        return 'Coach';
-      case 'staff':
-        return 'Staff';
-      case 'parent':
-        return 'Papá o mamá';
-      case 'player':
-        return 'Jugador';
-      default:
-        return 'Comunidad';
     }
   }
 

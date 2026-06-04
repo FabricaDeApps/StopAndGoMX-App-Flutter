@@ -215,13 +215,7 @@ class MyProfileController extends GetxController {
       isDeleting.value = true;
 
       await _api.deleteAccount();
-
-      // limpiar storage local
-      await AppStorage.clearAll();
-
-      // limpiamos tokens de sesión llamando al logout
-      // (si quieres evitar la llamada al backend, al menos limpia TokenStorage ahí)
-      await _api.logout();
+      await _api.logout(reason: 'account_deleted');
 
       // navegar al login
       Get.offAllNamed(Routes.login);

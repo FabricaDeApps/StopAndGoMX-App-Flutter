@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
 import 'package:stopandgo/core/config/flavor_config.dart';
 import 'package:stopandgo/core/network/auth_repository.dart';
+import 'package:stopandgo/core/services/app_usage_session_service.dart';
 import 'package:stopandgo/core/storage/app_storage.dart';
 import '../network/token_storage.dart';
 import '../../routes/app_routes.dart';
@@ -15,6 +16,9 @@ class AuthService {
     _logoutInProgress = true;
 
     try {
+      if (Get.isRegistered<AppUsageSessionService>()) {
+        await Get.find<AppUsageSessionService>().clearSessionState();
+      }
       if (Get.isRegistered<AuthRepository>()) {
         await Get.find<AuthRepository>().logoutLocal();
       } else {

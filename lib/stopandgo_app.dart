@@ -6,6 +6,7 @@ import 'package:sentry_flutter/sentry_flutter.dart';
 
 import 'package:stopandgo/app_binding.dart';
 import 'package:stopandgo/core/config/flavor_config.dart';
+import 'package:stopandgo/core/services/app_usage_session_service.dart';
 import 'package:stopandgo/core/services/clarity_service.dart';
 import 'package:stopandgo/core/theme/theme_controller.dart';
 import 'package:stopandgo/routes/app_routes.dart';
@@ -41,6 +42,11 @@ class StopAndGoApp extends StatelessWidget {
         routingCallback: (routing) {
           final currentRoute = routing?.current;
           ClarityService.trackScreen(currentRoute);
+          if (Get.isRegistered<AppUsageSessionService>()) {
+            Get.find<AppUsageSessionService>().updateCurrentScreen(
+              currentRoute,
+            );
+          }
         },
       );
     });

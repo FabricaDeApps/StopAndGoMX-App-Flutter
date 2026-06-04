@@ -54,6 +54,28 @@ class CreateNoticeView extends GetView<CreateNoticeController> {
                   return null;
                 },
               ),
+              const SizedBox(height: 10),
+              TextFormField(
+                controller: controller.externalUrlCtrl,
+                keyboardType: TextInputType.url,
+                textInputAction: TextInputAction.next,
+                decoration: const InputDecoration(
+                  labelText: 'Enlace externo (opcional)',
+                  hintText: 'https://example.com',
+                ),
+                validator: (v) {
+                  final value = (v ?? '').trim();
+                  if (value.isEmpty) return null;
+                  final uri = Uri.tryParse(value);
+                  if (uri == null || !uri.hasScheme || !uri.hasAuthority) {
+                    return 'Ingresa una URL válida';
+                  }
+                  if (value.length > 2048) {
+                    return 'Máximo 2048 caracteres';
+                  }
+                  return null;
+                },
+              ),
               const SizedBox(height: 6),
               Obx(
                 () => SwitchListTile(

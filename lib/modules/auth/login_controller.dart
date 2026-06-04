@@ -4,6 +4,7 @@ import 'package:stopandgo/core/config/flavor_config.dart';
 import 'package:stopandgo/core/models/responses/login_response.dart';
 import 'package:stopandgo/core/models/responses/organization_response.dart';
 import 'package:stopandgo/core/network/api_repository.dart';
+import 'package:stopandgo/core/services/app_usage_session_service.dart';
 import 'package:stopandgo/core/services/clarity_service.dart';
 import 'package:stopandgo/core/storage/app_storage.dart';
 import 'package:stopandgo/core/theme/theme_controller.dart';
@@ -122,6 +123,12 @@ class LoginController extends GetxController {
         organizationId: FlavorConfig.I.organizationId,
       );
       ClarityService.trackEvent('login_success');
+
+      if (Get.isRegistered<AppUsageSessionService>()) {
+        await Get.find<AppUsageSessionService>().handleAuthenticatedEntry(
+          source: 'app_open',
+        );
+      }
 
       Get.offAllNamed(Routes.home);
     } catch (e) {

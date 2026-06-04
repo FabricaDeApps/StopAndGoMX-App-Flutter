@@ -18,6 +18,8 @@ class AppStorage {
   static const keySelectedPlayerName = 'selected_player_name';
   static const keyTokenDevice = 'key_token_device';
   static const keyPendingOrganizationId = 'pending_organization_id';
+  static const keyAppUsageSession = 'app_usage_session';
+  static const keyLastSeenAnnouncementId = 'last_seen_announcement_id';
 
   /// Inicialización
   static Future<void> init() async {
@@ -194,6 +196,38 @@ class AppStorage {
     await _box.remove(keySplashUrl);
   }
 
+  static Future<void> setAppUsageSession(Map<String, dynamic>? session) async {
+    if (session == null) {
+      await _box.remove(keyAppUsageSession);
+      return;
+    }
+    await _box.write(keyAppUsageSession, session);
+  }
+
+  static Map<String, dynamic>? getAppUsageSession() {
+    final data = _box.read(keyAppUsageSession);
+    if (data is Map) {
+      return Map<String, dynamic>.from(data);
+    }
+    return null;
+  }
+
+  static Future<void> clearAppUsageSession() async {
+    await _box.remove(keyAppUsageSession);
+  }
+
+  static Future<void> setLastSeenAnnouncementId(String? value) async {
+    if (value == null || value.trim().isEmpty) {
+      await _box.remove(keyLastSeenAnnouncementId);
+      return;
+    }
+    await _box.write(keyLastSeenAnnouncementId, value.trim());
+  }
+
+  static String? getLastSeenAnnouncementId() {
+    return _box.read<String?>(keyLastSeenAnnouncementId);
+  }
+
   static Future<void> clearAll() async {
     await clearUser();
     await setPendingOrganizationId(null);
@@ -201,5 +235,6 @@ class AppStorage {
     await setSelectedCategoryName(null);
     await setSelectedPlayerId(null);
     await setSelectedPlayerName(null);
+    await clearAppUsageSession();
   }
 }
