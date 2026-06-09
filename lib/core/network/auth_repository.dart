@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
+import 'package:stopandgo/core/auth/social_auth_service.dart';
 import 'package:stopandgo/core/constants/api_endpoints.dart';
 import 'package:stopandgo/core/models/responses/login_response.dart';
 import 'package:stopandgo/core/storage/app_storage.dart';
@@ -23,6 +24,7 @@ class SessionRestoreResult {
 class AuthRepository extends GetxService {
   final Dio _dio = ApiClient.dio;
   final TokenStorage _tokenStorage = Get.find<TokenStorage>();
+  final SocialAuthService _socialAuthService = Get.find<SocialAuthService>();
 
   Completer<bool>? _refreshCompleter;
 
@@ -120,10 +122,9 @@ class AuthRepository extends GetxService {
       final newRefresh = payload['refresh_token']?.toString() ?? currentRefresh;
       final newType = payload['token_type']?.toString() ?? 'Bearer';
       final refreshExpRaw = payload['refresh_expires_at']?.toString();
-      final refreshExp =
-          (refreshExpRaw == null || refreshExpRaw.isEmpty)
-              ? _tokenStorage.refreshExpiresAt
-              : DateTime.tryParse(refreshExpRaw);
+      final refreshExp = (refreshExpRaw == null || refreshExpRaw.isEmpty)
+          ? _tokenStorage.refreshExpiresAt
+          : DateTime.tryParse(refreshExpRaw);
       final accessExpiresMinutes = _asInt(payload['access_expires_in_minutes']);
 
       if (newAccess.isEmpty) {
@@ -152,6 +153,7 @@ class AuthRepository extends GetxService {
   }
 
   Future<void> logoutLocal() async {
+    await _socialAuthService.signOut();
     await _tokenStorage.clear();
     await AppStorage.clearAll();
   }

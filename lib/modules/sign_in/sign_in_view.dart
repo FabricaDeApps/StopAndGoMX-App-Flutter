@@ -65,6 +65,67 @@ class SignInView extends GetView<SignInController> {
                           ],
                         );
                       }),
+                      if (!controller.isSocialMode) ...[
+                        SizedBox(
+                          width: double.infinity,
+                          child: OutlinedButton.icon(
+                            onPressed: controller.isLoading.value
+                                ? null
+                                : controller.submitGoogle,
+                            style: OutlinedButton.styleFrom(
+                              backgroundColor: Colors.white,
+                              foregroundColor: const Color(0xFF202124),
+                              side: const BorderSide(color: Color(0xFFDADCE0)),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 12,
+                              ),
+                            ),
+                            icon: const Text(
+                              'G',
+                              style: TextStyle(
+                                color: Color(0xFF4285F4),
+                                fontSize: 22,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                            label: const _GoogleButtonLabel(),
+                          ),
+                        ),
+                        if (controller.showAppleButton) ...[
+                          const SizedBox(height: 10),
+                          SizedBox(
+                            width: double.infinity,
+                            child: OutlinedButton.icon(
+                              onPressed: controller.isLoading.value
+                                  ? null
+                                  : controller.submitApple,
+                              icon: const Icon(Icons.apple),
+                              label: const Text('Continuar con Apple'),
+                            ),
+                          ),
+                        ],
+                        const SizedBox(height: 14),
+                        Row(
+                          children: [
+                            const Expanded(child: Divider()),
+                            Padding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 10,
+                              ),
+                              child: Text(
+                                'o regístrate manualmente',
+                                style: Theme.of(context).textTheme.bodySmall,
+                              ),
+                            ),
+                            const Expanded(child: Divider()),
+                          ],
+                        ),
+                        const SizedBox(height: 14),
+                      ] else ...[
+                        _SocialRegisterSummary(controller: controller),
+                        const SizedBox(height: 14),
+                      ],
 
                       TextFormField(
                         controller: controller.nameCtrl,
@@ -80,73 +141,89 @@ class SignInView extends GetView<SignInController> {
                       ),
                       const SizedBox(height: 12),
 
-                      TextFormField(
-                        controller: controller.emailCtrl,
-                        decoration: const InputDecoration(
-                          labelText: 'Email',
-                          hintText: 'ejemplo@correo.com',
-                          border: OutlineInputBorder(),
-                        ),
-                        keyboardType: TextInputType.emailAddress,
-                        validator: (v) {
-                          final value = v?.trim() ?? '';
-                          if (value.isEmpty) return 'Ingresa tu email';
-                          final re = RegExp(r'^[^\s@]+@[^\s@]+\.[^\s@]+$');
-                          if (!re.hasMatch(value)) return 'Email inválido';
-                          return null;
-                        },
-                        textInputAction: TextInputAction.next,
-                      ),
-                      const SizedBox(height: 12),
-
-                      Obx(
-                        () => TextFormField(
-                          controller: controller.passCtrl,
-                          obscureText: controller.isObscure.value,
+                      if (controller.isSocialMode) ...[
+                        TextFormField(
+                          controller: controller.emailCtrl,
+                          enabled: false,
                           decoration: InputDecoration(
-                            labelText: 'Contraseña',
+                            labelText:
+                                'Email de ${controller.socialProviderLabel}',
                             border: const OutlineInputBorder(),
                             suffixIcon: IconButton(
-                              onPressed: () => controller.isObscure.toggle(),
-                              icon: Icon(
-                                controller.isObscure.value
-                                    ? Icons.visibility
-                                    : Icons.visibility_off,
-                              ),
+                              onPressed: controller.clearSocialMode,
+                              tooltip: 'Usar otro método',
+                              icon: const Icon(Icons.close),
                             ),
                           ),
+                        ),
+                        const SizedBox(height: 12),
+                      ] else ...[
+                        TextFormField(
+                          controller: controller.emailCtrl,
+                          decoration: const InputDecoration(
+                            labelText: 'Email',
+                            hintText: 'ejemplo@correo.com',
+                            border: OutlineInputBorder(),
+                          ),
+                          keyboardType: TextInputType.emailAddress,
                           validator: (v) {
                             final value = v?.trim() ?? '';
-                            if (value.length < 8) {
-                              return 'La contraseña debe tener al menos 8 caracteres';
-                            }
+                            if (value.isEmpty) return 'Ingresa tu email';
+                            final re = RegExp(r'^[^\s@]+@[^\s@]+\.[^\s@]+$');
+                            if (!re.hasMatch(value)) return 'Email inválido';
                             return null;
                           },
+                          textInputAction: TextInputAction.next,
                         ),
-                      ),
-                      const SizedBox(height: 12),
-
-                      Obx(
-                        () => TextFormField(
-                          controller: controller.confirmPassCtrl,
-                          obscureText: controller.isConfirmObscure.value,
-                          decoration: InputDecoration(
-                            labelText: 'Confirmar contraseña',
-                            border: const OutlineInputBorder(),
-                            suffixIcon: IconButton(
-                              onPressed: () =>
-                                  controller.isConfirmObscure.toggle(),
-                              icon: Icon(
-                                controller.isConfirmObscure.value
-                                    ? Icons.visibility
-                                    : Icons.visibility_off,
+                        const SizedBox(height: 12),
+                        Obx(
+                          () => TextFormField(
+                            controller: controller.passCtrl,
+                            obscureText: controller.isObscure.value,
+                            decoration: InputDecoration(
+                              labelText: 'Contraseña',
+                              border: const OutlineInputBorder(),
+                              suffixIcon: IconButton(
+                                onPressed: () => controller.isObscure.toggle(),
+                                icon: Icon(
+                                  controller.isObscure.value
+                                      ? Icons.visibility
+                                      : Icons.visibility_off,
+                                ),
                               ),
                             ),
+                            validator: (v) {
+                              final value = v?.trim() ?? '';
+                              if (value.length < 8) {
+                                return 'La contraseña debe tener al menos 8 caracteres';
+                              }
+                              return null;
+                            },
                           ),
-                          validator: controller.validateConfirmPassword,
                         ),
-                      ),
-                      const SizedBox(height: 12),
+                        const SizedBox(height: 12),
+                        Obx(
+                          () => TextFormField(
+                            controller: controller.confirmPassCtrl,
+                            obscureText: controller.isConfirmObscure.value,
+                            decoration: InputDecoration(
+                              labelText: 'Confirmar contraseña',
+                              border: const OutlineInputBorder(),
+                              suffixIcon: IconButton(
+                                onPressed: () =>
+                                    controller.isConfirmObscure.toggle(),
+                                icon: Icon(
+                                  controller.isConfirmObscure.value
+                                      ? Icons.visibility
+                                      : Icons.visibility_off,
+                                ),
+                              ),
+                            ),
+                            validator: controller.validateConfirmPassword,
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                      ],
 
                       if (controller.requiresTeamConfirmation) ...[
                         Obx(
@@ -166,7 +243,7 @@ class SignInView extends GetView<SignInController> {
 
                       Obx(() {
                         return DropdownButtonFormField<String>(
-                          value: controller.role.value,
+                          initialValue: controller.role.value,
                           items: controller.availableRoles.map((r) {
                             return DropdownMenuItem<String>(
                               value: r,
@@ -244,7 +321,7 @@ class SignInView extends GetView<SignInController> {
             if (controller.isLoading.value)
               Positioned.fill(
                 child: Container(
-                  color: Colors.black.withOpacity(.25),
+                  color: Colors.black.withValues(alpha: 0.25),
                   child: const Center(
                     child: Card(
                       elevation: 4,
@@ -266,6 +343,69 @@ class SignInView extends GetView<SignInController> {
           ],
         );
       }),
+    );
+  }
+}
+
+class _GoogleButtonLabel extends StatelessWidget {
+  const _GoogleButtonLabel();
+
+  @override
+  Widget build(BuildContext context) {
+    return const Text(
+      'Continuar con Google',
+      style: TextStyle(fontWeight: FontWeight.w600),
+    );
+  }
+}
+
+class _SocialRegisterSummary extends StatelessWidget {
+  const _SocialRegisterSummary({required this.controller});
+
+  final SignInController controller;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.primaryContainer.withValues(alpha: 0.35),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: theme.colorScheme.primary.withValues(alpha: 0.2),
+        ),
+      ),
+      child: Row(
+        children: [
+          CircleAvatar(
+            backgroundColor: theme.colorScheme.primary,
+            foregroundColor: theme.colorScheme.onPrimary,
+            child: Text(controller.socialProviderLabel.characters.first),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Registro con ${controller.socialProviderLabel}',
+                  style: theme.textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(controller.socialEmail, style: theme.textTheme.bodySmall),
+              ],
+            ),
+          ),
+          TextButton(
+            onPressed: controller.clearSocialMode,
+            child: const Text('Quitar'),
+          ),
+        ],
+      ),
     );
   }
 }

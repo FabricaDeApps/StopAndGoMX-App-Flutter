@@ -12,10 +12,12 @@ class ApiEndpoints {
 
   // ---- AUTH ----
   static const authLogin = '$auth/login';
+  static const authLoginSocial = '$auth/login-social';
   static const authLogout = '$auth/logout';
   static const authMe = '$auth/me';
   static const authRefresh = '$auth/refresh';
   static const authPasswordForgot = '$auth/password/forgot';
+  static const authRegisterSocial = '$auth/register-social';
   static const accountPhoto = '/account/photo';
 
   // ---- MANAGER ----

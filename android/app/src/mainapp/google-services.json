@@ -7,12 +7,33 @@
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:225171602574:android:d254b84b1d919b1acd9ddf",
+        "mobilesdk_app_id": "1:225171602574:android:dae1caf1492f8ff4cd9ddf",
         "android_client_info": {
-          "package_name": "app.stopandgomx.main"
+          "package_name": "app.stopandgomx.bearsqro"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "225171602574-heljgq6d0eaujon87qjrlinvldougrfn.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "app.stopandgomx.bearsqro",
+            "certificate_hash": "818401e0361ac4916357e572a74e78f7684d9185"
+          }
+        },
+        {
+          "client_id": "225171602574-kf59ao6gkanuap0ruv5q27uvtdirsfhg.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "app.stopandgomx.bearsqro",
+            "certificate_hash": "ee7107fa8f186ca8b894ea9e7c408354bd5772a2"
+          }
+        },
+        {
+          "client_id": "225171602574-am6uha8g21vfm49pso3usnhicfmb9mfa.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyC_x2qNKjZl86Gu8Oii9_hgrf3G0fDpQoE"
@@ -20,7 +41,279 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "225171602574-am6uha8g21vfm49pso3usnhicfmb9mfa.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "225171602574-1jkirql7gicvl25sjaahi1m6tdbgv3ic.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "app.stopandgomx.raidersqro"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:225171602574:android:d254b84b1d919b1acd9ddf",
+        "android_client_info": {
+          "package_name": "app.stopandgomx.main"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "225171602574-ancs6q0fptuva7i00mfcbsri9dkq3c2j.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "app.stopandgomx.main",
+            "certificate_hash": "ee7107fa8f186ca8b894ea9e7c408354bd5772a2"
+          }
+        },
+        {
+          "client_id": "225171602574-r20kt4mhvnjthtfr9haual0sr5eij1kq.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "app.stopandgomx.main",
+            "certificate_hash": "818401e0361ac4916357e572a74e78f7684d9185"
+          }
+        },
+        {
+          "client_id": "225171602574-am6uha8g21vfm49pso3usnhicfmb9mfa.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC_x2qNKjZl86Gu8Oii9_hgrf3G0fDpQoE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "225171602574-am6uha8g21vfm49pso3usnhicfmb9mfa.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "225171602574-1jkirql7gicvl25sjaahi1m6tdbgv3ic.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "app.stopandgomx.raidersqro"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:225171602574:android:1d70ad481a1a2e78cd9ddf",
+        "android_client_info": {
+          "package_name": "app.stopandgomx.raidersqro"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "225171602574-evdbiguript8vjoa4jjh19ddb1r1ojaa.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "app.stopandgomx.raidersqro",
+            "certificate_hash": "818401e0361ac4916357e572a74e78f7684d9185"
+          }
+        },
+        {
+          "client_id": "225171602574-idjjkqcfnehp50qf3h9br9b4co9v3372.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "app.stopandgomx.raidersqro",
+            "certificate_hash": "ee7107fa8f186ca8b894ea9e7c408354bd5772a2"
+          }
+        },
+        {
+          "client_id": "225171602574-am6uha8g21vfm49pso3usnhicfmb9mfa.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC_x2qNKjZl86Gu8Oii9_hgrf3G0fDpQoE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "225171602574-am6uha8g21vfm49pso3usnhicfmb9mfa.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "225171602574-1jkirql7gicvl25sjaahi1m6tdbgv3ic.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "app.stopandgomx.raidersqro"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:225171602574:android:44420ab7c193e7c3cd9ddf",
+        "android_client_info": {
+          "package_name": "app.stopandgomx.raidersqueretaro"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "225171602574-nk0m5s3kopqjgk1ll15ntl3cd4qdclrs.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "app.stopandgomx.raidersqueretaro",
+            "certificate_hash": "818401e0361ac4916357e572a74e78f7684d9185"
+          }
+        },
+        {
+          "client_id": "225171602574-rgs2hbgo8d81n1q8ko85qmkb3v5tgfar.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "app.stopandgomx.raidersqueretaro",
+            "certificate_hash": "ee7107fa8f186ca8b894ea9e7c408354bd5772a2"
+          }
+        },
+        {
+          "client_id": "225171602574-am6uha8g21vfm49pso3usnhicfmb9mfa.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC_x2qNKjZl86Gu8Oii9_hgrf3G0fDpQoE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "225171602574-am6uha8g21vfm49pso3usnhicfmb9mfa.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "225171602574-1jkirql7gicvl25sjaahi1m6tdbgv3ic.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "app.stopandgomx.raidersqro"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:225171602574:android:37b260c39cd79d9ccd9ddf",
+        "android_client_info": {
+          "package_name": "app.stopandgomx.wolverinesqro"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "225171602574-bkn93c9oqi4guvfpl62kf4b5d07lf4s1.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "app.stopandgomx.wolverinesqro",
+            "certificate_hash": "ee7107fa8f186ca8b894ea9e7c408354bd5772a2"
+          }
+        },
+        {
+          "client_id": "225171602574-n1g6g1aa8k00hrgro16r4ieoa7bgtmo7.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "app.stopandgomx.wolverinesqro",
+            "certificate_hash": "818401e0361ac4916357e572a74e78f7684d9185"
+          }
+        },
+        {
+          "client_id": "225171602574-am6uha8g21vfm49pso3usnhicfmb9mfa.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC_x2qNKjZl86Gu8Oii9_hgrf3G0fDpQoE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "225171602574-am6uha8g21vfm49pso3usnhicfmb9mfa.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "225171602574-1jkirql7gicvl25sjaahi1m6tdbgv3ic.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "app.stopandgomx.raidersqro"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:225171602574:android:b087b9518465cb10cd9ddf",
+        "android_client_info": {
+          "package_name": "app.stopandgomx.zorros"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "225171602574-4r4a00qo56gaarc9drefl7lkge51brfa.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "app.stopandgomx.zorros",
+            "certificate_hash": "818401e0361ac4916357e572a74e78f7684d9185"
+          }
+        },
+        {
+          "client_id": "225171602574-b43iul9t8dcp3nk79kbgkh4dln7acqle.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "app.stopandgomx.zorros",
+            "certificate_hash": "ee7107fa8f186ca8b894ea9e7c408354bd5772a2"
+          }
+        },
+        {
+          "client_id": "225171602574-am6uha8g21vfm49pso3usnhicfmb9mfa.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC_x2qNKjZl86Gu8Oii9_hgrf3G0fDpQoE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "225171602574-am6uha8g21vfm49pso3usnhicfmb9mfa.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "225171602574-1jkirql7gicvl25sjaahi1m6tdbgv3ic.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "app.stopandgomx.raidersqro"
+              }
+            }
+          ]
         }
       }
     }

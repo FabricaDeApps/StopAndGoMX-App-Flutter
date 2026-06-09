@@ -157,41 +157,43 @@ class _BannersSlider extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final urls = controller.bannerUrls;
-    if (urls.isEmpty) return const SizedBox.shrink();
+    return Obx(() {
+      final urls = controller.bannerUrls.toList(growable: false);
+      if (urls.isEmpty) return const SizedBox.shrink();
 
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        ClipRRect(
-          borderRadius: BorderRadius.circular(14),
-          child: SizedBox(
-            height: 150,
-            width: double.infinity,
-            child: PageView.builder(
-              controller: controller.bannerPageController,
-              itemCount: urls.length,
-              onPageChanged: controller.onBannerChanged,
-              itemBuilder: (context, index) {
-                final url = urls[index];
-                return GestureDetector(
-                  onTap: () => controller.onBannerTap(index),
-                  onPanDown: (_) => controller.onBannerUserInteraction(),
-                  child: Image.network(url, fit: BoxFit.cover),
-                );
-              },
+      return Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          ClipRRect(
+            borderRadius: BorderRadius.circular(14),
+            child: SizedBox(
+              height: 150,
+              width: double.infinity,
+              child: PageView.builder(
+                controller: controller.bannerPageController,
+                itemCount: urls.length,
+                onPageChanged: controller.onBannerChanged,
+                itemBuilder: (context, index) {
+                  final url = urls[index];
+                  return GestureDetector(
+                    onTap: () => controller.onBannerTap(index),
+                    onPanDown: (_) => controller.onBannerUserInteraction(),
+                    child: Image.network(url, fit: BoxFit.cover),
+                  );
+                },
+              ),
             ),
           ),
-        ),
-        const SizedBox(height: 10),
-        Obx(
-          () => _Dots(
-            count: urls.length,
-            activeIndex: controller.bannerIndex.value,
+          const SizedBox(height: 10),
+          Obx(
+            () => _Dots(
+              count: urls.length,
+              activeIndex: controller.bannerIndex.value,
+            ),
           ),
-        ),
-      ],
-    );
+        ],
+      );
+    });
   }
 }
 

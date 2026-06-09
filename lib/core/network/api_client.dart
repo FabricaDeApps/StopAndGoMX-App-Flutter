@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
+import 'package:stopandgo/core/auth/social_auth_service.dart';
 import 'package:stopandgo/core/network/api_env.dart';
 import 'package:stopandgo/core/network/auth_repository.dart';
 import 'package:stopandgo/core/network/interceptors/sentry_interceptor.dart';
@@ -29,6 +30,10 @@ class ApiClient {
         headers: const {'Accept': 'application/json'},
       ),
     );
+
+    if (!Get.isRegistered<SocialAuthService>()) {
+      Get.put<SocialAuthService>(SocialAuthService(), permanent: true);
+    }
 
     if (!Get.isRegistered<AuthRepository>()) {
       Get.put<AuthRepository>(AuthRepository(), permanent: true);

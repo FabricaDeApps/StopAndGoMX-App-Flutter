@@ -3,9 +3,11 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 
+import 'package:stopandgo/core/auth/social_auth_service.dart';
 import 'package:stopandgo/core/config/flavor_config.dart';
 import 'package:stopandgo/core/network/api_client.dart';
 import 'package:stopandgo/core/services/clarity_service.dart';
@@ -37,6 +39,9 @@ class AppBootstrap {
     initFlavorConfig();
     Future<void> appRunner() async {
       await Firebase.initializeApp(options: firebaseOptions);
+      if (!Get.isRegistered<SocialAuthService>()) {
+        Get.put<SocialAuthService>(SocialAuthService(), permanent: true);
+      }
       await initializeDateFormatting(localeTag, null);
       await AppStorage.init();
       await DeepLinkOrgService.bootstrap();

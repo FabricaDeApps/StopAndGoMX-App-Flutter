@@ -18,6 +18,7 @@ class OrganizationResponse {
   final bool payCardEnabled;
   final bool gazettaEnabled;
   final bool socialModule;
+  final List<OrganizationBanner> banners;
 
   // Ecommerce
   final EcommerceConfig ecommerce;
@@ -41,6 +42,7 @@ class OrganizationResponse {
     required this.payCardEnabled,
     required this.gazettaEnabled,
     required this.socialModule,
+    required this.banners,
     required this.ecommerce,
     this.androidUrl,
     this.iosUrl,
@@ -75,6 +77,16 @@ class OrganizationResponse {
   factory OrganizationResponse.fromJson(Map<String, dynamic> json) {
     final ecommerceMap = _asMap(json['ecommerce']);
     final ecommerce = EcommerceConfig.fromJson(ecommerceMap);
+    final parsedBanners = (json['banners'] is List)
+        ? (json['banners'] as List)
+              .whereType<Map>()
+              .map(
+                (item) => OrganizationBanner.fromJson(
+                  Map<String, dynamic>.from(item),
+                ),
+              )
+              .toList()
+        : const <OrganizationBanner>[];
 
     // ✅ Si la key no existe (cache viejo), usa ecommerce.enabled
     final bool isEcomAvailable = json.containsKey('is_ecommerce_available')
@@ -100,6 +112,7 @@ class OrganizationResponse {
         fallback: false,
       ),
       socialModule: _asBool(json['social_module'], fallback: false),
+      banners: parsedBanners,
 
       // Ecommerce
       ecommerce: ecommerce,
@@ -127,6 +140,7 @@ class OrganizationResponse {
     'pay_card_enabled': payCardEnabled,
     'gazetta_enabled': gazettaEnabled,
     'social_module': socialModule,
+    'banners': banners.map((item) => item.toJson()).toList(),
     'ecommerce': ecommerce.toJson(),
     'android_url': androidUrl,
     'ios_url': iosUrl,
@@ -136,6 +150,42 @@ class OrganizationResponse {
   /// Si quieres usar UNA sola fuente de verdad en UI, usa este getter:
   /// (aunque el flag exista, normalmente “available” = ecommerce.enabled)
   bool get ecommerceEnabled => ecommerce.enabled;
+}
+
+class OrganizationBanner {
+  final int id;
+  final String imageUrl;
+  final String title;
+  final String subtitle;
+
+  const OrganizationBanner({
+    required this.id,
+    required this.imageUrl,
+    required this.title,
+    required this.subtitle,
+  });
+
+  factory OrganizationBanner.fromJson(Map<String, dynamic> json) {
+    int parseInt(dynamic value) {
+      if (value is int) return value;
+      if (value is num) return value.toInt();
+      return int.tryParse(value?.toString() ?? '') ?? 0;
+    }
+
+    return OrganizationBanner(
+      id: parseInt(json['id']),
+      imageUrl: (json['image_url'] ?? json['url'] ?? '').toString().trim(),
+      title: (json['title'] ?? '').toString().trim(),
+      subtitle: (json['subtitle'] ?? '').toString().trim(),
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'image_url': imageUrl,
+    'title': title,
+    'subtitle': subtitle,
+  };
 }
 
 class EcommerceConfig {

@@ -1,14 +1,24 @@
 // lib/modules/signin/sign_in_controller.dart
+import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:stopandgo/core/auth/social_auth_exceptions.dart';
+import 'package:stopandgo/core/auth/social_auth_result.dart';
+import 'package:stopandgo/core/auth/social_auth_service.dart';
 import 'package:stopandgo/core/config/flavor_config.dart';
+import 'package:stopandgo/core/models/responses/login_response.dart';
 import 'package:stopandgo/core/models/responses/organization_response.dart';
 import 'package:stopandgo/core/network/api_repository.dart';
+import 'package:stopandgo/core/services/app_usage_session_service.dart';
 import 'package:stopandgo/core/services/clarity_service.dart';
 import 'package:stopandgo/core/storage/app_storage.dart';
+import 'package:stopandgo/core/theme/theme_controller.dart';
+import 'package:stopandgo/routes/app_routes.dart';
 
 class SignInController extends GetxController {
   final _api = Get.find<ApiRepository>();
+  final _socialAuthService = Get.find<SocialAuthService>();
 
   late final int orgId;
 
@@ -28,11 +38,19 @@ class SignInController extends GetxController {
     'staff': 'Staff',
   };
 
+  static const List<String> socialAllowedRoles = <String>[
+    'manager',
+    'coach',
+    'parent',
+    'player',
+  ];
+
   // Valor real que va al backend
   final role = RxnString();
 
   // Opcional: lista de roles para la UI
-  List<String> get availableRoles => roleLabelsEs.keys.toList();
+  List<String> get availableRoles =>
+      isSocialMode ? socialAllowedRoles : roleLabelsEs.keys.toList();
 
   // Label UI
   String roleLabel(String value) => roleLabelsEs[value] ?? value;
@@ -42,34 +60,26 @@ class SignInController extends GetxController {
   final isLoading = false.obs;
   final teamConfirmed = false.obs;
   final organization = Rxn<OrganizationResponse>();
+  final socialAuth = Rxn<SocialAuthResult>();
   bool get requiresTeamConfirmation => !FlavorConfig.I.isCustom;
+  bool get showAppleButton => defaultTargetPlatform == TargetPlatform.iOS;
+  bool get isSocialMode => socialAuth.value != null;
+  String get socialEmail => socialAuth.value?.email.trim() ?? '';
+  String get socialProviderLabel => switch (socialAuth.value?.provider) {
+    SocialAuthProvider.apple => 'Apple',
+    SocialAuthProvider.google => 'Google',
+    null => '',
+  };
 
   @override
   void onInit() {
     super.onInit();
     orgId = FlavorConfig.I.organizationId!;
     organization.value = AppStorage.getOrganization();
-  }
-
-  String? _validateEmail(String? v) {
-    final value = v?.trim() ?? '';
-    if (value.isEmpty) return 'Ingresa tu email';
-    final re = RegExp(r'^[^\s@]+@[^\s@]+\.[^\s@]+$');
-    if (!re.hasMatch(value)) return 'Email inválido';
-    return null;
-  }
-
-  String? _validateNotEmpty(String? v, String field) {
-    final value = v?.trim() ?? '';
-    if (value.isEmpty) return 'Ingresa $field';
-    return null;
-  }
-
-  String? _validatePassword(String? v) {
-    final value = v?.trim() ?? '';
-    if (value.length < 8)
-      return 'La contraseña debe tener al menos 8 caracteres';
-    return null;
+    final args = Get.arguments;
+    if (args is SocialAuthResult) {
+      _applySocialAuth(args);
+    }
   }
 
   String? validateConfirmPassword(String? v) {
@@ -148,36 +158,72 @@ class SignInController extends GetxController {
 
     isLoading.value = true;
     try {
-      ClarityService.trackEvent('signup_attempt');
-      final resp = await _api.registerPublicUser(
-        organizationId: orgId,
-        name: nameCtrl.text.trim(),
-        email: emailCtrl.text.trim(),
-        password: passCtrl.text.trim(),
-        role: currentRole, // ✅ aquí va parent/coach/etc.
+      ClarityService.trackEvent(
+        isSocialMode ? 'signup_social_attempt' : 'signup_attempt',
       );
-
-      final success = resp['success'] == true;
-      final msg = (resp['message'] ?? 'Operación realizada').toString();
-
-      if (success) {
-        ClarityService.trackEvent('signup_success');
-        Get.back(result: true);
-        Get.snackbar(
-          'Registro',
-          msg.isEmpty ? 'Usuario registrado' : msg,
-          snackPosition: SnackPosition.BOTTOM,
+      if (isSocialMode) {
+        final res = await _api.registerPublicUserWithSocial(
+          organizationId: orgId,
+          socialAuth: socialAuth.value!,
+          name: nameCtrl.text.trim(),
+          role: currentRole,
+          activeRole: currentRole,
+        );
+        await _finishAuthenticatedFlow(
+          res,
+          clarityEvent: 'signup_social_success',
+          source: 'social_register_${socialAuth.value!.provider.apiValue}',
         );
       } else {
-        ClarityService.trackEvent('signup_failed');
-        Get.snackbar(
-          'Registro',
-          msg.isEmpty ? 'No se pudo registrar' : msg,
-          snackPosition: SnackPosition.BOTTOM,
+        final resp = await _api.registerPublicUser(
+          organizationId: orgId,
+          name: nameCtrl.text.trim(),
+          email: emailCtrl.text.trim(),
+          password: passCtrl.text.trim(),
+          role: currentRole,
         );
+
+        final success = resp['success'] == true;
+        final msg = (resp['message'] ?? 'Operación realizada').toString();
+
+        if (success) {
+          ClarityService.trackEvent('signup_success');
+          Get.back(result: true);
+          Get.snackbar(
+            'Registro',
+            msg.isEmpty ? 'Usuario registrado' : msg,
+            snackPosition: SnackPosition.BOTTOM,
+          );
+        } else {
+          ClarityService.trackEvent('signup_failed');
+          Get.snackbar(
+            'Registro',
+            msg.isEmpty ? 'No se pudo registrar' : msg,
+            snackPosition: SnackPosition.BOTTOM,
+          );
+        }
       }
+    } on SocialAuthCancelledException {
+      // El usuario canceló el flujo.
+    } on SocialAuthConfigurationException catch (e) {
+      Get.snackbar(
+        'Configuración',
+        e.message,
+        snackPosition: SnackPosition.BOTTOM,
+      );
+    } on DioException catch (e) {
+      ClarityService.trackEvent(
+        isSocialMode ? 'signup_social_failed' : 'signup_failed',
+      );
+      Get.snackbar(
+        'Registro',
+        _extractApiMessage(e, fallback: 'No se pudo completar el registro.'),
+        snackPosition: SnackPosition.BOTTOM,
+      );
     } catch (e) {
-      ClarityService.trackEvent('signup_failed');
+      ClarityService.trackEvent(
+        isSocialMode ? 'signup_social_failed' : 'signup_failed',
+      );
       Get.snackbar(
         'Registro',
         'Error: $e',
@@ -186,6 +232,115 @@ class SignInController extends GetxController {
     } finally {
       isLoading.value = false;
     }
+  }
+
+  Future<void> submitGoogle() async {
+    await _startSocialFlow(_socialAuthService.signInWithGoogle);
+  }
+
+  Future<void> submitApple() async {
+    await _startSocialFlow(_socialAuthService.signInWithApple);
+  }
+
+  void clearSocialMode() {
+    socialAuth.value = null;
+  }
+
+  Future<void> _startSocialFlow(
+    Future<SocialAuthResult> Function() socialLogin,
+  ) async {
+    if (isLoading.value) return;
+
+    isLoading.value = true;
+    try {
+      final result = await socialLogin();
+      _applySocialAuth(result);
+      await Get.dialog<void>(
+        AlertDialog(
+          title: const Text('Registro'),
+          content: Text(
+            'Continuaremos con $socialProviderLabel. Confirma tus datos y el rol para completar el alta.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Get.back<void>(),
+              child: const Text('Aceptar'),
+            ),
+          ],
+        ),
+        barrierDismissible: true,
+      );
+    } on SocialAuthCancelledException {
+      // El usuario canceló el flujo.
+    } on SocialAuthConfigurationException catch (e) {
+      Get.snackbar(
+        'Configuración',
+        e.message,
+        snackPosition: SnackPosition.BOTTOM,
+      );
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  void _applySocialAuth(SocialAuthResult result) {
+    socialAuth.value = result;
+    if (role.value != null && !socialAllowedRoles.contains(role.value)) {
+      role.value = null;
+    }
+    if (result.email.trim().isNotEmpty) {
+      emailCtrl.text = result.email.trim();
+    }
+    if (nameCtrl.text.trim().isEmpty && result.displayName.trim().isNotEmpty) {
+      nameCtrl.text = result.displayName.trim();
+    }
+  }
+
+  Future<void> _finishAuthenticatedFlow(
+    LoginResponse res, {
+    required String clarityEvent,
+    required String source,
+  }) async {
+    try {
+      final org = await _api.getOrganization();
+      await AppStorage.setOrganization(org);
+      Get.find<ThemeController>().refreshTheme();
+    } catch (_) {
+      // Si falla el fetch, la sesión principal ya quedó persistida.
+    }
+
+    ClarityService.setUserContext(
+      userId: res.user.id,
+      role: res.user.activeRole.isNotEmpty
+          ? res.user.activeRole
+          : res.user.role,
+      organizationId: FlavorConfig.I.organizationId,
+    );
+    ClarityService.trackEvent(clarityEvent);
+
+    if (Get.isRegistered<AppUsageSessionService>()) {
+      await Get.find<AppUsageSessionService>().handleAuthenticatedEntry(
+        source: source,
+      );
+    }
+
+    Get.snackbar(
+      'Registro',
+      'Tu cuenta quedó lista. Bienvenido ${res.user.name}.',
+      snackPosition: SnackPosition.BOTTOM,
+    );
+    Get.offAllNamed(Routes.home);
+  }
+
+  String _extractApiMessage(DioException error, {required String fallback}) {
+    final payload = error.response?.data;
+    if (payload is Map) {
+      final message = (payload['message'] ?? '').toString().trim();
+      if (message.isNotEmpty) {
+        return message;
+      }
+    }
+    return fallback;
   }
 
   @override

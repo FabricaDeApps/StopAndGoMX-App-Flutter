@@ -175,6 +175,52 @@ class LoginView extends GetView<LoginController> {
                             label: const Text('Crear cuenta'),
                           ),
                         ),
+                        const SizedBox(height: 12),
+                        SizedBox(
+                          width: double.infinity,
+                          child: Obx(
+                            () => OutlinedButton.icon(
+                              onPressed: controller.isLoading.value
+                                  ? null
+                                  : controller.submitGoogle,
+                              style: OutlinedButton.styleFrom(
+                                backgroundColor: Colors.white,
+                                foregroundColor: const Color(0xFF202124),
+                                side: const BorderSide(
+                                  color: Color(0xFFDADCE0),
+                                ),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                  vertical: 12,
+                                ),
+                              ),
+                              icon: const Text(
+                                'G',
+                                style: TextStyle(
+                                  color: Color(0xFF4285F4),
+                                  fontSize: 22,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                              label: const _GoogleButtonLabel(),
+                            ),
+                          ),
+                        ),
+                        if (controller.showAppleButton) ...[
+                          const SizedBox(height: 10),
+                          SizedBox(
+                            width: double.infinity,
+                            child: Obx(
+                              () => OutlinedButton.icon(
+                                onPressed: controller.isLoading.value
+                                    ? null
+                                    : controller.submitApple,
+                                icon: const Icon(Icons.apple),
+                                label: const Text('Continuar con Apple'),
+                              ),
+                            ),
+                          ),
+                        ],
                         const SizedBox(height: 24),
                         Row(
                           children: [
@@ -275,6 +321,18 @@ class LoginView extends GetView<LoginController> {
           );
         },
       ),
+    );
+  }
+}
+
+class _GoogleButtonLabel extends StatelessWidget {
+  const _GoogleButtonLabel();
+
+  @override
+  Widget build(BuildContext context) {
+    return const Text(
+      'Continuar con Google',
+      style: TextStyle(fontWeight: FontWeight.w600),
     );
   }
 }

@@ -4,6 +4,7 @@ import 'package:dio/dio.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:stopandgo/core/config/flavor_config.dart';
 import 'package:stopandgo/core/constants/api_endpoints.dart';
+import 'package:stopandgo/core/auth/social_auth_result.dart';
 import 'package:stopandgo/core/models/admin_player.dart';
 import 'package:stopandgo/core/models/category.dart';
 import 'package:stopandgo/core/models/checkin_model.dart';
@@ -145,6 +146,40 @@ class ApiRepository {
     }
   }
 
+  Future<LoginResponse> loginWithSocial({
+    required SocialAuthResult socialAuth,
+    String? activeRole,
+  }) async {
+    try {
+      final tokenDevice = AppStorage.getTokenDevice();
+      final deviceInfo = await DeviceInfoHelper.getDeviceInfo();
+      final organizationId = FlavorConfig.I.organizationId!;
+
+      final res = await _dio.post(
+        ApiEndpoints.authLoginSocial,
+        data: {
+          'organization_id': organizationId,
+          'provider': socialAuth.provider.apiValue,
+          'id_token': socialAuth.firebaseIdToken,
+          'so': deviceInfo['os'],
+          'device_token': tokenDevice,
+          'device_name': deviceInfo['device_model'],
+          if (activeRole != null && activeRole.trim().isNotEmpty)
+            'active_role': activeRole.trim(),
+        },
+        options: Options(headers: {'Accept': 'application/json'}),
+      );
+
+      final loginData = LoginResponse.fromJson(_asMap(res.data));
+      await _persistLoginSession(loginData);
+      return loginData;
+    } on DioException {
+      rethrow;
+    } catch (e) {
+      throw Exception('Login social fallido: $e');
+    }
+  }
+
   Future<void> logout({String reason = 'logout'}) async {
     final rt = _tokenStorage.refreshToken;
     try {
@@ -160,6 +195,51 @@ class ApiRepository {
     } finally {
       await _tokenStorage.clear();
       await AppStorage.clearAll();
+    }
+  }
+
+  Future<LoginResponse> registerPublicUserWithSocial({
+    required int organizationId,
+    required SocialAuthResult socialAuth,
+    required String role,
+    String? name,
+    String? phone,
+    String? curp,
+    String? birthdate,
+    String? activeRole,
+  }) async {
+    try {
+      final tokenDevice = AppStorage.getTokenDevice();
+      final deviceInfo = await DeviceInfoHelper.getDeviceInfo();
+
+      final res = await _dio.post(
+        ApiEndpoints.authRegisterSocial,
+        data: {
+          'organization_id': organizationId,
+          'provider': socialAuth.provider.apiValue,
+          'id_token': socialAuth.firebaseIdToken,
+          'role': role,
+          if (name != null && name.trim().isNotEmpty) 'name': name.trim(),
+          if (phone != null && phone.trim().isNotEmpty) 'phone': phone.trim(),
+          if (curp != null && curp.trim().isNotEmpty) 'curp': curp.trim(),
+          if (birthdate != null && birthdate.trim().isNotEmpty)
+            'birthdate': birthdate.trim(),
+          'so': deviceInfo['os'],
+          'device_token': tokenDevice,
+          'device_name': deviceInfo['device_model'],
+          if (activeRole != null && activeRole.trim().isNotEmpty)
+            'active_role': activeRole.trim(),
+        },
+        options: Options(headers: {'Accept': 'application/json'}),
+      );
+
+      final loginData = LoginResponse.fromJson(_asMap(res.data));
+      await _persistLoginSession(loginData);
+      return loginData;
+    } on DioException {
+      rethrow;
+    } catch (e) {
+      throw Exception('Registro social fallido: $e');
     }
   }
 
@@ -1305,6 +1385,19 @@ class ApiRepository {
     } catch (e) {
       return {'success': false, 'message': 'Error inesperado: $e'};
     }
+  }
+
+  Future<void> _persistLoginSession(LoginResponse loginData) async {
+    await _tokenStorage.setSession(
+      accessToken: loginData.accessToken,
+      tokenType: loginData.tokenType.isNotEmpty
+          ? loginData.tokenType
+          : 'Bearer',
+      refreshToken: loginData.refreshToken,
+      refreshExpiresAt: loginData.refreshExpiresAt,
+      accessExpiresInMinutes: loginData.accessExpiresInMinutes,
+    );
+    await AppStorage.setUser(loginData.user);
   }
 
   Future<void> uploadReceipt({
