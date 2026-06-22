@@ -30,6 +30,7 @@ abstract class Routes {
   static const adminRoster = '/admin/roster-general';
   static const adminPlayerEdit = '/admin/player-edit';
   static const managerPlayerFile = '/manager/player-file/:playerId';
+  static const playerFullProfile = '/player/full-profile';
   static const documentsCompliance = '/manager/documents-compliance';
   static const documents = '/documents';
   static const playbook = '/playbook';

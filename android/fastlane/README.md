@@ -63,6 +63,14 @@ Deploy Android WOLVERINES QRO a track PRODUCTION
 
 Deploy Android BEARS CORREGIDORA a track PRODUCTION
 
+### android deploy_celtas_production
+
+```sh
+[bundle exec] fastlane android deploy_celtas_production
+```
+
+Deploy Android Celtas a track PRODUCTION
+
 ----
 
 This README.md is auto-generated and will be re-generated every time [_fastlane_](https://fastlane.tools) is run.

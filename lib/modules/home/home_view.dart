@@ -258,8 +258,9 @@ class HomeView extends GetView<HomeController> {
           final isStaff = role == 'staff';
           final orgSlug = (controller.org.value?.slug ?? '').trim();
           final availableRoles = controller.availableRoles;
-          final selectedRole =
-              availableRoles.contains(role) ? role : availableRoles.first;
+          final selectedRole = availableRoles.contains(role)
+              ? role
+              : availableRoles.first;
 
           return ListView(
             padding: EdgeInsets.zero,
@@ -606,6 +607,12 @@ class HomeView extends GetView<HomeController> {
               ],
               if (isParent || isPlayer) ...[
                 ListTile(
+                  leading: const Icon(Icons.badge_outlined),
+                  title: const Text('Perfil Jugador'),
+                  onTap: () =>
+                      _openPlayerFullProfile(context: context, role: role),
+                ),
+                ListTile(
                   leading: const Icon(Icons.person_outline),
                   title: const Text('Documentos'),
                   onTap: () async {
@@ -631,10 +638,10 @@ class HomeView extends GetView<HomeController> {
                     if (role == 'parent') {
                       final picked =
                           await Get.bottomSheet<Map<String, dynamic>?>(
-                        const PlayerPickerSheet(),
-                        isScrollControlled: true,
-                        backgroundColor: Colors.transparent,
-                      );
+                            const PlayerPickerSheet(),
+                            isScrollControlled: true,
+                            backgroundColor: Colors.transparent,
+                          );
 
                       if (picked == null) return;
 
@@ -761,6 +768,59 @@ class HomeView extends GetView<HomeController> {
     await AppStorage.setSelectedCategoryName(cname);
 
     return picked;
+  }
+
+  Future<void> _openPlayerFullProfile({
+    required BuildContext context,
+    required String role,
+  }) async {
+    AppNavigator.pop(context: context);
+
+    final selectedPlayerId = AppStorage.getSelectedPlayerId();
+    final selectedPlayerName = AppStorage.getSelectedPlayerName();
+
+    if (role == 'player') {
+      Get.toNamed(
+        Routes.playerFullProfile,
+        arguments: {
+          if (selectedPlayerId != null) 'playerId': selectedPlayerId,
+          if (selectedPlayerName != null) 'playerName': selectedPlayerName,
+        },
+      );
+      return;
+    }
+
+    if (role == 'parent' && selectedPlayerId != null) {
+      Get.toNamed(
+        Routes.playerFullProfile,
+        arguments: {
+          'playerId': selectedPlayerId,
+          if (selectedPlayerName != null) 'playerName': selectedPlayerName,
+        },
+      );
+      return;
+    }
+
+    if (role == 'parent') {
+      final picked = await Get.bottomSheet<Map<String, dynamic>?>(
+        const PlayerPickerSheet(),
+        isScrollControlled: true,
+        backgroundColor: Colors.transparent,
+      );
+
+      if (picked == null) return;
+
+      final pid = picked['id'] as int;
+      final pname = picked['name'] as String;
+
+      await AppStorage.setSelectedPlayerId(pid);
+      await AppStorage.setSelectedPlayerName(pname);
+
+      Get.toNamed(
+        Routes.playerFullProfile,
+        arguments: {'playerId': pid, 'playerName': pname},
+      );
+    }
   }
 }
 

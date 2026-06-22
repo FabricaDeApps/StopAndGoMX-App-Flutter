@@ -63,6 +63,14 @@ Deploy iOS Wolverines Qro
 
 Deploy iOS Bears Corregidora
 
+### ios deploy_celtas
+
+```sh
+[bundle exec] fastlane ios deploy_celtas
+```
+
+Deploy iOS Celtas
+
 ----
 
 This README.md is auto-generated and will be re-generated every time [_fastlane_](https://fastlane.tools) is run.

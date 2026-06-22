@@ -2,6 +2,7 @@
 
 - crear assets en https://makeappicon.com/ 
 - agregar logo a branding
+- para `celtas`, dejar el logo base en `branding/celtas/logo.png`
 - .vscode launch.json y task.json agregar tarea y el comando de assets
 - crear el main de dart y configurar el flavor en flutter
 
@@ -50,6 +51,7 @@ flutter build aab --flavor raidersqro -t lib/main_raidersqro.dart
 flutter build aab --flavor wolverinesqro -t lib/main_wolverinesqro.dart
 flutter build aab --flavor bearsqro -t lib/main_bearsqro.dart
 flutter build apk --flavor redskins -t lib/main_redskins.dart
+flutter build apk --flavor celtas -t lib/main_celtas.dart
 
 
 Flavors iOS
@@ -118,6 +120,13 @@ flutterfire configure \
   --platforms=android,ios \
   --out=lib/firebase_options_bearsqro.dart
 
+flutterfire configure \
+  --project=stopandgomx-4ab82 \
+  --android-app-id=app.stopandgomx.celtas \
+  --ios-bundle-id=app.stopandgomx.celtas \
+  --platforms=android,ios \
+  --out=lib/firebase_options_celtas.dart
+
 Copiar el json de android a su carpeta en src
 
 # KEY ID IOS:
@@ -165,3 +174,9 @@ M25Y63Z23D
   # demo user
     manager@wolverines.com
     123456
+
+- Celtas - celtas
+  
+  # Bundle
+    Android: app.stopandgomx.celtas
+    iOS: app.stopandgomx.celtas

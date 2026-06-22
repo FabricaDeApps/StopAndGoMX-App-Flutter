@@ -241,4 +241,15 @@ platform :android do
       track: 'production'
     )
   end
+
+  # CELTAS - PRODUCTION
+  desc 'Deploy Android Celtas a track PRODUCTION'
+  lane :deploy_celtas_production do
+    deploy(
+      flavor: 'celtas',
+      target: 'lib/main_celtas.dart',
+      package_name: 'app.stopandgomx.celtas',
+      track: 'production'
+    )
+  end
 end

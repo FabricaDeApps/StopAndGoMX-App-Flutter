@@ -250,6 +250,11 @@ class AppPages {
       binding: PlayerFileBinding(),
     ),
     GetPage(
+      name: Routes.playerFullProfile,
+      page: () => const FicheroDeJugadorScreen(),
+      binding: PlayerFileBinding(),
+    ),
+    GetPage(
       name: Routes.documentsCompliance,
       page: () => const DocumentsComplianceView(),
       binding: DocumentsComplianceBinding(),

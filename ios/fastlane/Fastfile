@@ -189,6 +189,8 @@ platform :ios do
                    "lib/main_wolverinesqro.dart"
                  when "bearsqro"
                    "lib/main_bearsqro.dart"
+                 when "celtas"
+                   "lib/main_celtas.dart"
                  else
                    UI.user_error!("No conozco el entrypoint para flavor=#{flavor}")
                  end
@@ -299,6 +301,17 @@ platform :ios do
       scheme: "bearsqro",
       bundle_id: "app.stopandgomx.bearsqro",
       ipa_name: "stopandgo-bearsqro.ipa",
+      groups: ["internal"]
+    )
+  end
+
+  desc "Deploy iOS Celtas"
+  lane :deploy_celtas do
+    deploy(
+      flavor: "celtas",
+      scheme: "celtas",
+      bundle_id: "app.stopandgomx.celtas",
+      ipa_name: "stopandgo-celtas.ipa",
       groups: ["internal"]
     )
   end

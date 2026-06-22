@@ -91,6 +91,13 @@ android {
             applicationId = "app.stopandgomx.bearsqro"
             resValue("string", "app_name", "Redskins")
         }
+
+        // Celtas
+        create("celtas") {
+            dimension = "default"
+            applicationId = "app.stopandgomx.celtas"
+            resValue("string", "app_name", "Celtas")
+        }
     }
 
     signingConfigs {
