@@ -1,6 +1,8 @@
+import 'package:stopandgo/core/models/responses/organization_response.dart';
+
 class LoginResponse {
   final User user;
-  final Organization organization;
+  final OrganizationResponse organization;
   final String tokenType;
   final String accessToken;
   final int accessExpiresInMinutes;
@@ -20,7 +22,9 @@ class LoginResponse {
   factory LoginResponse.fromJson(Map<String, dynamic> json) {
     return LoginResponse(
       user: User.fromJson(json['user'] ?? {}),
-      organization: Organization.fromJson(json['organization'] ?? {}),
+      organization: OrganizationResponse.fromJson(
+        _asMap(json['organization']),
+      ),
       tokenType: json['token_type'] ?? '',
       accessToken: json['access_token'] ?? '',
       accessExpiresInMinutes: json['access_expires_in_minutes'] ?? 0,
@@ -29,6 +33,12 @@ class LoginResponse {
           DateTime.tryParse(json['refresh_expires_at'] ?? '') ?? DateTime.now(),
     );
   }
+}
+
+Map<String, dynamic> _asMap(dynamic raw) {
+  if (raw is Map<String, dynamic>) return raw;
+  if (raw is Map) return Map<String, dynamic>.from(raw);
+  return <String, dynamic>{};
 }
 
 class User {
@@ -164,33 +174,4 @@ class User {
         if (deviceToken != null) 'device_token': deviceToken,
         if (deviceName != null) 'device_name': deviceName,
       };
-}
-
-class Organization {
-  final int id;
-  final String name;
-  final String slug;
-  final String logoUrl;
-  final String primaryColor;
-  final String secondaryColor;
-
-  Organization({
-    required this.id,
-    required this.name,
-    required this.slug,
-    required this.logoUrl,
-    required this.primaryColor,
-    required this.secondaryColor,
-  });
-
-  factory Organization.fromJson(Map<String, dynamic> json) {
-    return Organization(
-      id: json['id'] ?? 0,
-      name: json['name'] ?? '',
-      slug: json['slug'] ?? '',
-      logoUrl: json['logo_url'] ?? '',
-      primaryColor: json['primary_color'] ?? '',
-      secondaryColor: json['secondary_color'] ?? '',
-    );
-  }
 }

@@ -66,10 +66,10 @@ class SignInController extends GetxController {
   bool get isSocialMode => socialAuth.value != null;
   String get socialEmail => socialAuth.value?.email.trim() ?? '';
   String get socialProviderLabel => switch (socialAuth.value?.provider) {
-    SocialAuthProvider.apple => 'Apple',
-    SocialAuthProvider.google => 'Google',
-    null => '',
-  };
+        SocialAuthProvider.apple => 'Apple',
+        SocialAuthProvider.google => 'Google',
+        null => '',
+      };
 
   @override
   void onInit() {
@@ -301,6 +301,9 @@ class SignInController extends GetxController {
     required String clarityEvent,
     required String source,
   }) async {
+    await AppStorage.setOrganization(res.organization);
+    Get.find<ThemeController>().refreshTheme();
+
     try {
       final org = await _api.getOrganization();
       await AppStorage.setOrganization(org);
@@ -311,9 +314,8 @@ class SignInController extends GetxController {
 
     ClarityService.setUserContext(
       userId: res.user.id,
-      role: res.user.activeRole.isNotEmpty
-          ? res.user.activeRole
-          : res.user.role,
+      role:
+          res.user.activeRole.isNotEmpty ? res.user.activeRole : res.user.role,
       organizationId: FlavorConfig.I.organizationId,
     );
     ClarityService.trackEvent(clarityEvent);

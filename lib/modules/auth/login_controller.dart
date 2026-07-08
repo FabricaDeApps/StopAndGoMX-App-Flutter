@@ -107,6 +107,9 @@ class LoginController extends GetxController {
 
       loginResponse.value = res;
 
+      await AppStorage.setOrganization(res.organization);
+      Get.find<ThemeController>().refreshTheme();
+
       try {
         final org = await _api.getOrganization();
         await AppStorage.setOrganization(org);
@@ -239,6 +242,9 @@ class LoginController extends GetxController {
   }) async {
     loginResponse.value = res;
 
+    await AppStorage.setOrganization(res.organization);
+    Get.find<ThemeController>().refreshTheme();
+
     try {
       final org = await _api.getOrganization();
       await AppStorage.setOrganization(org);
@@ -256,9 +262,8 @@ class LoginController extends GetxController {
 
     ClarityService.setUserContext(
       userId: res.user.id,
-      role: res.user.activeRole.isNotEmpty
-          ? res.user.activeRole
-          : res.user.role,
+      role:
+          res.user.activeRole.isNotEmpty ? res.user.activeRole : res.user.role,
       organizationId: FlavorConfig.I.organizationId,
     );
     ClarityService.trackEvent(clarityEvent);

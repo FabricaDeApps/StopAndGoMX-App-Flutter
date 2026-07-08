@@ -6,6 +6,11 @@ class OrganizationResponse {
   final String logo;
   final String primaryColor;
   final String secondaryColor;
+  final bool billingPaused;
+  final String? billingPauseStartsAt;
+  final String? billingPauseEndsAt;
+  final String? billingPauseReason;
+  final String? subscriptionUiStatus;
 
   // Flags
   final bool isActive;
@@ -36,6 +41,11 @@ class OrganizationResponse {
     required this.logo,
     required this.primaryColor,
     required this.secondaryColor,
+    required this.billingPaused,
+    this.billingPauseStartsAt,
+    this.billingPauseEndsAt,
+    this.billingPauseReason,
+    this.subscriptionUiStatus,
     required this.isActive,
     required this.isEcommerceAvailable,
     required this.streamingEnabled,
@@ -79,13 +89,13 @@ class OrganizationResponse {
     final ecommerce = EcommerceConfig.fromJson(ecommerceMap);
     final parsedBanners = (json['banners'] is List)
         ? (json['banners'] as List)
-              .whereType<Map>()
-              .map(
-                (item) => OrganizationBanner.fromJson(
-                  Map<String, dynamic>.from(item),
-                ),
-              )
-              .toList()
+            .whereType<Map>()
+            .map(
+              (item) => OrganizationBanner.fromJson(
+                Map<String, dynamic>.from(item),
+              ),
+            )
+            .toList()
         : const <OrganizationBanner>[];
 
     // ✅ Si la key no existe (cache viejo), usa ecommerce.enabled
@@ -101,6 +111,11 @@ class OrganizationResponse {
       logo: (json['logo'] ?? '').toString(),
       primaryColor: (json['primary_color'] ?? '#000000').toString(),
       secondaryColor: (json['secondary_color'] ?? '#FFFFFF').toString(),
+      billingPaused: _asBool(json['billing_paused'], fallback: false),
+      billingPauseStartsAt: json['billing_pause_starts_at']?.toString(),
+      billingPauseEndsAt: json['billing_pause_ends_at']?.toString(),
+      billingPauseReason: json['billing_pause_reason']?.toString(),
+      subscriptionUiStatus: json['subscription_ui_status']?.toString(),
 
       // Flags
       isActive: _asBool(json['is_active'], fallback: true),
@@ -127,29 +142,36 @@ class OrganizationResponse {
   }
 
   Map<String, dynamic> toJson() => {
-    'id': id,
-    'name': name,
-    'slug': slug,
-    'bank_details_html': bankDetailsHtml,
-    'logo': logo,
-    'primary_color': primaryColor,
-    'secondary_color': secondaryColor,
-    'is_active': isActive,
-    'is_ecommerce_available': isEcommerceAvailable,
-    'streaming_enabled': streamingEnabled,
-    'pay_card_enabled': payCardEnabled,
-    'gazetta_enabled': gazettaEnabled,
-    'social_module': socialModule,
-    'banners': banners.map((item) => item.toJson()).toList(),
-    'ecommerce': ecommerce.toJson(),
-    'android_url': androidUrl,
-    'ios_url': iosUrl,
-    'id_venue_default': idVenueDefault,
-  };
+        'id': id,
+        'name': name,
+        'slug': slug,
+        'bank_details_html': bankDetailsHtml,
+        'logo': logo,
+        'primary_color': primaryColor,
+        'secondary_color': secondaryColor,
+        'billing_paused': billingPaused,
+        'billing_pause_starts_at': billingPauseStartsAt,
+        'billing_pause_ends_at': billingPauseEndsAt,
+        'billing_pause_reason': billingPauseReason,
+        'subscription_ui_status': subscriptionUiStatus,
+        'is_active': isActive,
+        'is_ecommerce_available': isEcommerceAvailable,
+        'streaming_enabled': streamingEnabled,
+        'pay_card_enabled': payCardEnabled,
+        'gazetta_enabled': gazettaEnabled,
+        'social_module': socialModule,
+        'banners': banners.map((item) => item.toJson()).toList(),
+        'ecommerce': ecommerce.toJson(),
+        'android_url': androidUrl,
+        'ios_url': iosUrl,
+        'id_venue_default': idVenueDefault,
+      };
 
   /// Si quieres usar UNA sola fuente de verdad en UI, usa este getter:
   /// (aunque el flag exista, normalmente “available” = ecommerce.enabled)
   bool get ecommerceEnabled => ecommerce.enabled;
+
+  bool get hasBillingPause => billingPaused || subscriptionUiStatus == 'paused';
 }
 
 class OrganizationBanner {
@@ -181,11 +203,11 @@ class OrganizationBanner {
   }
 
   Map<String, dynamic> toJson() => {
-    'id': id,
-    'image_url': imageUrl,
-    'title': title,
-    'subtitle': subtitle,
-  };
+        'id': id,
+        'image_url': imageUrl,
+        'title': title,
+        'subtitle': subtitle,
+      };
 }
 
 class EcommerceConfig {
@@ -235,13 +257,13 @@ class EcommerceConfig {
   }
 
   Map<String, dynamic> toJson() => {
-    'enabled': enabled,
-    'currency': currency,
-    'pickup_enabled': pickupEnabled,
-    'delivery_enabled': deliveryEnabled,
-    'delivery_fee_cents': deliveryFeeCents,
-    'min_order_cents': minOrderCents,
-  };
+        'enabled': enabled,
+        'currency': currency,
+        'pickup_enabled': pickupEnabled,
+        'delivery_enabled': deliveryEnabled,
+        'delivery_fee_cents': deliveryFeeCents,
+        'min_order_cents': minOrderCents,
+      };
 
   /// Helpers útiles
   bool get hasDelivery => enabled && deliveryEnabled;

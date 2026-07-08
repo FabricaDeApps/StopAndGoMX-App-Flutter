@@ -63,6 +63,12 @@ class HomeView extends GetView<HomeController> {
       final managerLabel = isAdminRole(role) ? 'Administrador: ' : 'Manager: ';
 
       final tabs = controller.tabs.toList();
+      final currentOrg = controller.org.value;
+      final showBillingPauseBanner = currentOrg?.hasBillingPause == true;
+      final billingPauseReason = (currentOrg?.billingPauseReason ?? '').trim();
+      final billingPauseText = billingPauseReason.isNotEmpty
+          ? 'La app del club esta en pausa temporal. Motivo: $billingPauseReason. Algunas funciones de pago podrian no estar disponibles.'
+          : 'La app del club esta en pausa temporal. Algunas funciones de pago podrian no estar disponibles.';
 
       return Scaffold(
         drawer: _buildDrawer(context, theme),
@@ -149,45 +155,90 @@ class HomeView extends GetView<HomeController> {
           ],
         ),
 
-        // ====== BODY: TABBARVIEW ======
-        body: TabBarView(
-          controller: controller.tabController,
-          children: tabs.map((t) {
-            switch (t) {
-              case 'dashboard':
-                return Obx(() {
-                  final d = controller.dashboardCtrl;
-                  d.upcomingGames.length;
-                  d.notices.length;
-                  d.saldoPendiente.value; // si aplica
+        // ====== BODY: BANNER + TABBARVIEW ======
+        body: Column(
+          children: [
+            if (showBillingPauseBanner)
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
+                ),
+                decoration: const BoxDecoration(
+                  color: Color(0xFFFFF3CD),
+                  border: Border(
+                    bottom: BorderSide(color: Color(0xFFF59E0B), width: 1),
+                  ),
+                ),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Padding(
+                      padding: EdgeInsets.only(top: 1),
+                      child: Icon(
+                        Icons.pause_circle_outline,
+                        color: Color(0xFF7C4A03),
+                        size: 20,
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Text(
+                        billingPauseText,
+                        style: const TextStyle(
+                          color: Color(0xFF7C4A03),
+                          fontSize: 13,
+                          height: 1.3,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            Expanded(
+              child: TabBarView(
+                controller: controller.tabController,
+                children: tabs.map((t) {
+                  switch (t) {
+                    case 'dashboard':
+                      return Obx(() {
+                        final d = controller.dashboardCtrl;
+                        d.upcomingGames.length;
+                        d.notices.length;
+                        d.saldoPendiente.value; // si aplica
 
-                  return DashboardTabView(
-                    onTapPay: () => controller.tabController.index =
-                        _tabIndexOf('payments', tabs),
-                    onGoGamesTab: () => controller.tabController.index =
-                        _tabIndexOf('games', tabs),
-                    onGoNoticesTab: () => controller.tabController.index =
-                        _tabIndexOf('notices', tabs),
-                  );
-                });
+                        return DashboardTabView(
+                          onTapPay: () => controller.tabController.index =
+                              _tabIndexOf('payments', tabs),
+                          onGoGamesTab: () => controller.tabController.index =
+                              _tabIndexOf('games', tabs),
+                          onGoNoticesTab: () => controller.tabController.index =
+                              _tabIndexOf('notices', tabs),
+                        );
+                      });
 
-              case 'games':
-                return const GamesTabView();
+                    case 'games':
+                      return const GamesTabView();
 
-              case 'payments':
-                return const PaymentsTabView();
+                    case 'payments':
+                      return const PaymentsTabView();
 
-              case 'notices':
-                return const NoticesTabView();
-              case 'tournaments':
-                return const TournamentsTabView();
-              case 'gazzetta':
-                return const GazzettaTabView();
+                    case 'notices':
+                      return const NoticesTabView();
+                    case 'tournaments':
+                      return const TournamentsTabView();
+                    case 'gazzetta':
+                      return const GazzettaTabView();
 
-              default:
-                return const SizedBox.shrink();
-            }
-          }).toList(),
+                    default:
+                      return const SizedBox.shrink();
+                  }
+                }).toList(),
+              ),
+            ),
+          ],
         ),
 
         // ====== TABBAR INFERIOR ======
@@ -258,9 +309,8 @@ class HomeView extends GetView<HomeController> {
           final isStaff = role == 'staff';
           final orgSlug = (controller.org.value?.slug ?? '').trim();
           final availableRoles = controller.availableRoles;
-          final selectedRole = availableRoles.contains(role)
-              ? role
-              : availableRoles.first;
+          final selectedRole =
+              availableRoles.contains(role) ? role : availableRoles.first;
 
           return ListView(
             padding: EdgeInsets.zero,
@@ -638,10 +688,10 @@ class HomeView extends GetView<HomeController> {
                     if (role == 'parent') {
                       final picked =
                           await Get.bottomSheet<Map<String, dynamic>?>(
-                            const PlayerPickerSheet(),
-                            isScrollControlled: true,
-                            backgroundColor: Colors.transparent,
-                          );
+                        const PlayerPickerSheet(),
+                        isScrollControlled: true,
+                        backgroundColor: Colors.transparent,
+                      );
 
                       if (picked == null) return;
 

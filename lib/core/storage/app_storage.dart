@@ -20,6 +20,8 @@ class AppStorage {
   static const keyPendingOrganizationId = 'pending_organization_id';
   static const keyAppUsageSession = 'app_usage_session';
   static const keyLastSeenAnnouncementId = 'last_seen_announcement_id';
+  static const keyLastSeenBillingPauseSignature =
+      'last_seen_billing_pause_signature';
 
   /// Inicialización
   static Future<void> init() async {
@@ -226,6 +228,18 @@ class AppStorage {
 
   static String? getLastSeenAnnouncementId() {
     return _box.read<String?>(keyLastSeenAnnouncementId);
+  }
+
+  static Future<void> setLastSeenBillingPauseSignature(String? value) async {
+    if (value == null || value.trim().isEmpty) {
+      await _box.remove(keyLastSeenBillingPauseSignature);
+      return;
+    }
+    await _box.write(keyLastSeenBillingPauseSignature, value.trim());
+  }
+
+  static String? getLastSeenBillingPauseSignature() {
+    return _box.read<String?>(keyLastSeenBillingPauseSignature);
   }
 
   static Future<void> clearAll() async {

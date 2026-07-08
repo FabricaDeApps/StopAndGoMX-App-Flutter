@@ -28,6 +28,7 @@ import 'tabs/dashboard/dashboard_tab_controller.dart';
 
 class HomeController extends GetxController with GetTickerProviderStateMixin {
   static const int _announcementMaxAttempts = 20;
+  static const int _billingPauseModalMaxAttempts = 20;
 
   final api = Get.find<ApiRepository>();
   final _remoteConfig = FirebaseRemoteConfig.instance;
@@ -73,7 +74,7 @@ class HomeController extends GetxController with GetTickerProviderStateMixin {
   @override
   void onInit() {
     super.onInit();
-    org.value = AppStorage.getOrganization();
+    _syncOrganizationFromStorage();
     _loadSession();
     _loadRemoteFlags();
 
@@ -95,7 +96,9 @@ class HomeController extends GetxController with GetTickerProviderStateMixin {
   @override
   Future<void> onReady() async {
     super.onReady();
+    _syncOrganizationFromStorage();
     await refreshAccount();
+    _syncOrganizationFromStorage();
     await refreshLeagueModule();
     _showBirthdayReminderIfNeeded();
     final user = AppStorage.getUser();
@@ -111,7 +114,12 @@ class HomeController extends GetxController with GetTickerProviderStateMixin {
     await _syncTabContext();
     await dashboardCtrl.refresh();
     NotificationService.consumePendingNavigationIfAny();
+    _scheduleBillingPauseModalIfNeeded();
     _scheduleAnnouncementIfNeeded();
+  }
+
+  void _syncOrganizationFromStorage() {
+    org.value = AppStorage.getOrganization();
   }
 
   void _loadSession() {
@@ -145,12 +153,11 @@ class HomeController extends GetxController with GetTickerProviderStateMixin {
           ? profilePhotoUrl
           : null;
 
-      final birthdate =
-          (account['birthdate'] ??
-                  account['birth_date'] ??
-                  account['date_of_birth'])
-              ?.toString()
-              .trim();
+      final birthdate = (account['birthdate'] ??
+              account['birth_date'] ??
+              account['date_of_birth'])
+          ?.toString()
+          .trim();
       final phone = account['phone']?.toString().trim();
       final curp = account['curp']?.toString().trim();
 
@@ -161,9 +168,8 @@ class HomeController extends GetxController with GetTickerProviderStateMixin {
             name: userName.value,
             email: userEmail.value,
             photoUrl: userAvatar.value,
-            birthdate: (birthdate != null && birthdate.isNotEmpty)
-                ? birthdate
-                : null,
+            birthdate:
+                (birthdate != null && birthdate.isNotEmpty) ? birthdate : null,
             phone: (phone != null && phone.isNotEmpty) ? phone : null,
             curp: (curp != null && curp.isNotEmpty) ? curp : null,
           ),
@@ -229,9 +235,56 @@ class HomeController extends GetxController with GetTickerProviderStateMixin {
     });
   }
 
+  void _scheduleBillingPauseModalIfNeeded() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      unawaited(_showBillingPauseModalIfNeeded(attempt: 0));
+    });
+  }
+
   Future<void> _showAnnouncementAfterDelay() async {
     await Future.delayed(const Duration(seconds: 2));
     await _showAnnouncementIfNeeded(attempt: 0);
+  }
+
+  Future<void> _showBillingPauseModalIfNeeded({required int attempt}) async {
+    if (attempt >= _billingPauseModalMaxAttempts) return;
+    if (Get.context == null) return;
+
+    _syncOrganizationFromStorage();
+    final currentOrg = org.value;
+    if (currentOrg == null || !currentOrg.hasBillingPause) return;
+
+    final signature = _buildBillingPauseSignature(currentOrg);
+    if (signature == null) return;
+
+    if (AppStorage.getLastSeenBillingPauseSignature() == signature) return;
+
+    if (Get.isDialogOpen == true || Get.isBottomSheetOpen == true) {
+      await Future.delayed(const Duration(seconds: 1));
+      await _showBillingPauseModalIfNeeded(attempt: attempt + 1);
+      return;
+    }
+
+    final reason = (currentOrg.billingPauseReason ?? '').trim();
+    final message = reason.isNotEmpty
+        ? 'La app del club esta en pausa temporal.\n\nMotivo: $reason.\n\nAlgunas funciones de pago podrian no estar disponibles.'
+        : 'La app del club esta en pausa temporal. Algunas funciones de pago podrian no estar disponibles.';
+
+    await Get.dialog<void>(
+      AlertDialog(
+        title: const Text('Aviso'),
+        content: Text(message),
+        actions: [
+          FilledButton(
+            onPressed: () => Get.back<void>(),
+            child: const Text('Entendido'),
+          ),
+        ],
+      ),
+      barrierDismissible: true,
+    );
+
+    await AppStorage.setLastSeenBillingPauseSignature(signature);
   }
 
   Future<void> _showAnnouncementIfNeeded({required int attempt}) async {
@@ -259,6 +312,17 @@ class HomeController extends GetxController with GetTickerProviderStateMixin {
     );
 
     await AppStorage.setLastSeenAnnouncementId(announcement.id);
+  }
+
+  String? _buildBillingPauseSignature(OrganizationResponse org) {
+    if (!org.hasBillingPause) return null;
+
+    final startsAt = (org.billingPauseStartsAt ?? '').trim();
+    final endsAt = (org.billingPauseEndsAt ?? '').trim();
+    final reason = (org.billingPauseReason ?? '').trim();
+    final status = (org.subscriptionUiStatus ?? '').trim();
+
+    return '${org.id}|$startsAt|$endsAt|$reason|$status';
   }
 
   void onDrawerAvatarTap() {
@@ -661,15 +725,13 @@ class HomeController extends GetxController with GetTickerProviderStateMixin {
   void _configureTabsForCurrentState({int? preferredIndex}) {
     final resolvedTabs = _resolveTabsForRole(userRole.value);
     final previousTabs = tabs.toList();
-    final previousKey =
-        (preferredIndex != null &&
+    final previousKey = (preferredIndex != null &&
             preferredIndex >= 0 &&
             preferredIndex < previousTabs.length)
         ? previousTabs[preferredIndex]
         : null;
-    final safeTabs = resolvedTabs.isEmpty
-        ? <String>['dashboard']
-        : resolvedTabs;
+    final safeTabs =
+        resolvedTabs.isEmpty ? <String>['dashboard'] : resolvedTabs;
 
     tabs.assignAll(safeTabs);
 

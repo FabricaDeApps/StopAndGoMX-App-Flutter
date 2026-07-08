@@ -131,6 +131,7 @@ class ApiRepository {
 
       // Persistir usuario y organización
       await AppStorage.setUser(loginData.user);
+      await AppStorage.setOrganization(loginData.organization);
 
       return loginData;
     } on DioException catch (e) {
@@ -1396,6 +1397,7 @@ class ApiRepository {
       accessExpiresInMinutes: loginData.accessExpiresInMinutes,
     );
     await AppStorage.setUser(loginData.user);
+    await AppStorage.setOrganization(loginData.organization);
   }
 
   Future<void> uploadReceipt({

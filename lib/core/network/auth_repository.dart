@@ -6,6 +6,7 @@ import 'package:get/get.dart';
 import 'package:stopandgo/core/auth/social_auth_service.dart';
 import 'package:stopandgo/core/constants/api_endpoints.dart';
 import 'package:stopandgo/core/models/responses/login_response.dart';
+import 'package:stopandgo/core/models/responses/organization_response.dart';
 import 'package:stopandgo/core/storage/app_storage.dart';
 
 import 'api_client.dart';
@@ -171,6 +172,11 @@ class AuthRepository extends GetxService {
         final parsed = User.fromJson(rawUser);
         await AppStorage.setUser(parsed);
       }
+      final rawOrganization = _extractOrganizationPayload(body);
+      if (rawOrganization != null) {
+        final parsed = OrganizationResponse.fromJson(rawOrganization);
+        await AppStorage.setOrganization(parsed);
+      }
       return _AuthMeStatus.ok;
     } on DioException catch (e) {
       if (e.response?.statusCode == 401) return _AuthMeStatus.unauthorized;
@@ -195,6 +201,19 @@ class AuthRepository extends GetxService {
     }
     if (body['id'] != null && body['email'] != null) {
       return body;
+    }
+    return null;
+  }
+
+  Map<String, dynamic>? _extractOrganizationPayload(Map<String, dynamic> body) {
+    if (body['organization'] is Map) {
+      return Map<String, dynamic>.from(body['organization'] as Map);
+    }
+    if (body['data'] is Map) {
+      final data = Map<String, dynamic>.from(body['data'] as Map);
+      if (data['organization'] is Map) {
+        return Map<String, dynamic>.from(data['organization'] as Map);
+      }
     }
     return null;
   }
