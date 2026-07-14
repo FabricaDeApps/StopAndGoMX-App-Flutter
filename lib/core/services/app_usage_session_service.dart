@@ -26,6 +26,7 @@ class AppUsageSessionService extends GetxService with WidgetsBindingObserver {
 
   late final String _platform;
   String _appVersion = 'unknown';
+  String _buildNumber = 'unknown';
   String _deviceId = 'unknown';
   String _deviceName = 'unknown';
 
@@ -120,6 +121,7 @@ class AppUsageSessionService extends GetxService with WidgetsBindingObserver {
     try {
       final info = await PackageInfo.fromPlatform();
       _appVersion = info.version;
+      _buildNumber = info.buildNumber;
     } catch (e) {
       debugPrint('app usage package info unavailable: $e');
     }
@@ -175,6 +177,7 @@ class AppUsageSessionService extends GetxService with WidgetsBindingObserver {
         'session_key': sessionKey,
         'platform': _platform,
         'app_version': _appVersion,
+        'build_number': _buildNumber,
         'device_id': _deviceId,
         'device_name': _deviceName,
         'started_at': startedAt,
@@ -194,6 +197,7 @@ class AppUsageSessionService extends GetxService with WidgetsBindingObserver {
         'started_at': body['started_at']?.toString() ?? startedAt,
         'platform': _platform,
         'app_version': _appVersion,
+        'build_number': _buildNumber,
         'device_id': _deviceId,
         'device_name': _deviceName,
       };
