@@ -71,6 +71,15 @@
       "program": "lib/main_redskins.dart",
       "args": ["--flavor", "redskins"],
       "preLaunchTask": "prepare-redskins-assets"
+    },
+    {
+      "name": "Run Celtas",
+      "request": "launch",
+      "type": "dart",
+      "flutterMode": "debug",
+      "program": "lib/main_celtas.dart",
+      "args": ["--flavor", "celtas"],
+      "preLaunchTask": "prepare-celtas-assets"
     }
   ]
 }

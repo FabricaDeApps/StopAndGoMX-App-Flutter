@@ -14,6 +14,8 @@ project 'Runner', {
   'Release-wolverinesqro' => :release,
   'Debug-bearsqro' => :debug,
   'Release-bearsqro' => :release,
+  'Debug-celtas' => :debug,
+  'Release-celtas' => :release,
 }
 
 def flutter_root

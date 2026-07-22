@@ -12,6 +12,7 @@ Future<void> main() async {
         appName: 'Celtas',
         bundleId: 'app.stopandgomx.celtas',
         isCustom: true,
+        organizationId: 43,
       );
     },
     appBuilder: () => StopAndGoApp(),

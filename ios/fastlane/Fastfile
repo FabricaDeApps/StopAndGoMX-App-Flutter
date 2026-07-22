@@ -150,6 +150,7 @@ platform :ios do
     ipa_name      = options[:ipa_name]      || "stopandgomx-#{flavor}.ipa"
     tester_groups = options[:groups]        || []
     logo_script   = options[:logo_script].nil? ? true : options[:logo_script]
+    submit_review = options[:submit_review].nil? ? false : options[:submit_review]
 
     UI.user_error!("Falta flavor")    if flavor.nil? || flavor.empty?
     UI.user_error!("Falta scheme")    if scheme.nil? || scheme.empty?
@@ -162,6 +163,7 @@ platform :ios do
     UI.message("   bundle_id:     #{bundle_id}")
     UI.message("   export_method: #{export_method}")
     UI.message("   ipa:           #{ipa_name}")
+    UI.message("   submit_review: #{submit_review}")
 
     ########################################
     # 0) Release notes desde CHANGELOG.md
@@ -236,12 +238,16 @@ platform :ios do
     )
 
     ########################################
-    # 5) Forzar submit_for_review (App Store)
+    # 5) Submit opcional a review (App Store)
     ########################################
-    submit_appstore_for_review(
-      bundle_id: bundle_id,
-      changelog: notes
-    )
+    if submit_review
+      submit_appstore_for_review(
+        bundle_id: bundle_id,
+        changelog: notes
+      )
+    else
+      UI.message("⏭️  Omitiendo submit_for_review. El build quedó subido a TestFlight.")
+    end
 
     UI.success("✅ Deploy iOS completado (#{flavor})")
   end
@@ -312,7 +318,8 @@ platform :ios do
       scheme: "celtas",
       bundle_id: "app.stopandgomx.celtas",
       ipa_name: "stopandgo-celtas.ipa",
-      groups: ["internal"]
+      groups: ["internal"],
+      submit_review: false
     )
   end
 end

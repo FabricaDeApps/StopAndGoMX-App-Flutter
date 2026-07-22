@@ -36,6 +36,12 @@
       "type": "shell",
       "command": "./scripts/use_logo.sh redskins",
       "problemMatcher": []
+    },
+    {
+      "label": "prepare-celtas-assets",
+      "type": "shell",
+      "command": "./scripts/use_logo.sh celtas",
+      "problemMatcher": []
     }
   ]
 }
