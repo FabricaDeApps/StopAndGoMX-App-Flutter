@@ -96,6 +96,20 @@ platform :android do
     sh "cd #{PROJECT_ROOT} && flutter build aab --flavor #{flavor} -t #{target}"
   end
 
+  # 1.1) Validar que exista configuración de firma release antes de compilar
+  def ensure_release_signing_config!
+    keystore_properties_path = File.join(ANDROID_DIR, 'keystore.properties')
+    UI.user_error!("No existe #{keystore_properties_path}. No puedo generar un AAB release firmado.") unless File.exist?(keystore_properties_path)
+
+    content = File.read(keystore_properties_path)
+    required_keys = %w[storeFile storePassword keyAlias keyPassword]
+    missing_keys = required_keys.reject { |key| content.match?(/^\s*#{Regexp.escape(key)}\s*=\s*.+$/) }
+
+    unless missing_keys.empty?
+      UI.user_error!("Faltan llaves de firma release en keystore.properties: #{missing_keys.join(', ')}")
+    end
+  end
+
   # 2) Upload del AAB a Google Play
   def upload_aab_to_play(aab_path:, package_name:, track:)
     UI.message("🚀 Subiendo AAB a Google Play (package=#{package_name}, track=#{track})...")
@@ -158,6 +172,7 @@ platform :android do
     ########################################
     # 1) Build AAB con Flutter
     ########################################
+    ensure_release_signing_config!
     build_flutter_aab(flavor: flavor, target: target)
 
     ########################################
@@ -181,6 +196,38 @@ platform :android do
     )
 
     UI.success("✅ Deploy Android completado (#{flavor} → #{track})")
+  end
+
+  ############################################
+  # Lane genérica: build only
+  ############################################
+
+  desc 'Build signed AAB usando Flutter + flavors (sin upload)'
+  lane :build_aab do |options|
+    flavor = options[:flavor]
+    target = options[:target]
+
+    UI.user_error!('Debes pasar el parámetro flavor') if flavor.nil? || flavor.empty?
+    UI.user_error!('Debes pasar el parámetro target') if target.nil? || target.empty?
+
+    UI.message('➡️  Build Android AAB')
+    UI.message("   PROJECT_ROOT:  #{PROJECT_ROOT}")
+    UI.message("   flavor:        #{flavor}")
+    UI.message("   target:        #{target}")
+
+    run_logo_script(flavor: flavor)
+    ensure_release_signing_config!
+    build_flutter_aab(flavor: flavor, target: target)
+
+    aab_path = File.join(
+      PROJECT_ROOT,
+      "build/app/outputs/bundle/#{flavor}Release/app-#{flavor}-release.aab"
+    )
+
+    UI.message("🔍 Buscando AAB en: #{aab_path}")
+    UI.user_error!("No se encontró el archivo AAB en: #{aab_path}") unless File.exist?(aab_path)
+
+    UI.success("✅ AAB firmado generado en: #{aab_path}")
   end
 
   ############################################
@@ -250,6 +297,25 @@ platform :android do
       target: 'lib/main_celtas.dart',
       package_name: 'app.stopandgomx.celtas',
       track: 'production'
+    )
+  end
+
+  # CIMARRONES QRO - PRODUCTION
+  desc 'Deploy Android Cimarrones Qro a track PRODUCTION'
+  lane :deploy_cimarronesqro_production do
+    deploy(
+      flavor: 'cimarronesqro',
+      target: 'lib/main_cimarronesqro.dart',
+      package_name: 'app.stopandgomx.cimarronesqro',
+      track: 'production'
+    )
+  end
+
+  desc 'Build signed AAB Android Cimarrones Qro (sin upload)'
+  lane :build_cimarronesqro_aab do
+    build_aab(
+      flavor: 'cimarronesqro',
+      target: 'lib/main_cimarronesqro.dart'
     )
   end
 end

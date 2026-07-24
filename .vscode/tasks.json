@@ -42,6 +42,12 @@
       "type": "shell",
       "command": "./scripts/use_logo.sh celtas",
       "problemMatcher": []
+    },
+    {
+      "label": "prepare-cimarronesqro-assets",
+      "type": "shell",
+      "command": "./scripts/use_logo.sh cimarronesqro",
+      "problemMatcher": []
     }
   ]
 }

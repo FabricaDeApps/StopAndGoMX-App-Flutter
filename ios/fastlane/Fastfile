@@ -193,6 +193,8 @@ platform :ios do
                    "lib/main_bearsqro.dart"
                  when "celtas"
                    "lib/main_celtas.dart"
+                 when "cimarronesqro"
+                   "lib/main_cimarronesqro.dart"
                  else
                    UI.user_error!("No conozco el entrypoint para flavor=#{flavor}")
                  end
@@ -318,6 +320,18 @@ platform :ios do
       scheme: "celtas",
       bundle_id: "app.stopandgomx.celtas",
       ipa_name: "stopandgo-celtas.ipa",
+      groups: ["internal"],
+      submit_review: false
+    )
+  end
+
+  desc "Deploy iOS Cimarrones Qro"
+  lane :deploy_cimarronesqro do
+    deploy(
+      flavor: "cimarronesqro",
+      scheme: "cimarronesqro",
+      bundle_id: "app.stopandgomx.cimarronesqro",
+      ipa_name: "stopandgo-cimarronesqro.ipa",
       groups: ["internal"],
       submit_review: false
     )

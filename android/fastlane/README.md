@@ -23,6 +23,14 @@ For _fastlane_ installation instructions, see [Installing _fastlane_](https://do
 
 Build & upload a Google Play usando Flutter + flavors (lane genérica)
 
+### android build_aab
+
+```sh
+[bundle exec] fastlane android build_aab
+```
+
+Build signed AAB usando Flutter + flavors (sin upload)
+
 ### android deploy_mainapp_production
 
 ```sh
@@ -70,6 +78,22 @@ Deploy Android BEARS CORREGIDORA a track PRODUCTION
 ```
 
 Deploy Android Celtas a track PRODUCTION
+
+### android deploy_cimarronesqro_production
+
+```sh
+[bundle exec] fastlane android deploy_cimarronesqro_production
+```
+
+Deploy Android Cimarrones Qro a track PRODUCTION
+
+### android build_cimarronesqro_aab
+
+```sh
+[bundle exec] fastlane android build_cimarronesqro_aab
+```
+
+Build signed AAB Android Cimarrones Qro (sin upload)
 
 ----
 

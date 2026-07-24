@@ -98,6 +98,13 @@ android {
             applicationId = "app.stopandgomx.celtas"
             resValue("string", "app_name", "Celtas")
         }
+
+        // Cimarrones Qro
+        create("cimarronesqro") {
+            dimension = "default"
+            applicationId = "app.stopandgomx.cimarronesqro"
+            resValue("string", "app_name", "Cimarrones Qro")
+        }
     }
 
     signingConfigs {
@@ -108,9 +115,7 @@ android {
                 keyAlias = keystoreProperties.getProperty("keyAlias")
                 keyPassword = keystoreProperties.getProperty("keyPassword")
             } else {
-                // Opcional: Manejo de error o un fallback si el archivo no existe
-                println("ADVERTENCIA: No se encontró keystore.properties. Usando firma de Debug para Release.")
-                // Nota: En un entorno de CI/Fastlane, querrás que esto falle si falta.
+                throw GradleException("No se encontró una configuración válida de keystore.properties para firmar Release.")
             }
         }
     }

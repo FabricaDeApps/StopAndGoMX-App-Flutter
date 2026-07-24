@@ -52,6 +52,7 @@ flutter build aab --flavor wolverinesqro -t lib/main_wolverinesqro.dart
 flutter build aab --flavor bearsqro -t lib/main_bearsqro.dart
 flutter build apk --flavor redskins -t lib/main_redskins.dart
 flutter build apk --flavor celtas -t lib/main_celtas.dart
+flutter build apk --flavor cimarronesqro -t lib/main_cimarronesqro.dart
 
 
 Flavors iOS
@@ -127,6 +128,13 @@ flutterfire configure \
   --platforms=android,ios \
   --out=lib/firebase_options_celtas.dart
 
+flutterfire configure \
+  --project=stopandgomx-4ab82 \
+  --android-app-id=app.stopandgomx.cimarronesqro \
+  --ios-bundle-id=app.stopandgomx.cimarronesqro \
+  --platforms=android,ios \
+  --out=lib/firebase_options_cimarronesqro.dart
+
 Copiar el json de android a su carpeta en src
 
 # KEY ID IOS:
@@ -180,3 +188,9 @@ M25Y63Z23D
   # Bundle
     Android: app.stopandgomx.celtas
     iOS: app.stopandgomx.celtas
+
+- Cimarrones Qro - cimarronesqro
+  
+  # Bundle
+    Android: app.stopandgomx.cimarronesqro
+    iOS: app.stopandgomx.cimarronesqro

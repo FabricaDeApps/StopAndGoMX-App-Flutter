@@ -23,6 +23,7 @@
 		97C146FE1CF9000F007C117D /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FD1CF9000F007C117D /* Assets.xcassets */; };
 		97C147011CF9000F007C117D /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FF1CF9000F007C117D /* LaunchScreen.storyboard */; };
 		A1C7E1A12B3C4D5E6F700004 /* Info-celtas.plist in Resources */ = {isa = PBXBuildFile; fileRef = A1C7E1A12B3C4D5E6F700003 /* Info-celtas.plist */; };
+		A2C7E1A12B3C4D5E6F700004 /* Info-cimarronesqro.plist in Resources */ = {isa = PBXBuildFile; fileRef = A2C7E1A12B3C4D5E6F700003 /* Info-cimarronesqro.plist */; };
 		B2C9D53B24FF27D8904CC6F0 /* Pods_Runner.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2639E37B9CC55D8465FDE41B /* Pods_Runner.framework */; };
 /* End PBXBuildFile section */
 
@@ -54,12 +55,14 @@
 		11ADA63865EF29A91B805B5F /* Pods-Runner.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Runner.debug.xcconfig"; path = "Target Support Files/Pods-Runner/Pods-Runner.debug.xcconfig"; sourceTree = "<group>"; };
 		1498D2321E8E86230040F4C2 /* GeneratedPluginRegistrant.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = GeneratedPluginRegistrant.h; sourceTree = "<group>"; };
 		1498D2331E8E89220040F4C2 /* GeneratedPluginRegistrant.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GeneratedPluginRegistrant.m; sourceTree = "<group>"; };
+		2274C94D766CE41468113D01 /* Pods-Runner.release-cimarronesqro.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Runner.release-cimarronesqro.xcconfig"; path = "Target Support Files/Pods-Runner/Pods-Runner.release-cimarronesqro.xcconfig"; sourceTree = "<group>"; };
 		2594370ED5B031BFB5A888FC /* Pods-Runner.debug-wolverinesqro.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Runner.debug-wolverinesqro.xcconfig"; path = "Target Support Files/Pods-Runner/Pods-Runner.debug-wolverinesqro.xcconfig"; sourceTree = "<group>"; };
 		2639E37B9CC55D8465FDE41B /* Pods_Runner.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Runner.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		2BD5F75572501125AEAED47B /* Pods-Runner.release-bearsqro.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Runner.release-bearsqro.xcconfig"; path = "Target Support Files/Pods-Runner/Pods-Runner.release-bearsqro.xcconfig"; sourceTree = "<group>"; };
 		331C807B294A618700263BE5 /* RunnerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RunnerTests.swift; sourceTree = "<group>"; };
 		331C8081294A63A400263BE5 /* RunnerTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = RunnerTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		3B3967151E833CAA004F5970 /* AppFrameworkInfo.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = AppFrameworkInfo.plist; path = Flutter/AppFrameworkInfo.plist; sourceTree = "<group>"; };
+		42E9B7471FB3875819B5F229 /* Pods-Runner.debug-cimarronesqro.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Runner.debug-cimarronesqro.xcconfig"; path = "Target Support Files/Pods-Runner/Pods-Runner.debug-cimarronesqro.xcconfig"; sourceTree = "<group>"; };
 		610688402ED897960082930F /* Debug-raidersqro.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = "Debug-raidersqro.xcconfig"; sourceTree = "<group>"; };
 		610688412ED897A80082930F /* Release-raidersqro.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = "Release-raidersqro.xcconfig"; sourceTree = "<group>"; };
 		610688422ED898170082930F /* Info-raidersqro.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "Info-raidersqro.plist"; sourceTree = "<group>"; };
@@ -95,6 +98,9 @@
 		A1C7E1A12B3C4D5E6F700001 /* Debug-celtas.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = "Debug-celtas.xcconfig"; sourceTree = "<group>"; };
 		A1C7E1A12B3C4D5E6F700002 /* Release-celtas.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = "Release-celtas.xcconfig"; sourceTree = "<group>"; };
 		A1C7E1A12B3C4D5E6F700003 /* Info-celtas.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "Info-celtas.plist"; sourceTree = "<group>"; };
+		A2C7E1A12B3C4D5E6F700001 /* Debug-cimarronesqro.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = "Debug-cimarronesqro.xcconfig"; sourceTree = "<group>"; };
+		A2C7E1A12B3C4D5E6F700002 /* Release-cimarronesqro.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = "Release-cimarronesqro.xcconfig"; sourceTree = "<group>"; };
+		A2C7E1A12B3C4D5E6F700003 /* Info-cimarronesqro.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "Info-cimarronesqro.plist"; sourceTree = "<group>"; };
 		D46330500F9E36BCA997BE07 /* Pods-Runner.release-wolverinesqro.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Runner.release-wolverinesqro.xcconfig"; path = "Target Support Files/Pods-Runner/Pods-Runner.release-wolverinesqro.xcconfig"; sourceTree = "<group>"; };
 		D5F355C659FAEAB97FBB4A0D /* Pods-Runner.release-raidersqro.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Runner.release-raidersqro.xcconfig"; path = "Target Support Files/Pods-Runner/Pods-Runner.release-raidersqro.xcconfig"; sourceTree = "<group>"; };
 		F32ABA2816237CBAF1C82F0A /* Pods-Runner.release-mainapp.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Runner.release-mainapp.xcconfig"; path = "Target Support Files/Pods-Runner/Pods-Runner.release-mainapp.xcconfig"; sourceTree = "<group>"; };
@@ -147,6 +153,8 @@
 				2BD5F75572501125AEAED47B /* Pods-Runner.release-bearsqro.xcconfig */,
 				6863CC76A72EC73CD6141A9F /* Pods-Runner.debug-celtas.xcconfig */,
 				923AB462C4C43E74A075815E /* Pods-Runner.release-celtas.xcconfig */,
+				42E9B7471FB3875819B5F229 /* Pods-Runner.debug-cimarronesqro.xcconfig */,
+				2274C94D766CE41468113D01 /* Pods-Runner.release-cimarronesqro.xcconfig */,
 			);
 			path = Pods;
 			sourceTree = "<group>";
@@ -177,10 +185,12 @@
 				A1C7E1A12B3C4D5E6F700002 /* Release-celtas.xcconfig */,
 				61BC29392EC23A2A00669F10 /* Debug-zorros.xcconfig */,
 				616048512F09772A00A6975A /* Debug-bearsqro.xcconfig */,
+				A2C7E1A12B3C4D5E6F700001 /* Debug-cimarronesqro.xcconfig */,
 				A1C7E1A12B3C4D5E6F700001 /* Debug-celtas.xcconfig */,
 				610688402ED897960082930F /* Debug-raidersqro.xcconfig */,
 				61530C352EC90F6C007B96DF /* Debug-mainapp.xcconfig */,
 				61530C362EC90F6C007B96DF /* Release-mainapp.xcconfig */,
+				A2C7E1A12B3C4D5E6F700002 /* Release-cimarronesqro.xcconfig */,
 				616048542F097E5900A6975A /* GoogleService-Info.plist */,
 				EC79CA947D0F4D6E16E86754 /* Frameworks */,
 			);
@@ -208,6 +218,7 @@
 				610688422ED898170082930F /* Info-raidersqro.plist */,
 				61F118952EE0DADD0014866E /* Info-wolverinesqro.plist */,
 				616048522F097CD900A6975A /* Info-bearsqro.plist */,
+				A2C7E1A12B3C4D5E6F700003 /* Info-cimarronesqro.plist */,
 				A1C7E1A12B3C4D5E6F700003 /* Info-celtas.plist */,
 				1498D2321E8E86230040F4C2 /* GeneratedPluginRegistrant.h */,
 				1498D2331E8E89220040F4C2 /* GeneratedPluginRegistrant.m */,
@@ -330,6 +341,7 @@
 				616048552F097E5900A6975A /* GoogleService-Info.plist in Resources */,
 				97C146FC1CF9000F007C117D /* Main.storyboard in Resources */,
 				61530C332EC90E4B007B96DF /* Info-zorros.plist in Resources */,
+				A2C7E1A12B3C4D5E6F700004 /* Info-cimarronesqro.plist in Resources */,
 				61530C372EC90F6C007B96DF /* Debug-mainapp.xcconfig in Resources */,
 				61530C382EC90F6C007B96DF /* Release-mainapp.xcconfig in Resources */,
 				610688432ED898170082930F /* Info-raidersqro.plist in Resources */,
@@ -372,7 +384,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "#!/bin/sh\nset -e\n\necho \"================ GOOGLE SERVICE INFO ================\"\necho \"CONFIGURATION: $CONFIGURATION\"\necho \"TARGET_NAME:   $TARGET_NAME\"\n\nFLAVOR=\"\"\n\ncase \"$CONFIGURATION\" in\n  *mainapp*)\n    FLAVOR=\"mainapp\"\n    ;;\n  *zorros*)\n    FLAVOR=\"zorros\"\n    ;;\n  *raidersqro*)\n    FLAVOR=\"raidersqro\"\n    ;;\n  *wolverinesqro*)\n    FLAVOR=\"wolverinesqro\"\n    ;;\n  *bearsqro*)\n    FLAVOR=\"bearsqro\"\n    ;;\n  *celtas*)\n    FLAVOR=\"celtas\"\n    ;;\n  *)\n    echo \"⚠️ No se pudo detectar flavor desde CONFIGURATION=$CONFIGURATION, usando mainapp por default\"\n    FLAVOR=\"mainapp\"\n    ;;\nesac\n\nPLIST_SOURCE=\"${PROJECT_DIR}/Runner/Firebase/GoogleService-Info-${FLAVOR}.plist\"\nPLIST_DEST=\"${PROJECT_DIR}/Runner/GoogleService-Info.plist\"\n\necho \"📄 Usando plist para flavor: $FLAVOR\"\necho \"📄 Copiando:\"\necho \"   ${PLIST_SOURCE}\"\necho \"   → ${PLIST_DEST}\"\n\nif [ ! -f \"$PLIST_SOURCE\" ]; then\n  echo \"❌ No existe el archivo: $PLIST_SOURCE\"\n  exit 1\nfi\n\ncp \"$PLIST_SOURCE\" \"$PLIST_DEST\"\n\necho \"✅ Copia de GoogleService-Info.plist completada\"\necho \"=====================================================\"\n";
+			shellScript = "#!/bin/sh\nset -e\n\necho \"================ GOOGLE SERVICE INFO ================\"\necho \"CONFIGURATION: $CONFIGURATION\"\necho \"TARGET_NAME:   $TARGET_NAME\"\n\nFLAVOR=\"\"\n\ncase \"$CONFIGURATION\" in\n  *mainapp*)\n    FLAVOR=\"mainapp\"\n    ;;\n  *zorros*)\n    FLAVOR=\"zorros\"\n    ;;\n  *raidersqro*)\n    FLAVOR=\"raidersqro\"\n    ;;\n  *wolverinesqro*)\n    FLAVOR=\"wolverinesqro\"\n    ;;\n  *bearsqro*)\n    FLAVOR=\"bearsqro\"\n    ;;\n  *celtas*)\n    FLAVOR=\"celtas\"\n    ;;\n  *cimarronesqro*)\n    FLAVOR=\"cimarronesqro\"\n    ;;\n  *)\n    echo \"⚠️ No se pudo detectar flavor desde CONFIGURATION=$CONFIGURATION, usando mainapp por default\"\n    FLAVOR=\"mainapp\"\n    ;;\nesac\n\nPLIST_SOURCE=\"${PROJECT_DIR}/Runner/Firebase/GoogleService-Info-${FLAVOR}.plist\"\nPLIST_DEST=\"${PROJECT_DIR}/Runner/GoogleService-Info.plist\"\n\necho \"📄 Usando plist para flavor: $FLAVOR\"\necho \"📄 Copiando:\"\necho \"   ${PLIST_SOURCE}\"\necho \"   → ${PLIST_DEST}\"\n\nif [ ! -f \"$PLIST_SOURCE\" ]; then\n  echo \"❌ No existe el archivo: $PLIST_SOURCE\"\n  exit 1\nfi\n\ncp \"$PLIST_SOURCE\" \"$PLIST_DEST\"\n\necho \"✅ Copia de GoogleService-Info.plist completada\"\necho \"=====================================================\"\n";
 		};
 		875DA696765697842C35F668 /* [CP] Check Pods Manifest.lock */ = {
 			isa = PBXShellScriptBuildPhase;
@@ -1971,6 +1983,207 @@
 			};
 			name = "Release-celtas";
 		};
+		A2C7E1A12B3C4D5E6F700011 /* Debug-cimarronesqro */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
+				MTL_ENABLE_DEBUG_INFO = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = "Debug-cimarronesqro";
+		};
+		A2C7E1A12B3C4D5E6F700012 /* Debug-cimarronesqro */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = A2C7E1A12B3C4D5E6F700001 /* Debug-cimarronesqro.xcconfig */;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIconCimarronesqro;
+				CLANG_ENABLE_MODULES = YES;
+				CODE_SIGN_ENTITLEMENTS = Runner/Runner.entitlements;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = "$(FLUTTER_BUILD_NUMBER)";
+				DEVELOPMENT_TEAM = M25Y63Z23D;
+				ENABLE_BITCODE = NO;
+				INFOPLIST_FILE = "Runner/Info-cimarronesqro.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = "Cimarrones Qro";
+				IPHONEOS_DEPLOYMENT_TARGET = 16.6;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = app.stopandgomx.cimarronesqro;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				SWIFT_OBJC_BRIDGING_HEADER = "Runner/Runner-Bridging-Header.h";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+				VERSIONING_SYSTEM = "apple-generic";
+			};
+			name = "Debug-cimarronesqro";
+		};
+		A2C7E1A12B3C4D5E6F700013 /* Debug-cimarronesqro */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = app.stopandgomx.stopandgo.RunnerTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Runner.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Runner";
+			};
+			name = "Debug-cimarronesqro";
+		};
+		A2C7E1A12B3C4D5E6F700014 /* Release-cimarronesqro */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				SDKROOT = iphoneos;
+				SUPPORTED_PLATFORMS = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VALIDATE_PRODUCT = YES;
+			};
+			name = "Release-cimarronesqro";
+		};
+		A2C7E1A12B3C4D5E6F700015 /* Release-cimarronesqro */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = A2C7E1A12B3C4D5E6F700002 /* Release-cimarronesqro.xcconfig */;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIconCimarronesqro;
+				CLANG_ENABLE_MODULES = YES;
+				CODE_SIGN_ENTITLEMENTS = Runner/Runner.entitlements;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = "$(FLUTTER_BUILD_NUMBER)";
+				DEVELOPMENT_TEAM = M25Y63Z23D;
+				ENABLE_BITCODE = NO;
+				INFOPLIST_FILE = "Runner/Info-cimarronesqro.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = "Cimarrones Qro";
+				IPHONEOS_DEPLOYMENT_TARGET = 16.6;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = app.stopandgomx.cimarronesqro;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				SWIFT_OBJC_BRIDGING_HEADER = "Runner/Runner-Bridging-Header.h";
+				SWIFT_VERSION = 5.0;
+				VERSIONING_SYSTEM = "apple-generic";
+			};
+			name = "Release-cimarronesqro";
+		};
+		A2C7E1A12B3C4D5E6F700016 /* Release-cimarronesqro */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = app.stopandgomx.stopandgo.RunnerTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 5.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Runner.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Runner";
+			};
+			name = "Release-cimarronesqro";
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -1983,6 +2196,7 @@
 				610864982EBD314A009C245E /* Debug-zorros */,
 				61F118912EE0D3F90014866E /* Debug-wolverinesqro */,
 				6160484C2F09768C00A6975A /* Debug-bearsqro */,
+				A2C7E1A12B3C4D5E6F700013 /* Debug-cimarronesqro */,
 				A1C7E1A12B3C4D5E6F700013 /* Debug-celtas */,
 				331C8089294A63A400263BE5 /* Release */,
 				6108649B2EBD315D009C245E /* Release-mainapp */,
@@ -1990,6 +2204,7 @@
 				61BC29352EC2338900669F10 /* Release-zorros */,
 				61F118942EE0D4020014866E /* Release-wolverinesqro */,
 				6160484F2F0976B800A6975A /* Release-bearsqro */,
+				A2C7E1A12B3C4D5E6F700016 /* Release-cimarronesqro */,
 				A1C7E1A12B3C4D5E6F700016 /* Release-celtas */,
 				331C808A294A63A400263BE5 /* Profile */,
 			);
@@ -2005,6 +2220,7 @@
 				610864962EBD314A009C245E /* Debug-zorros */,
 				61F1188F2EE0D3F90014866E /* Debug-wolverinesqro */,
 				6160484A2F09768C00A6975A /* Debug-bearsqro */,
+				A2C7E1A12B3C4D5E6F700011 /* Debug-cimarronesqro */,
 				A1C7E1A12B3C4D5E6F700011 /* Debug-celtas */,
 				97C147041CF9000F007C117D /* Release */,
 				610864992EBD315D009C245E /* Release-mainapp */,
@@ -2012,6 +2228,7 @@
 				61BC29332EC2338900669F10 /* Release-zorros */,
 				61F118922EE0D4020014866E /* Release-wolverinesqro */,
 				6160484D2F0976B800A6975A /* Release-bearsqro */,
+				A2C7E1A12B3C4D5E6F700014 /* Release-cimarronesqro */,
 				A1C7E1A12B3C4D5E6F700014 /* Release-celtas */,
 				249021D3217E4FDB00AE95B9 /* Profile */,
 			);
@@ -2027,6 +2244,7 @@
 				610864972EBD314A009C245E /* Debug-zorros */,
 				61F118902EE0D3F90014866E /* Debug-wolverinesqro */,
 				6160484B2F09768C00A6975A /* Debug-bearsqro */,
+				A2C7E1A12B3C4D5E6F700012 /* Debug-cimarronesqro */,
 				A1C7E1A12B3C4D5E6F700012 /* Debug-celtas */,
 				97C147071CF9000F007C117D /* Release */,
 				6108649A2EBD315D009C245E /* Release-mainapp */,
@@ -2034,6 +2252,7 @@
 				61BC29342EC2338900669F10 /* Release-zorros */,
 				61F118932EE0D4020014866E /* Release-wolverinesqro */,
 				6160484E2F0976B800A6975A /* Release-bearsqro */,
+				A2C7E1A12B3C4D5E6F700015 /* Release-cimarronesqro */,
 				A1C7E1A12B3C4D5E6F700015 /* Release-celtas */,
 				249021D4217E4FDB00AE95B9 /* Profile */,
 			);

@@ -71,6 +71,14 @@ Deploy iOS Bears Corregidora
 
 Deploy iOS Celtas
 
+### ios deploy_cimarronesqro
+
+```sh
+[bundle exec] fastlane ios deploy_cimarronesqro
+```
+
+Deploy iOS Cimarrones Qro
+
 ----
 
 This README.md is auto-generated and will be re-generated every time [_fastlane_](https://fastlane.tools) is run.

@@ -80,6 +80,15 @@
       "program": "lib/main_celtas.dart",
       "args": ["--flavor", "celtas"],
       "preLaunchTask": "prepare-celtas-assets"
+    },
+    {
+      "name": "Run CimarronesQro",
+      "request": "launch",
+      "type": "dart",
+      "flutterMode": "debug",
+      "program": "lib/main_cimarronesqro.dart",
+      "args": ["--flavor", "cimarronesqro"],
+      "preLaunchTask": "prepare-cimarronesqro-assets"
     }
   ]
 }
