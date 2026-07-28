@@ -1,12 +1,53 @@
 // lib/modules/signin/sign_in_view.dart
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/gestures.dart';
 import 'package:get/get.dart';
 import 'package:stopandgo/modules/sign_in/sign_in_controller.dart';
 import 'package:stopandgo/modules/webview/webview_page.dart';
 
 class SignInView extends GetView<SignInController> {
   const SignInView({super.key});
+
+  void _openPrivacyPolicy() {
+    final url = controller.privacyPolicyUrl;
+    if (url.isEmpty) {
+      Get.snackbar(
+        'Privacidad',
+        'No se pudo obtener la organización actual.',
+        snackPosition: SnackPosition.BOTTOM,
+      );
+      return;
+    }
+
+    Get.to(() => AppWebViewPage(title: 'Políticas de privacidad', url: url));
+  }
+
+  Widget _privacyCheckbox(BuildContext context) {
+    return Obx(
+      () => CheckboxListTile(
+        value: controller.privacyAccepted.value,
+        onChanged: (v) => controller.privacyAccepted.value = v ?? false,
+        controlAffinity: ListTileControlAffinity.leading,
+        contentPadding: EdgeInsets.zero,
+        title: Text.rich(
+          TextSpan(
+            text: 'Acepto las ',
+            children: [
+              TextSpan(
+                text: 'políticas de privacidad',
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.primary,
+                  decoration: TextDecoration.underline,
+                ),
+                recognizer: TapGestureRecognizer()..onTap = _openPrivacyPolicy,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -53,6 +94,12 @@ class SignInView extends GetView<SignInController> {
                                   ?.copyWith(fontWeight: FontWeight.w700),
                               textAlign: TextAlign.center,
                             ),
+                            const SizedBox(height: 4),
+                            Text(
+                              'Para activar Google y Apple, primero debes aceptar las políticas de privacidad.',
+                              style: Theme.of(context).textTheme.bodySmall,
+                              textAlign: TextAlign.center,
+                            ),
                             if (controller.requiresTeamConfirmation) ...[
                               const SizedBox(height: 4),
                               Text(
@@ -69,7 +116,9 @@ class SignInView extends GetView<SignInController> {
                         SizedBox(
                           width: double.infinity,
                           child: OutlinedButton.icon(
-                            onPressed: controller.isLoading.value
+                            onPressed:
+                                controller.isLoading.value ||
+                                    !controller.privacyAccepted.value
                                 ? null
                                 : controller.submitGoogle,
                             style: OutlinedButton.styleFrom(
@@ -97,7 +146,9 @@ class SignInView extends GetView<SignInController> {
                           SizedBox(
                             width: double.infinity,
                             child: OutlinedButton.icon(
-                              onPressed: controller.isLoading.value
+                              onPressed:
+                                  controller.isLoading.value ||
+                                      !controller.privacyAccepted.value
                                   ? null
                                   : controller.submitApple,
                               icon: const Icon(Icons.apple),
@@ -105,6 +156,8 @@ class SignInView extends GetView<SignInController> {
                             ),
                           ),
                         ],
+                        const SizedBox(height: 8),
+                        _privacyCheckbox(context),
                         const SizedBox(height: 14),
                         Row(
                           children: [
@@ -124,6 +177,8 @@ class SignInView extends GetView<SignInController> {
                         const SizedBox(height: 14),
                       ] else ...[
                         _SocialRegisterSummary(controller: controller),
+                        const SizedBox(height: 8),
+                        _privacyCheckbox(context),
                         const SizedBox(height: 14),
                       ],
 
@@ -264,24 +319,7 @@ class SignInView extends GetView<SignInController> {
                       const SizedBox(height: 20),
                       Center(
                         child: TextButton(
-                          onPressed: () {
-                            final url = controller.privacyPolicyUrl;
-                            if (url.isEmpty) {
-                              Get.snackbar(
-                                'Privacidad',
-                                'No se pudo obtener la organización actual.',
-                                snackPosition: SnackPosition.BOTTOM,
-                              );
-                              return;
-                            }
-
-                            Get.to(
-                              () => AppWebViewPage(
-                                title: 'Políticas de privacidad',
-                                url: url,
-                              ),
-                            );
-                          },
+                          onPressed: _openPrivacyPolicy,
                           child: const Text(
                             'Ver Políticas de Privacidad',
                             style: TextStyle(
@@ -293,7 +331,9 @@ class SignInView extends GetView<SignInController> {
                       const SizedBox(height: 8),
 
                       FilledButton.icon(
-                        onPressed: controller.isLoading.value
+                        onPressed:
+                            controller.isLoading.value ||
+                                !controller.privacyAccepted.value
                             ? null
                             : () => controller.submit(),
                         icon: controller.isLoading.value

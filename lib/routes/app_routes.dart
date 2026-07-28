@@ -5,8 +5,6 @@ import 'package:stopandgo/modules/admin_roster/index.dart';
 import 'package:stopandgo/modules/attendece_game/index.dart';
 import 'package:stopandgo/modules/auth/login_binding.dart';
 import 'package:stopandgo/modules/auth/login_view.dart';
-import 'package:stopandgo/modules/broadcast_live/broadcast_live_view.dart';
-import 'package:stopandgo/modules/broadcast_live/index.dart';
 import 'package:stopandgo/modules/birthday_greeting/index.dart';
 import 'package:stopandgo/modules/change_role/change_role_view.dart';
 import 'package:stopandgo/modules/change_role/index.dart';
@@ -100,8 +98,6 @@ import 'package:stopandgo/modules/team_selector/index.dart';
 import 'package:stopandgo/modules/training_attendance/index.dart';
 import 'package:stopandgo/modules/training_attendance/training_attendance_view.dart';
 import 'package:stopandgo/modules/trainnings/index.dart';
-import 'package:stopandgo/modules/watch_live/index.dart';
-import 'package:stopandgo/modules/watch_live/watch_live_view.dart';
 
 part 'app_routes_names.dart';
 
@@ -338,16 +334,6 @@ class AppPages {
       name: Routes.initLive,
       page: () => const InitLiveView(),
       binding: InitLiveBinding(),
-    ),
-    GetPage(
-      name: Routes.broadcastLive,
-      page: () => const BroadcastLiveView(),
-      binding: BroadcastLiveBinding(),
-    ),
-    GetPage(
-      name: Routes.watchLive,
-      page: () => const WatchLiveView(),
-      binding: WatchLiveBinding(),
     ),
     GetPage(
       name: Routes.playerTrainnings,

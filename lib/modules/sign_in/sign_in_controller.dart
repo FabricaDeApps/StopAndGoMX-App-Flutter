@@ -59,6 +59,7 @@ class SignInController extends GetxController {
   final isConfirmObscure = true.obs;
   final isLoading = false.obs;
   final teamConfirmed = false.obs;
+  final privacyAccepted = false.obs;
   final organization = Rxn<OrganizationResponse>();
   final socialAuth = Rxn<SocialAuthResult>();
   bool get requiresTeamConfirmation => !FlavorConfig.I.isCustom;
@@ -66,10 +67,10 @@ class SignInController extends GetxController {
   bool get isSocialMode => socialAuth.value != null;
   String get socialEmail => socialAuth.value?.email.trim() ?? '';
   String get socialProviderLabel => switch (socialAuth.value?.provider) {
-        SocialAuthProvider.apple => 'Apple',
-        SocialAuthProvider.google => 'Google',
-        null => '',
-      };
+    SocialAuthProvider.apple => 'Apple',
+    SocialAuthProvider.google => 'Google',
+    null => '',
+  };
 
   @override
   void onInit() {
@@ -111,6 +112,17 @@ class SignInController extends GetxController {
     return 'https://$slug.stopandgomx.app/privacy-policy';
   }
 
+  bool ensurePrivacyAccepted() {
+    if (privacyAccepted.value) return true;
+
+    Get.snackbar(
+      'Registro',
+      'Debes aceptar las políticas de privacidad para continuar',
+      snackPosition: SnackPosition.BOTTOM,
+    );
+    return false;
+  }
+
   Future<void> submit() async {
     final currentRole = role.value;
 
@@ -124,6 +136,8 @@ class SignInController extends GetxController {
       );
       return;
     }
+
+    if (!ensurePrivacyAccepted()) return;
 
     if (currentRole == null || currentRole.isEmpty) {
       Get.snackbar(
@@ -250,6 +264,7 @@ class SignInController extends GetxController {
     Future<SocialAuthResult> Function() socialLogin,
   ) async {
     if (isLoading.value) return;
+    if (!ensurePrivacyAccepted()) return;
 
     isLoading.value = true;
     try {
@@ -314,8 +329,9 @@ class SignInController extends GetxController {
 
     ClarityService.setUserContext(
       userId: res.user.id,
-      role:
-          res.user.activeRole.isNotEmpty ? res.user.activeRole : res.user.role,
+      role: res.user.activeRole.isNotEmpty
+          ? res.user.activeRole
+          : res.user.role,
       organizationId: FlavorConfig.I.organizationId,
     );
     ClarityService.trackEvent(clarityEvent);

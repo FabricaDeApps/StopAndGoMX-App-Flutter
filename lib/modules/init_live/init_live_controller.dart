@@ -1,7 +1,6 @@
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:stopandgo/core/models/streaming/live_event.dart';
-import 'package:stopandgo/routes/app_routes.dart';
 import '../../../core/network/api_repository.dart';
 
 class InitLiveController extends GetxController {
@@ -94,13 +93,10 @@ class InitLiveController extends GetxController {
   }
 
   void goLive() {
-    Get.toNamed(
-      Routes.broadcastLive,
-      arguments: {
-        'liveEventId': liveEventId,
-        'rtmpsUrl': rtmpsUrl,
-        'webrtcPublishUrl': webrtcPublishUrl,
-      },
+    Get.snackbar(
+      'Transmisiones deshabilitadas',
+      'La funcionalidad de live está desactivada temporalmente.',
+      snackPosition: SnackPosition.BOTTOM,
     );
   }
 }

@@ -304,21 +304,11 @@ class GamesTabView extends GetView<GamesTabController> {
                                   return;
                                 }
 
-                                final we =
-                                    AppStorage.getOrganization()?.name ?? '';
-                                final categ =
-                                    AppStorage.getSelectedCategoryName();
-
-                                await Get.toNamed(
-                                  Routes.watchLive,
-                                  arguments: {
-                                    'liveEventId': liveEventId,
-                                    'playUrl': playUrl,
-                                    'title': "${g.opponent} vs $we - $categ",
-                                  },
+                                Get.snackbar(
+                                  'Transmisiones deshabilitadas',
+                                  'La reproducción en vivo está desactivada temporalmente.',
+                                  snackPosition: SnackPosition.BOTTOM,
                                 );
-
-                                await controller.refresh();
                               },
                             ),
 
