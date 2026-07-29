@@ -51,4 +51,20 @@ fastlane deploy_bearsqro
 echo "✅ BEARSQRO completado"
 echo ""
 
+########################################
+# CELTAS
+########################################
+echo "☘️ Deploy iOS: CELTAS"
+fastlane deploy_celtas
+echo "✅ CELTAS completado"
+echo ""
+
+########################################
+# CIMARRONESQRO
+########################################
+echo "🐏 Deploy iOS: CIMARRONESQRO"
+fastlane deploy_cimarronesqro
+echo "✅ CIMARRONESQRO completado"
+echo ""
+
 echo "🎉🚀 TODOS LOS DEPLOYS iOS TERMINADOS EXITOSAMENTE"
