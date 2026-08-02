@@ -54,7 +54,7 @@ class NewGameView extends GetView<NewGameController> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     DropdownSearch<Venue>(
-                      items: (f, cs) => controller.venues.toList(),
+                      items: (filter, _) => controller.searchVenues(filter),
                       selectedItem: controller.selectedVenue.value,
                       compareFn: (a, b) => a.id == b.id,
                       itemAsString: (v) => v.name,
@@ -122,16 +122,34 @@ class NewGameView extends GetView<NewGameController> {
               }),
               const SizedBox(height: 12),
 
-              // Local
-              Obx(
-                () => SwitchListTile(
-                  contentPadding: EdgeInsets.zero,
-                  title: const Text('Local'),
-                  value: controller.isHome.value,
-                  onChanged: controller.setIsHome,
+              if (controller.isEditing) ...[
+                Obx(
+                  () => DropdownButtonFormField<String>(
+                    initialValue: controller.selectedStatus.value,
+                    decoration: const InputDecoration(labelText: 'Estado'),
+                    items: const [
+                      DropdownMenuItem(
+                        value: 'scheduled',
+                        child: Text('Programado'),
+                      ),
+                      DropdownMenuItem(
+                        value: 'postponed',
+                        child: Text('Pospuesto'),
+                      ),
+                      DropdownMenuItem(
+                        value: 'canceled',
+                        child: Text('Cancelado'),
+                      ),
+                    ],
+                    onChanged: (value) {
+                      if (value != null) {
+                        controller.selectedStatus.value = value;
+                      }
+                    },
+                  ),
                 ),
-              ),
-              const SizedBox(height: 12),
+                const SizedBox(height: 12),
+              ],
 
               // Notes
               TextFormField(

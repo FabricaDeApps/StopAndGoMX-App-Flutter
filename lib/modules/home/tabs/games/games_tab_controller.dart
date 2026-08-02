@@ -3,15 +3,18 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:stopandgo/core/models/games/games.dart';
 import 'package:stopandgo/core/network/api_repository.dart';
+import 'package:stopandgo/core/network/api_request_exception.dart';
+import 'package:stopandgo/core/services/manager_games_service.dart';
 import 'package:stopandgo/core/storage/app_storage.dart';
 import 'package:stopandgo/core/utils/role_utils.dart';
 
-enum GamesStatusFilter { all, played, upcoming }
+enum GamesStatusFilter { all, played, upcoming, postponed, canceled }
 
 enum GamesScopeFilter { mine, organization }
 
 class GamesTabController extends GetxController {
   final api = Get.find<ApiRepository>();
+  final managerGames = Get.find<ManagerGamesService>();
 
   // Contexto (lo setea HomeController al cambiar categoría/jugador/rol)
   final role = ''.obs; // manager/coach/staff/parent/player
@@ -25,6 +28,7 @@ class GamesTabController extends GetxController {
   // Estado UI
   final isLoading = false.obs;
   final games = <Game>[].obs;
+  final archivingGameIds = <int>{}.obs;
 
   DateTimeRange get effectiveRange {
     final r = selectedRange.value;
@@ -67,11 +71,16 @@ class GamesTabController extends GetxController {
         return 'completed'; // o 'completed' según tu backend
       case GamesStatusFilter.upcoming:
         return 'scheduled';
+      case GamesStatusFilter.postponed:
+        return 'postponed';
+      case GamesStatusFilter.canceled:
+        return 'canceled';
       case GamesStatusFilter.all:
         return null;
     }
   }
 
+  @override
   Future<void> refresh() async {
     if (isLoading.value) return;
     isLoading.value = true;
@@ -192,5 +201,28 @@ class GamesTabController extends GetxController {
 
   void clearDateRange() {
     selectedRange.value = null;
+  }
+
+  Future<String> archiveGame(Game game) async {
+    if (archivingGameIds.contains(game.id)) return '';
+    archivingGameIds.add(game.id);
+    try {
+      final result = await managerGames.archiveGame(
+        categoryId: game.categoryId,
+        gameId: game.id,
+      );
+      await refresh();
+      return result.message.isEmpty
+          ? 'Juego archivado correctamente.'
+          : result.message;
+    } catch (error) {
+      if (error is ApiRequestException) rethrow;
+      throw ApiRequestException(
+        statusCode: null,
+        message: 'No se pudo archivar el juego.',
+      );
+    } finally {
+      archivingGameIds.remove(game.id);
+    }
   }
 }

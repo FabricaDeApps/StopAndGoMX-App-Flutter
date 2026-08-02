@@ -33,13 +33,13 @@ class Venue {
   });
 
   factory Venue.fromJson(Map<String, dynamic> json) {
-    DateTime? _parseDate(dynamic s) {
+    DateTime? parseDate(dynamic s) {
       final str = s?.toString();
       if (str == null || str.isEmpty) return null;
       return DateTime.tryParse(str);
     }
 
-    double? _parseDouble(dynamic v) {
+    double? parseDouble(dynamic v) {
       if (v == null) return null;
       if (v is num) return v.toDouble();
       return double.tryParse(v.toString());
@@ -52,13 +52,13 @@ class Venue {
       city: json['city']?.toString(),
       state: json['state']?.toString(),
       country: json['country']?.toString(),
-      lat: _parseDouble(json['lat']),
-      lng: _parseDouble(json['lng']),
+      lat: parseDouble(json['lat']),
+      lng: parseDouble(json['lng']),
       notes: json['notes']?.toString(),
       isActive: json['is_active'] as bool?,
-      createdAt: _parseDate(json['created_at']),
-      updatedAt: _parseDate(json['updated_at']),
-      deletedAt: _parseDate(json['deleted_at']),
+      createdAt: parseDate(json['created_at']),
+      updatedAt: parseDate(json['updated_at']),
+      deletedAt: parseDate(json['deleted_at']),
     );
   }
 
@@ -167,13 +167,13 @@ class Game {
   });
 
   factory Game.fromJson(Map<String, dynamic> json) {
-    DateTime? _parseDate(dynamic s) {
+    DateTime? parseDate(dynamic s) {
       final str = s?.toString();
       if (str == null || str.isEmpty) return null;
       return DateTime.tryParse(str);
     }
 
-    double? _parseDouble(dynamic v) {
+    double? parseDouble(dynamic v) {
       if (v == null) return null;
       if (v is num) return v.toDouble();
       return double.tryParse(v.toString());
@@ -189,7 +189,7 @@ class Game {
 
     final v = json['venue'];
     if (v is Map) {
-      final map = Map<String, dynamic>.from(v as Map);
+      final map = Map<String, dynamic>.from(v);
       venueObj = Venue.fromJson(map);
       venueId = (map['id'] as num?)?.toInt();
       venueName = map['name']?.toString();
@@ -203,8 +203,8 @@ class Game {
     // address/city/lat/lng: prioriza venueObj si existe
     final resolvedAddress = venueObj?.address ?? json['address']?.toString();
     final resolvedCity = venueObj?.city ?? json['city']?.toString();
-    final resolvedLat = venueObj?.lat ?? _parseDouble(json['lat']);
-    final resolvedLng = venueObj?.lng ?? _parseDouble(json['lng']);
+    final resolvedLat = venueObj?.lat ?? parseDouble(json['lat']);
+    final resolvedLng = venueObj?.lng ?? parseDouble(json['lng']);
 
     return Game(
       id: (json['id'] ?? 0) as int,
@@ -214,7 +214,7 @@ class Game {
       opponent: (json['opponent_name'] ?? json['opponent'] ?? '') as String,
       opponentCategory: json['opponent_category']?.toString(),
       opponentNotes: json['opponent_notes']?.toString(),
-      startsAt: _parseDate(json['starts_at']),
+      startsAt: parseDate(json['starts_at']),
       durationMinutes: (json['duration_minutes'] as num?)?.toInt(),
       venueObj: venueObj,
       venueId: venueId,
@@ -238,8 +238,8 @@ class Game {
       liveEventId: (json['live_event_id'] as num?)?.toInt(),
       livePlayUrl: json['live_play_url']?.toString(),
 
-      createdAt: _parseDate(json['created_at']),
-      updatedAt: _parseDate(json['updated_at']),
+      createdAt: parseDate(json['created_at']),
+      updatedAt: parseDate(json['updated_at']),
 
       images:
           (json['images'] as List?)?.map((e) => e.toString()).toList() ??

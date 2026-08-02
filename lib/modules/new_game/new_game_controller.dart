@@ -8,6 +8,19 @@ import 'package:stopandgo/core/services/manager_games_service.dart';
 import 'package:stopandgo/core/storage/app_storage.dart';
 import 'package:stopandgo/core/utils/app_navigator.dart';
 
+String formatGameDateForApi(DateTime dateTime) {
+  String two(int value) => value.toString().padLeft(2, '0');
+  final local = dateTime.toLocal();
+  final offset = local.timeZoneOffset;
+  final sign = offset.isNegative ? '-' : '+';
+  final absoluteMinutes = offset.inMinutes.abs();
+  final offsetHours = absoluteMinutes ~/ 60;
+  final offsetMinutes = absoluteMinutes % 60;
+  return '${local.year}-${two(local.month)}-${two(local.day)}T'
+      '${two(local.hour)}:${two(local.minute)}:00'
+      '$sign${two(offsetHours)}:${two(offsetMinutes)}';
+}
+
 class NewGameController extends GetxController {
   final _api = Get.find<ApiRepository>();
   final _managerGames = Get.find<ManagerGamesService>();
@@ -30,8 +43,7 @@ class NewGameController extends GetxController {
   final selectedVenue = Rxn<Venue>();
 
   // Estado
-  final isHome = true.obs;
-  final isHomeTouched = false.obs;
+  final selectedStatus = 'scheduled'.obs;
   final isSubmitting = false.obs;
   final scheduledAt = Rxn<DateTime>(); // fecha+hora
 
@@ -68,12 +80,12 @@ class NewGameController extends GetxController {
 
     opponentCtrl.text = game.opponent;
     notesCtrl.text = (game.notes ?? '').trim();
-    scheduledAt.value = game.startsAt;
-  }
-
-  void setIsHome(bool value) {
-    isHomeTouched.value = true;
-    isHome.value = value;
+    scheduledAt.value = game.startsAt?.toLocal();
+    final status = (game.status ?? 'scheduled').trim().toLowerCase();
+    selectedStatus.value =
+        const {'scheduled', 'canceled', 'postponed'}.contains(status)
+        ? status
+        : 'scheduled';
   }
 
   Future<void> fetchVenues() async {
@@ -113,6 +125,19 @@ class NewGameController extends GetxController {
     }
   }
 
+  Future<List<Venue>> searchVenues(String filter) async {
+    final query = filter.trim();
+    if (query.isEmpty) return venues.toList();
+    try {
+      return await _api.getVenues(search: query);
+    } catch (_) {
+      final normalized = query.toLowerCase();
+      return venues
+          .where((venue) => venue.name.toLowerCase().contains(normalized))
+          .toList();
+    }
+  }
+
   Future<void> pickDateTime(BuildContext context) async {
     final now = DateTime.now();
     final initialDate = scheduledAt.value ?? now;
@@ -125,6 +150,7 @@ class NewGameController extends GetxController {
     );
 
     if (date == null) return;
+    if (!context.mounted) return;
 
     final time = await showTimePicker(
       context: context,
@@ -143,8 +169,7 @@ class NewGameController extends GetxController {
   }
 
   String _formatForApi(DateTime dt) {
-    String two(int v) => v.toString().padLeft(2, '0');
-    return '${dt.year}-${two(dt.month)}-${two(dt.day)} ${two(dt.hour)}:${two(dt.minute)}:00';
+    return formatGameDateForApi(dt);
   }
 
   Future<void> submit() async {
@@ -180,13 +205,7 @@ class NewGameController extends GetxController {
         "opponent_name": opponentCtrl.text.trim(),
         "scheduled_at": _formatForApi(scheduledAt.value!),
 
-        // ✅ Enviar ID de venue
         "venue_id": venue.id,
-
-        // (opcional) por compatibilidad o display
-        "venue_name": venue.name,
-
-        "is_home": isHome.value,
         "status": "scheduled",
         "notes": notesCtrl.text.trim().isEmpty ? null : notesCtrl.text.trim(),
       };
@@ -273,8 +292,10 @@ class NewGameController extends GetxController {
       patch['notes'] = (newNotes == null || newNotes.isEmpty) ? null : newNotes;
     }
 
-    if (isHomeTouched.value) {
-      patch['is_home'] = isHome.value;
+    final newStatus = selectedStatus.value;
+    final oldStatus = (game.status ?? 'scheduled').trim().toLowerCase();
+    if (newStatus != oldStatus) {
+      patch['status'] = newStatus;
     }
 
     return patch;

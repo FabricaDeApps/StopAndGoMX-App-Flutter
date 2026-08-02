@@ -1,4 +1,5 @@
 import 'dart:developer' as developer;
+import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:get/get.dart';
@@ -75,12 +76,23 @@ class NotificationService {
       _handleNavigationMessage(initialMessage);
     }
 
-    // 5) Token FCM
-    final token = await _messaging.getToken();
-    await debugPrintFcmTokens(); // ahora es static
-    await AppStorage.setTokenDevice(token);
+    // 5) Token FCM. En iOS, APNs puede tardar en entregar su token
+    // (y en el simulador puede no entregarlo), por lo que esto no debe
+    // impedir que la aplicación arranque.
+    try {
+      final token = await _messaging.getToken();
+      await AppStorage.setTokenDevice(token);
+      await debugPrintFcmTokens();
 
-    developer.log('📡 FCM TOKEN GUARDADO: $token', name: 'FCM');
+      developer.log('📡 FCM TOKEN GUARDADO: $token', name: 'FCM');
+    } on FirebaseException catch (error, stackTrace) {
+      developer.log(
+        'FCM todavía no está disponible: ${error.code}',
+        name: 'FCM',
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
 
     // Ejemplo: suscripción a topic por organización (si luego quieres)
     // await _messaging.subscribeToTopic('org_${FlavorConfig.I.organizationId}');

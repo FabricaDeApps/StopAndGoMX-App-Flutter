@@ -1,18 +1,29 @@
 // complete_game_controller.dart
 import 'dart:io';
+
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:flutter/services.dart';
-import 'package:stopandgo/core/network/api_repository.dart';
+import 'package:path/path.dart' as path;
+import 'package:stopandgo/core/network/api_request_exception.dart';
+import 'package:stopandgo/core/services/manager_games_service.dart';
 import 'package:stopandgo/core/utils/app_navigator.dart';
 
 class CompleteGameController extends GetxController {
-  final _api = Get.find<ApiRepository>();
+  static const int maxEvidenceBytes = 4 * 1024 * 1024;
+  static const Set<String> allowedEvidenceExtensions = {
+    '.jpg',
+    '.jpeg',
+    '.png',
+    '.webp',
+    '.pdf',
+  };
+
+  final _managerGames = Get.find<ManagerGamesService>();
 
   late final int categoryId;
   late final int gameId; // id del juego
-  late final DateTime gameDate; // fecha del juego (para validar pasado)
 
   final formKey = GlobalKey<FormState>();
   final homeScoreCtrl = TextEditingController();
@@ -33,21 +44,12 @@ class CompleteGameController extends GetxController {
       return int.tryParse(value.toString());
     }
 
-    DateTime? parseDate(dynamic value) {
-      if (value is DateTime) return value;
-      if (value == null) return null;
-      return DateTime.tryParse(value.toString());
-    }
-
     categoryId =
         parseInt(args?['categoryId']) ??
         (throw ArgumentError('categoryId es requerido'));
     gameId =
         parseInt(args?['gameId']) ??
         (throw ArgumentError('gameId es requerido'));
-    gameDate =
-        parseDate(args?['gameDate']) ??
-        (throw ArgumentError('gameDate es requerido'));
   }
 
   @override
@@ -57,36 +59,53 @@ class CompleteGameController extends GetxController {
     super.onClose();
   }
 
-  bool get isPastGame => DateTime.now().isAfter(gameDate);
-
   Future<void> pickEvidence(ImageSource source) async {
     final picker = ImagePicker();
     final x = await picker.pickImage(source: source, imageQuality: 85);
     if (x != null) {
-      evidenceFile.value = File(x.path);
+      await _setEvidence(File(x.path));
     }
   }
 
+  Future<void> pickEvidenceFile() async {
+    final result = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: const ['jpg', 'jpeg', 'png', 'webp', 'pdf'],
+    );
+    final selectedPath = result?.files.single.path;
+    if (selectedPath != null) {
+      await _setEvidence(File(selectedPath));
+    }
+  }
+
+  Future<void> _setEvidence(File file) async {
+    final error = await validateEvidence(file);
+    if (error != null) {
+      Get.snackbar(
+        'Evidencia inválida',
+        error,
+        snackPosition: SnackPosition.BOTTOM,
+      );
+      return;
+    }
+    evidenceFile.value = file;
+  }
+
+  Future<String?> validateEvidence(File file) async {
+    final extension = path.extension(file.path).toLowerCase();
+    if (!allowedEvidenceExtensions.contains(extension)) {
+      return 'Usa un archivo JPG, JPEG, PNG, WEBP o PDF.';
+    }
+    if (await file.length() > maxEvidenceBytes) {
+      return 'La evidencia no puede superar 4 MB.';
+    }
+    return null;
+  }
+
+  void removeEvidence() => evidenceFile.value = null;
+
   Future<void> submit() async {
-    if (!isPastGame) {
-      Get.snackbar(
-        'No permitido',
-        'Solo puedes completar juegos que ya pasaron',
-        snackPosition: SnackPosition.BOTTOM,
-      );
-      return;
-    }
-
     if (!(formKey.currentState?.validate() ?? false)) return;
-
-    if (evidenceFile.value == null) {
-      Get.snackbar(
-        'Falta evidencia',
-        'Adjunta una foto/imagen como evidencia',
-        snackPosition: SnackPosition.BOTTOM,
-      );
-      return;
-    }
 
     final home = int.tryParse(homeScoreCtrl.text.trim());
     final opp = int.tryParse(oppScoreCtrl.text.trim());
@@ -101,12 +120,25 @@ class CompleteGameController extends GetxController {
 
     isSubmitting.value = true;
     try {
-      final result = await _api.completeGame(
+      final evidence = evidenceFile.value;
+      if (evidence != null) {
+        final error = await validateEvidence(evidence);
+        if (error != null) {
+          Get.snackbar(
+            'Evidencia inválida',
+            error,
+            snackPosition: SnackPosition.BOTTOM,
+          );
+          return;
+        }
+      }
+
+      final result = await _managerGames.completeGame(
         categoryId: categoryId,
         gameId: gameId,
         homeScore: home,
         opponentScore: opp,
-        evidenceFile: evidenceFile.value!,
+        evidenceFile: evidence,
       );
 
       if (!result.success) {
@@ -125,7 +157,10 @@ class CompleteGameController extends GetxController {
         snackPosition: SnackPosition.BOTTOM,
       );
     } catch (e) {
-      Get.snackbar('Error', e.toString(), snackPosition: SnackPosition.BOTTOM);
+      final message = e is ApiRequestException
+          ? e.message
+          : 'No se pudo completar el juego.';
+      Get.snackbar('Error', message, snackPosition: SnackPosition.BOTTOM);
     } finally {
       isSubmitting.value = false;
     }

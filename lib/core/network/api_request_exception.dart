@@ -28,7 +28,7 @@ class ApiRequestException implements Exception {
     }
 
     if (status == 422) {
-      final validation = _formatFieldErrors(errors);
+      final validation = _firstFieldError(errors);
       return ApiRequestException(
         statusCode: status,
         message: validation ?? apiMessage ?? fallbackMessage,
@@ -87,16 +87,11 @@ class ApiRequestException implements Exception {
     return result;
   }
 
-  static String? _formatFieldErrors(Map<String, List<String>> errors) {
-    if (errors.isEmpty) return null;
-
-    final chunks = <String>[];
-    errors.forEach((field, messages) {
-      if (messages.isEmpty) return;
-      chunks.add('$field: ${messages.join(', ')}');
-    });
-    if (chunks.isEmpty) return null;
-    return chunks.join('\n');
+  static String? _firstFieldError(Map<String, List<String>> errors) {
+    for (final messages in errors.values) {
+      if (messages.isNotEmpty) return messages.first;
+    }
+    return null;
   }
 
   @override

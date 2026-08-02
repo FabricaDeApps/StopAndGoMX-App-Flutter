@@ -2,10 +2,10 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:stopandgo/core/storage/app_storage.dart';
+import 'package:stopandgo/core/network/api_request_exception.dart';
 import 'package:stopandgo/core/utils/role_utils.dart';
 import 'package:stopandgo/modules/home/widgets/live_breathing_badge.dart';
 import 'package:stopandgo/routes/app_routes.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 import 'games_tab_controller.dart';
 
@@ -31,6 +31,10 @@ class GamesTabView extends GetView<GamesTabController> {
         return 'JUGADO';
       case 'scheduled':
         return 'POR JUGAR';
+      case 'postponed':
+        return 'POSPUESTO';
+      case 'canceled':
+        return 'CANCELADO';
       default:
         return 'PROGRAMADO';
     }
@@ -47,36 +51,13 @@ class GamesTabView extends GetView<GamesTabController> {
     if ((status ?? '').trim().toLowerCase() == 'completed') {
       return theme.colorScheme.primary;
     }
+    if ((status ?? '').trim().toLowerCase() == 'canceled') {
+      return theme.colorScheme.error;
+    }
+    if ((status ?? '').trim().toLowerCase() == 'postponed') {
+      return Colors.blueGrey;
+    }
     return Colors.orange.shade700;
-  }
-
-  Future<void> _openInGoogleMaps({
-    required double? lat,
-    required double? lng,
-    required String label,
-  }) async {
-    if (lat == null || lng == null) {
-      Get.snackbar(
-        'Sin ubicación',
-        'Este juego no tiene coordenadas (lat/lng).',
-        snackPosition: SnackPosition.BOTTOM,
-      );
-      return;
-    }
-
-    final encodedLabel = Uri.encodeComponent(label);
-    final url = Uri.parse(
-      'https://www.google.com/maps/search/?api=1&query=$lat,$lng&query_place_id=$encodedLabel',
-    );
-
-    final ok = await launchUrl(url, mode: LaunchMode.externalApplication);
-    if (!ok) {
-      Get.snackbar(
-        'Error',
-        'No se pudo abrir Google Maps.',
-        snackPosition: SnackPosition.BOTTOM,
-      );
-    }
   }
 
   @override
@@ -103,17 +84,16 @@ class GamesTabView extends GetView<GamesTabController> {
               itemBuilder: (_, i) {
                 final g = list[i];
 
-                final now = DateTime.now();
-                final isPast = g.startsAt != null && g.startsAt!.isBefore(now);
-
                 final role = controller.role.value;
                 final isManagerAllTeamScope =
                     hasManagerPrivileges(role) &&
                     controller.scopeFilter.value ==
                         GamesScopeFilter.organization;
-                final hideManagerActions = isManagerAllTeamScope;
+                final hideManagerActions =
+                    isManagerAllTeamScope && isManagerRole(role);
 
-                final canComplete = hasManagerPrivileges(role) && isPast;
+                final canComplete =
+                    hasManagerPrivileges(role) && g.status != 'completed';
 
                 final streamingEnabled = controller.streamingEnabled;
 
@@ -172,7 +152,7 @@ class GamesTabView extends GetView<GamesTabController> {
                                 vertical: 3,
                               ),
                               decoration: BoxDecoration(
-                                color: statusColor.withOpacity(.12),
+                                color: statusColor.withValues(alpha: .12),
                                 borderRadius: BorderRadius.circular(999),
                               ),
                               child: Text(
@@ -212,7 +192,7 @@ class GamesTabView extends GetView<GamesTabController> {
                               Icons.schedule_rounded,
                               size: 15,
                               color: theme.textTheme.bodySmall?.color
-                                  ?.withOpacity(.8),
+                                  ?.withValues(alpha: .8),
                             ),
                             const SizedBox(width: 5),
                             Text(
@@ -229,7 +209,7 @@ class GamesTabView extends GetView<GamesTabController> {
                                 Icons.place_outlined,
                                 size: 15,
                                 color: theme.textTheme.bodySmall?.color
-                                    ?.withOpacity(.8),
+                                    ?.withValues(alpha: .8),
                               ),
                               const SizedBox(width: 5),
                               Expanded(
@@ -251,7 +231,7 @@ class GamesTabView extends GetView<GamesTabController> {
                             overflow: TextOverflow.ellipsis,
                             style: theme.textTheme.bodySmall?.copyWith(
                               color: theme.textTheme.bodySmall?.color
-                                  ?.withOpacity(.85),
+                                  ?.withValues(alpha: .85),
                             ),
                           ),
                         ],
@@ -382,16 +362,7 @@ class GamesTabView extends GetView<GamesTabController> {
                             visualDensity: VisualDensity.compact,
                             icon: const Icon(Icons.fact_check, size: 22),
                             onPressed: () async {
-                              if (!canComplete) {
-                                if (!isPast) {
-                                  Get.snackbar(
-                                    'No permitido',
-                                    'Solo puedes completar juegos que ya pasaron',
-                                    snackPosition: SnackPosition.BOTTOM,
-                                  );
-                                } else {}
-                                return;
-                              }
+                              if (!canComplete) return;
 
                               final result = await Get.toNamed(
                                 Routes.completeGame,
@@ -412,7 +383,7 @@ class GamesTabView extends GetView<GamesTabController> {
                         ),
 
                         if (((hasManagerPrivileges(role) &&
-                                    !isManagerAllTeamScope) ||
+                                    !hideManagerActions) ||
                                 role == 'coach') &&
                             g.status != 'completed')
                           IconButton(
@@ -437,6 +408,78 @@ class GamesTabView extends GetView<GamesTabController> {
                                 await controller.refresh();
                               }
                             },
+                          ),
+
+                        if (hasManagerPrivileges(role) && !hideManagerActions)
+                          IconButton(
+                            padding: EdgeInsets.zero,
+                            constraints: const BoxConstraints(
+                              minWidth: 36,
+                              minHeight: 36,
+                            ),
+                            visualDensity: VisualDensity.compact,
+                            icon: controller.archivingGameIds.contains(g.id)
+                                ? const SizedBox(
+                                    width: 18,
+                                    height: 18,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                    ),
+                                  )
+                                : const Icon(Icons.archive_outlined, size: 22),
+                            tooltip: 'Archivar juego',
+                            onPressed:
+                                controller.archivingGameIds.contains(g.id)
+                                ? null
+                                : () async {
+                                    final confirmed = await showDialog<bool>(
+                                      context: context,
+                                      builder: (dialogContext) => AlertDialog(
+                                        title: const Text('Archivar partido'),
+                                        content: const Text(
+                                          '¿Deseas archivar este partido?\n\n'
+                                          'El partido dejará de aparecer en los '
+                                          'listados. Esta acción no puede '
+                                          'deshacerse desde la aplicación.',
+                                        ),
+                                        actions: [
+                                          TextButton(
+                                            onPressed: () => Navigator.pop(
+                                              dialogContext,
+                                              false,
+                                            ),
+                                            child: const Text('Cancelar'),
+                                          ),
+                                          FilledButton(
+                                            onPressed: () => Navigator.pop(
+                                              dialogContext,
+                                              true,
+                                            ),
+                                            child: const Text('Archivar'),
+                                          ),
+                                        ],
+                                      ),
+                                    );
+                                    if (confirmed != true) return;
+
+                                    try {
+                                      final message = await controller
+                                          .archiveGame(g);
+                                      if (message.isNotEmpty) {
+                                        Get.snackbar(
+                                          'Éxito',
+                                          message,
+                                          snackPosition: SnackPosition.BOTTOM,
+                                        );
+                                      }
+                                    } on ApiRequestException catch (error) {
+                                      Get.snackbar(
+                                        'Error',
+                                        error.message,
+                                        snackPosition: SnackPosition.BOTTOM,
+                                      );
+                                    }
+                                  },
                           ),
 
                         // 📋 Asistencia (manager, mismo día)
@@ -498,7 +541,8 @@ class GamesTabView extends GetView<GamesTabController> {
           ),
 
           if ((hasManagerPrivileges(controller.role.value) &&
-                  controller.scopeFilter.value == GamesScopeFilter.mine) ||
+                  (controller.scopeFilter.value == GamesScopeFilter.mine ||
+                      !isManagerRole(controller.role.value))) ||
               controller.role.value == 'coach')
             Positioned(
               right: 16,
@@ -572,7 +616,7 @@ class _GamesFiltersHeader extends StatelessWidget {
         decoration: BoxDecoration(
           color: theme.scaffoldBackgroundColor,
           border: Border(
-            bottom: BorderSide(color: theme.dividerColor.withOpacity(.5)),
+            bottom: BorderSide(color: theme.dividerColor.withValues(alpha: .5)),
           ),
         ),
         child: Column(
@@ -635,7 +679,7 @@ class _GamesFiltersHeader extends StatelessWidget {
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(10),
                         border: Border.all(
-                          color: theme.dividerColor.withOpacity(.7),
+                          color: theme.dividerColor.withValues(alpha: .7),
                         ),
                       ),
                       child: Row(
@@ -680,6 +724,8 @@ class _GamesFiltersHeader extends StatelessWidget {
                 chip('Todos', GamesStatusFilter.all),
                 chip('Jugados', GamesStatusFilter.played),
                 chip('Por jugar', GamesStatusFilter.upcoming),
+                chip('Pospuestos', GamesStatusFilter.postponed),
+                chip('Cancelados', GamesStatusFilter.canceled),
               ],
             ),
           ],

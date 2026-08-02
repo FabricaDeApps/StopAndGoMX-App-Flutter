@@ -589,48 +589,40 @@ class ApiRepository {
     }
   }
 
-  Future<GenericResponse> completeGame({
+  Future<Response<dynamic>> managerCompleteGameRequest({
     required int categoryId,
     required int gameId,
     required int homeScore,
     required int opponentScore,
-    required File evidenceFile,
+    File? evidenceFile,
   }) async {
-    final form = FormData.fromMap({
+    final fields = <String, dynamic>{
       'game_id': gameId,
       'home_score': homeScore,
       'opponent_score': opponentScore,
+    };
+
+    if (evidenceFile == null) {
+      return _dio.post(
+        '/manager/$categoryId/games/complete',
+        data: fields,
+        options: Options(headers: _headers()),
+      );
+    }
+
+    final form = FormData.fromMap({
+      ...fields,
       'evidece': await MultipartFile.fromFile(
         evidenceFile.path,
         filename: evidenceFile.uri.pathSegments.last,
       ),
     });
 
-    try {
-      final res = await _dio.post(
-        '/manager/$categoryId/games/complete',
-        data: form,
-        options: Options(contentType: 'multipart/form-data'),
-      );
-
-      if (res.data is Map<String, dynamic>) {
-        return GenericResponse.fromJson(res.data as Map<String, dynamic>);
-      }
-      return GenericResponse(
-        success: false,
-        message: 'Respuesta inesperada del servidor',
-      );
-    } on DioException catch (e) {
-      final payload = e.response?.data;
-      if (payload is Map<String, dynamic>) {
-        // La API suele devolver {success:false, message:"..."} en errores controlados
-        return GenericResponse.fromJson(payload);
-      }
-      final msg = e.message ?? 'Error al completar juego';
-      return GenericResponse(success: false, message: msg);
-    } catch (e) {
-      return GenericResponse(success: false, message: 'Error inesperado: $e');
-    }
+    return _dio.post(
+      '/manager/$categoryId/games/complete',
+      data: form,
+      options: Options(headers: _headers(), contentType: 'multipart/form-data'),
+    );
   }
 
   ////////
@@ -1187,6 +1179,16 @@ class ApiRepository {
     return _dio.put(
       '/manager/$categoryId/games/$gameId',
       data: data,
+      options: Options(headers: _headers()),
+    );
+  }
+
+  Future<Response<dynamic>> managerArchiveGameRequest({
+    required int categoryId,
+    required int gameId,
+  }) {
+    return _dio.delete(
+      '/manager/$categoryId/games/$gameId',
       options: Options(headers: _headers()),
     );
   }
@@ -2292,9 +2294,12 @@ class ApiRepository {
   }
 
   /// GET /dashboards/parent
-  Future<List<Venue>> getVenues() async {
+  Future<List<Venue>> getVenues({String? search}) async {
     final res = await _dio.get(
       '/venues',
+      queryParameters: {
+        if (search != null && search.trim().isNotEmpty) 'search': search.trim(),
+      },
       options: Options(headers: _headers()),
     );
 

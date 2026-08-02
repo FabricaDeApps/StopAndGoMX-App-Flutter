@@ -100,6 +100,7 @@ class ForgotPasswordController extends GetxController {
       case DioExceptionType.connectionTimeout:
       case DioExceptionType.sendTimeout:
       case DioExceptionType.receiveTimeout:
+      case DioExceptionType.transformTimeout:
         return 'La solicitud tardó demasiado. Intenta nuevamente.';
       case DioExceptionType.connectionError:
       case DioExceptionType.badCertificate:

@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:stopandgo/core/config/flavor_config.dart';
 import 'package:stopandgo/modules/forgot_password/forgot_password_controller.dart';
 
 class _FakeSuccessDio extends Fake implements Dio {
@@ -45,6 +46,13 @@ class _FakeErrorDio extends Fake implements Dio {
 }
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+  FlavorConfig.init(
+    flavor: AppFlavor.main,
+    appName: 'Test',
+    bundleId: 'com.stopandgo.test',
+  );
+
   test('submit cambia a success cuando el repository responde OK', () async {
     final controller = ForgotPasswordController(dio: _FakeSuccessDio());
 

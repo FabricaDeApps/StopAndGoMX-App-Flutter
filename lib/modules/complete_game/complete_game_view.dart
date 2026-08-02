@@ -10,7 +10,6 @@ class CompleteGameView extends GetView<CompleteGameController> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final past = controller.isPastGame; // getter no reactivo
 
     return Scaffold(
       appBar: AppBar(title: const Text('Completar juego')),
@@ -20,19 +19,14 @@ class CompleteGameView extends GetView<CompleteGameController> {
           child: ListView(
             padding: const EdgeInsets.all(16),
             children: [
-              // Banner (no requiere Obx)
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: past
-                      ? theme.colorScheme.primary.withOpacity(.06)
-                      : theme.colorScheme.error.withOpacity(.06),
+                  color: theme.colorScheme.primary.withValues(alpha: .06),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Text(
-                  past
-                      ? 'Este juego ya pasó. Puedes capturar el marcador.'
-                      : 'Aún no se puede completar: la fecha del juego no ha pasado.',
+                  'Captura el marcador final del partido.',
                   style: theme.textTheme.bodyMedium,
                 ),
               ),
@@ -77,26 +71,52 @@ class CompleteGameView extends GetView<CompleteGameController> {
                 final file = controller.evidenceFile.value;
                 return ListTile(
                   contentPadding: EdgeInsets.zero,
-                  title: const Text('Evidencia (obligatoria)'),
+                  title: const Text('Evidencia (opcional)'),
                   subtitle: Text(
-                    file == null ? 'Sin archivo seleccionado' : file.path,
+                    file == null
+                        ? 'JPG, JPEG, PNG, WEBP o PDF; máximo 4 MB'
+                        : file.path,
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),
-                  trailing: PopupMenuButton<String>(
-                    icon: const Icon(Icons.attach_file),
-                    onSelected: (v) {
-                      if (v == 'camera') {
-                        controller.pickEvidence(ImageSource.camera);
-                      } else {
-                        controller.pickEvidence(ImageSource.gallery);
-                      }
-                    },
-                    itemBuilder: (ctx) => const [
-                      PopupMenuItem(value: 'camera', child: Text('Tomar foto')),
-                      PopupMenuItem(
-                        value: 'gallery',
-                        child: Text('Elegir de galería'),
+                  trailing: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if (file != null)
+                        IconButton(
+                          tooltip: 'Quitar evidencia',
+                          onPressed: controller.removeEvidence,
+                          icon: const Icon(Icons.close),
+                        ),
+                      PopupMenuButton<String>(
+                        icon: const Icon(Icons.attach_file),
+                        onSelected: (v) {
+                          switch (v) {
+                            case 'camera':
+                              controller.pickEvidence(ImageSource.camera);
+                              break;
+                            case 'gallery':
+                              controller.pickEvidence(ImageSource.gallery);
+                              break;
+                            case 'file':
+                              controller.pickEvidenceFile();
+                              break;
+                          }
+                        },
+                        itemBuilder: (ctx) => const [
+                          PopupMenuItem(
+                            value: 'camera',
+                            child: Text('Tomar foto'),
+                          ),
+                          PopupMenuItem(
+                            value: 'gallery',
+                            child: Text('Elegir de galería'),
+                          ),
+                          PopupMenuItem(
+                            value: 'file',
+                            child: Text('Elegir imagen o PDF'),
+                          ),
+                        ],
                       ),
                     ],
                   ),
@@ -109,9 +129,9 @@ class CompleteGameView extends GetView<CompleteGameController> {
                 () => SizedBox(
                   width: double.infinity,
                   child: FilledButton.icon(
-                    onPressed: past && !controller.isSubmitting.value
-                        ? controller.submit
-                        : null,
+                    onPressed: controller.isSubmitting.value
+                        ? null
+                        : controller.submit,
                     icon: controller.isSubmitting.value
                         ? const SizedBox(
                             width: 18,
