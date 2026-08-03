@@ -724,6 +724,32 @@ class HomeView extends GetView<HomeController> {
                   onTap: () => Get.toNamed(Routes.checkins),
                 ),
               ],
+              if ((isPlayer || isCoach) &&
+                  controller.org.value?.meritProgramEnabled == true) ...[
+                ListTile(
+                  leading: const Icon(Icons.military_tech_outlined),
+                  title: const Text('Recompensas'),
+                  onTap: () async {
+                    AppNavigator.pop(context: context);
+
+                    if (isPlayer) {
+                      Get.toNamed(Routes.recompensasPlayer);
+                      return;
+                    }
+
+                    final picked = await _pickCategoryFromSheet();
+                    if (picked == null) return;
+
+                    Get.toNamed(
+                      Routes.recompensasCoach,
+                      arguments: {
+                        'categoryId': picked['id'],
+                        'categoryName': picked['name'],
+                      },
+                    );
+                  },
+                ),
+              ],
               ListTile(
                 leading: const Icon(Icons.person_outline),
                 title: const Text('Perfil'),

@@ -82,6 +82,9 @@ import 'package:stopandgo/modules/play_book_list/index.dart';
 import 'package:stopandgo/modules/play_book_list/play_book_list_view.dart';
 import 'package:stopandgo/modules/play_book_read/index.dart';
 import 'package:stopandgo/modules/play_book_read/play_book_read_view.dart';
+import 'package:stopandgo/modules/recompensas_player/index.dart';
+import 'package:stopandgo/modules/recompensas_coach/index.dart';
+import 'package:stopandgo/modules/recompensas_coach_score_entry/index.dart';
 import 'package:stopandgo/modules/player_documents/player_documents_binding.dart';
 import 'package:stopandgo/modules/player_documents/player_documents_view.dart';
 import 'package:stopandgo/modules/player_file/player_file_binding.dart';
@@ -409,6 +412,21 @@ class AppPages {
       name: Routes.changeRole,
       page: () => const ChangeRoleView(),
       binding: ChangeRoleBinding(),
+    ),
+    GetPage(
+      name: Routes.recompensasPlayer,
+      page: () => const RecompensasPlayerView(),
+      binding: RecompensasPlayerBinding(),
+    ),
+    GetPage(
+      name: Routes.recompensasCoach,
+      page: () => const RecompensasCoachView(),
+      binding: RecompensasCoachBinding(),
+    ),
+    GetPage(
+      name: Routes.recompensasCoachScoreEntry,
+      page: () => const RecompensasCoachScoreEntryView(),
+      binding: RecompensasCoachScoreEntryBinding(),
     ),
   ];
 }

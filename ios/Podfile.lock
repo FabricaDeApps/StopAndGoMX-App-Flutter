@@ -1,0 +1,39 @@
+PODS:
+  - Flutter (1.0.0)
+  - HaishinKit (1.0.13):
+    - Logboard (~> 2.1.3)
+  - Logboard (2.1.3)
+  - rtmp_broadcaster (0.0.1):
+    - Flutter
+    - HaishinKit (~> 1.0.10)
+  - sign_in_with_apple (0.0.1):
+    - Flutter
+
+DEPENDENCIES:
+  - Flutter (from `Flutter`)
+  - rtmp_broadcaster (from `.symlinks/plugins/rtmp_broadcaster/ios`)
+  - sign_in_with_apple (from `.symlinks/plugins/sign_in_with_apple/ios`)
+
+SPEC REPOS:
+  trunk:
+    - HaishinKit
+    - Logboard
+
+EXTERNAL SOURCES:
+  Flutter:
+    :path: Flutter
+  rtmp_broadcaster:
+    :path: ".symlinks/plugins/rtmp_broadcaster/ios"
+  sign_in_with_apple:
+    :path: ".symlinks/plugins/sign_in_with_apple/ios"
+
+SPEC CHECKSUMS:
+  Flutter: cabc95a1d2626b1b06e7179b784ebcf0c0cde467
+  HaishinKit: d1786896ace24065d466bde02356c5352ac001b0
+  Logboard: e74ec2d9941abd22f4db3a3ddcd0735011df92c7
+  rtmp_broadcaster: 7a227445d04957ade2f7dc3e9bac1e3dc6b31d4e
+  sign_in_with_apple: c5dcc141574c8c54d5ac99dd2163c0c72ad22418
+
+PODFILE CHECKSUM: fe7e97a24bdf0b20ffec2b20b37d050cfeebca99
+
+COCOAPODS: 1.17.0

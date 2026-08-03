@@ -23,6 +23,7 @@ class OrganizationResponse {
   final bool payCardEnabled;
   final bool gazettaEnabled;
   final bool socialModule;
+  final bool meritProgramEnabled;
   final List<OrganizationBanner> banners;
 
   // Ecommerce
@@ -52,6 +53,7 @@ class OrganizationResponse {
     required this.payCardEnabled,
     required this.gazettaEnabled,
     required this.socialModule,
+    required this.meritProgramEnabled,
     required this.banners,
     required this.ecommerce,
     this.androidUrl,
@@ -127,6 +129,10 @@ class OrganizationResponse {
         fallback: false,
       ),
       socialModule: _asBool(json['social_module'], fallback: false),
+      meritProgramEnabled: _asBool(
+        json['merit_program_enabled'],
+        fallback: false,
+      ),
       banners: parsedBanners,
 
       // Ecommerce
@@ -160,6 +166,7 @@ class OrganizationResponse {
         'pay_card_enabled': payCardEnabled,
         'gazetta_enabled': gazettaEnabled,
         'social_module': socialModule,
+        'merit_program_enabled': meritProgramEnabled,
         'banners': banners.map((item) => item.toJson()).toList(),
         'ecommerce': ecommerce.toJson(),
         'android_url': androidUrl,

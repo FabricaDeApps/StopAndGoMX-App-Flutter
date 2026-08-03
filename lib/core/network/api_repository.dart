@@ -42,7 +42,14 @@ import 'package:stopandgo/core/models/streaming/live_event.dart';
 import 'package:stopandgo/core/models/training.dart';
 import 'package:stopandgo/core/models/trainings/training_player_response.dart';
 import 'package:stopandgo/core/models/trainning_attendance.dart';
+import 'package:stopandgo/core/models/merit/merit_config.dart';
+import 'package:stopandgo/core/models/merit/merit_incident.dart';
+import 'package:stopandgo/core/models/merit/merit_prospect.dart';
+import 'package:stopandgo/core/models/merit/merit_responses.dart';
+import 'package:stopandgo/core/models/merit/merit_score_entry.dart';
+import 'package:stopandgo/core/models/merit/merit_snapshot.dart';
 import 'package:stopandgo/core/network/gazzetta_exceptions.dart';
+import 'package:stopandgo/core/network/merit_exceptions.dart';
 import 'package:stopandgo/core/network/paginated_response.dart';
 import 'package:stopandgo/core/services/app_usage_session_service.dart';
 import 'package:stopandgo/core/storage/app_storage.dart';
@@ -2291,6 +2298,374 @@ class ApiRepository {
     }
 
     return Exception(e.message ?? 'No se pudieron consultar las noticias');
+  }
+
+  /// ---- MERIT PROGRAM (RECOMPENSAS) ----
+
+  Exception _mapMeritError(DioException e) {
+    if (e.response?.statusCode == 403) {
+      final data = e.response?.data;
+      if (data is Map<String, dynamic>) {
+        final message = data['message']?.toString().trim();
+        if (message != null && message.isNotEmpty) {
+          return MeritModuleUnavailableException(message);
+        }
+      }
+      return const MeritModuleUnavailableException();
+    }
+
+    if (e.type == DioExceptionType.connectionTimeout ||
+        e.type == DioExceptionType.receiveTimeout ||
+        e.type == DioExceptionType.sendTimeout ||
+        e.type == DioExceptionType.connectionError) {
+      return Exception('Sin conexión o tiempo de espera agotado');
+    }
+
+    final data = e.response?.data;
+    if (data is Map<String, dynamic>) {
+      final message = data['message']?.toString().trim();
+      if (message != null && message.isNotEmpty) {
+        return Exception(message);
+      }
+    }
+
+    return Exception(e.message ?? 'No se pudo consultar Recompensas');
+  }
+
+  // -- Config --
+
+  Future<MeritConfig> getPlayerMeritConfig() async {
+    try {
+      final res = await _dio.get(
+        '/player/merit/config',
+        options: Options(headers: _headers()),
+      );
+      final root = _asMap(res.data);
+      return MeritConfig.fromJson(
+        _asMap(root['data']),
+        isDefault: root['is_default'] == true,
+      );
+    } on DioException catch (e) {
+      throw _mapMeritError(e);
+    }
+  }
+
+  Future<MeritConfig> getCoachMeritConfig() async {
+    try {
+      final res = await _dio.get(
+        '/coach/merit/config',
+        options: Options(headers: _headers()),
+      );
+      final root = _asMap(res.data);
+      return MeritConfig.fromJson(
+        _asMap(root['data']),
+        isDefault: root['is_default'] == true,
+      );
+    } on DioException catch (e) {
+      throw _mapMeritError(e);
+    }
+  }
+
+  // -- Player --
+
+  Future<MeritPlayerMeResponse> getPlayerMeritMe() async {
+    try {
+      final res = await _dio.get(
+        '/player/merit/me',
+        options: Options(headers: _headers()),
+      );
+      return MeritPlayerMeResponse.fromJson(_asMap(res.data));
+    } on DioException catch (e) {
+      throw _mapMeritError(e);
+    }
+  }
+
+  Future<MeritCreditBalanceResponse> getPlayerMeritCreditBalance() async {
+    try {
+      final res = await _dio.get(
+        '/player/merit/me/credit-balance',
+        options: Options(headers: _headers()),
+      );
+      return MeritCreditBalanceResponse.fromJson(_asMap(res.data));
+    } on DioException catch (e) {
+      throw _mapMeritError(e);
+    }
+  }
+
+  Future<List<MeritProspect>> getPlayerMeritProspects() async {
+    try {
+      final res = await _dio.get(
+        '/player/merit/prospects',
+        options: Options(headers: _headers()),
+      );
+      final root = _asMap(res.data);
+      final list = root['data'];
+      if (list is! List) return [];
+      return list
+          .whereType<Map>()
+          .map((e) => MeritProspect.fromJson(Map<String, dynamic>.from(e)))
+          .toList();
+    } on DioException catch (e) {
+      throw _mapMeritError(e);
+    }
+  }
+
+  Future<MeritProspect> createPlayerMeritProspect({
+    required String fullName,
+    Map<String, dynamic>? contactInfo,
+  }) async {
+    try {
+      final res = await _dio.post(
+        '/player/merit/prospects',
+        data: {
+          'full_name': fullName,
+          if (contactInfo != null) 'contact_info': contactInfo,
+        },
+        options: Options(headers: _headers()),
+      );
+      final root = _asMap(res.data);
+      return MeritProspect.fromJson(_asMap(root['data']));
+    } on DioException catch (e) {
+      throw _mapMeritError(e);
+    }
+  }
+
+  // -- Coach: captura de puntaje --
+
+  Future<List<MeritScoreEntry>> getCoachPlayerScores({
+    required int playerId,
+    required DateTime periodMonth,
+  }) async {
+    try {
+      final res = await _dio.get(
+        '/coach/merit/players/$playerId/scores',
+        queryParameters: {'period_month': _toYmd(periodMonth)},
+        options: Options(headers: _headers()),
+      );
+      final root = _asMap(res.data);
+      final list = root['data'];
+      if (list is! List) return [];
+      return list
+          .whereType<Map>()
+          .map((e) => MeritScoreEntry.fromJson(Map<String, dynamic>.from(e)))
+          .toList();
+    } on DioException catch (e) {
+      throw _mapMeritError(e);
+    }
+  }
+
+  Future<MeritScoreEntry> createCoachScoreEntry({
+    required int playerId,
+    required int categoryId,
+    int? seasonId,
+    required String rubricItem,
+    required double points,
+    bool isExtraPoint = false,
+    required DateTime periodMonth,
+    String? reason,
+    String? evidencePath,
+  }) async {
+    if (rubricItem == 'asistencia') {
+      throw Exception(
+        'El rubro de asistencia se calcula automaticamente y no admite captura manual.',
+      );
+    }
+    try {
+      final res = await _dio.post(
+        '/coach/merit/players/$playerId/scores',
+        data: {
+          'category_id': categoryId,
+          if (seasonId != null) 'season_id': seasonId,
+          'rubric_item': rubricItem,
+          'points': points,
+          'is_extra_point': isExtraPoint,
+          'period_month': _toYmd(periodMonth),
+          if (reason != null) 'reason': reason,
+          if (evidencePath != null) 'evidence_path': evidencePath,
+        },
+        options: Options(headers: _headers()),
+      );
+      final root = _asMap(res.data);
+      return MeritScoreEntry.fromJson(_asMap(root['data']));
+    } on DioException catch (e) {
+      throw _mapMeritError(e);
+    }
+  }
+
+  Future<MeritScoreEntry> updateCoachScoreEntry({
+    required int entryId,
+    required double points,
+    required String reason,
+    String? evidencePath,
+  }) async {
+    try {
+      final res = await _dio.put(
+        '/coach/merit/scores/$entryId',
+        data: {
+          'points': points,
+          'reason': reason,
+          if (evidencePath != null) 'evidence_path': evidencePath,
+        },
+        options: Options(headers: _headers()),
+      );
+      final root = _asMap(res.data);
+      return MeritScoreEntry.fromJson(_asMap(root['data']));
+    } on DioException catch (e) {
+      throw _mapMeritError(e);
+    }
+  }
+
+  // -- Coach: snapshots / ranking --
+
+  Future<List<MeritSnapshot>> getCoachMeritSnapshots({
+    DateTime? periodMonth,
+  }) async {
+    try {
+      final res = await _dio.get(
+        '/coach/merit/snapshots',
+        queryParameters: {
+          if (periodMonth != null) 'period_month': _toYmd(periodMonth),
+        },
+        options: Options(headers: _headers()),
+      );
+      final root = _asMap(res.data);
+      final list = root['data'];
+      if (list is! List) return [];
+      return list
+          .whereType<Map>()
+          .map((e) => MeritSnapshot.fromJson(Map<String, dynamic>.from(e)))
+          .toList();
+    } on DioException catch (e) {
+      throw _mapMeritError(e);
+    }
+  }
+
+  Future<MeritValidateSnapshotResult> validateCoachSnapshot({
+    required int snapshotId,
+  }) async {
+    try {
+      final res = await _dio.post(
+        '/coach/merit/snapshots/$snapshotId/validate',
+        options: Options(headers: _headers()),
+      );
+      final root = _asMap(res.data);
+      final rawSnapshot = root['data'];
+      return MeritValidateSnapshotResult(
+        snapshot: rawSnapshot is Map
+            ? MeritSnapshot.fromJson(Map<String, dynamic>.from(rawSnapshot))
+            : null,
+        message: (root['message'] ?? '').toString(),
+      );
+    } on DioException catch (e) {
+      throw _mapMeritError(e);
+    }
+  }
+
+  // -- Coach: reclutamiento --
+
+  Future<List<MeritProspect>> getCoachMeritProspects() async {
+    try {
+      final res = await _dio.get(
+        '/coach/merit/prospects',
+        options: Options(headers: _headers()),
+      );
+      final root = _asMap(res.data);
+      final list = root['data'];
+      if (list is! List) return [];
+      return list
+          .whereType<Map>()
+          .map((e) => MeritProspect.fromJson(Map<String, dynamic>.from(e)))
+          .toList();
+    } on DioException catch (e) {
+      throw _mapMeritError(e);
+    }
+  }
+
+  Future<MeritProspect> createCoachMeritProspect({
+    required String fullName,
+    Map<String, dynamic>? contactInfo,
+  }) async {
+    try {
+      final res = await _dio.post(
+        '/coach/merit/prospects',
+        data: {
+          'full_name': fullName,
+          if (contactInfo != null) 'contact_info': contactInfo,
+        },
+        options: Options(headers: _headers()),
+      );
+      final root = _asMap(res.data);
+      return MeritProspect.fromJson(_asMap(root['data']));
+    } on DioException catch (e) {
+      throw _mapMeritError(e);
+    }
+  }
+
+  Future<List<MeritPaymentStage>> getCoachProspectStages({
+    required int prospectId,
+  }) async {
+    try {
+      final res = await _dio.get(
+        '/coach/merit/prospects/$prospectId/stages',
+        options: Options(headers: _headers()),
+      );
+      final root = _asMap(res.data);
+      final list = root['data'];
+      if (list is! List) return [];
+      return list
+          .whereType<Map>()
+          .map((e) => MeritPaymentStage.fromJson(Map<String, dynamic>.from(e)))
+          .toList();
+    } on DioException catch (e) {
+      throw _mapMeritError(e);
+    }
+  }
+
+  // -- Coach: disciplina --
+
+  Future<List<MeritIncident>> getCoachMeritIncidents({int? coachId}) async {
+    try {
+      final res = await _dio.get(
+        '/coach/merit/incidents',
+        queryParameters: {if (coachId != null) 'coach_id': coachId},
+        options: Options(headers: _headers()),
+      );
+      final root = _asMap(res.data);
+      final list = root['data'];
+      if (list is! List) return [];
+      return list
+          .whereType<Map>()
+          .map((e) => MeritIncident.fromJson(Map<String, dynamic>.from(e)))
+          .toList();
+    } on DioException catch (e) {
+      throw _mapMeritError(e);
+    }
+  }
+
+  Future<MeritIncident> createCoachMeritIncident({
+    required int coachId,
+    int? playerId,
+    required String incidentType,
+    required String description,
+    required DateTime occurredAt,
+  }) async {
+    try {
+      final res = await _dio.post(
+        '/coach/merit/incidents',
+        data: {
+          'coach_id': coachId,
+          if (playerId != null) 'player_id': playerId,
+          'incident_type': incidentType,
+          'description': description,
+          'occurred_at': occurredAt.toIso8601String(),
+        },
+        options: Options(headers: _headers()),
+      );
+      final root = _asMap(res.data);
+      return MeritIncident.fromJson(_asMap(root['data']));
+    } on DioException catch (e) {
+      throw _mapMeritError(e);
+    }
   }
 
   /// GET /dashboards/parent

@@ -66,4 +66,7 @@ abstract class Routes {
   static const gazzettaDetail = '/gazzettaDetail';
   static const news = '/news';
   static const changeRole = '/changeRole';
+  static const recompensasPlayer = '/recompensasPlayer';
+  static const recompensasCoach = '/recompensasCoach';
+  static const recompensasCoachScoreEntry = '/recompensasCoachScoreEntry';
 }
