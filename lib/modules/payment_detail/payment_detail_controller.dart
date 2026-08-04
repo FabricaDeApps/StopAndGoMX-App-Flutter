@@ -15,7 +15,9 @@ class PaymentDetailController extends GetxController {
   final error = RxnString();
   final isPayingWithCard = false.obs;
 
-  bool get canPayWithCard => AppStorage.getOrganization()?.payCardEnabled ?? false;
+  bool get canPayWithCard =>
+      AppStorage.getOrganization()?.payCardEnabled ?? false;
+  bool get canPayWithSpei => canPayWithCard;
 
   bool get isPaid => payment.value?.status == 'paid';
 
@@ -60,7 +62,8 @@ class PaymentDetailController extends GetxController {
         }
         list = await _api.managerCategoryPayments(categoryId: categoryId);
       } else if (role == 'parent') {
-        final playerId = payment.value?.playerId ?? AppStorage.getSelectedPlayerId();
+        final playerId =
+            payment.value?.playerId ?? AppStorage.getSelectedPlayerId();
         if (playerId == null || playerId <= 0) {
           error.value = 'No hay jugador seleccionado.';
           payment.value = null;
@@ -98,12 +101,27 @@ class PaymentDetailController extends GetxController {
     await loadPayment();
   }
 
+  Future<void> goToSpeiPayment() async {
+    await Get.toNamed(
+      Routes.speiPayment,
+      arguments: {
+        'paymentId': paymentId,
+        if (payment.value != null) 'payment': payment.value,
+      },
+    );
+    await loadPayment();
+  }
+
   Future<void> payWithCard() async {
     if (isPayingWithCard.value) return;
     isPayingWithCard.value = true;
     try {
       final intent = await _api.createMercadoPagoIntent(paymentId: paymentId);
-      final uri = Uri.parse(intent.initUrl);
+      final rawUrl = intent.initUrl;
+      final uri = rawUrl == null ? null : Uri.tryParse(rawUrl);
+      if (uri == null || uri.scheme != 'https' || uri.host.isEmpty) {
+        throw Exception('Mercado Pago no devolvió una liga válida.');
+      }
       await launchUrl(uri, mode: LaunchMode.externalApplication);
     } catch (e) {
       Get.snackbar(

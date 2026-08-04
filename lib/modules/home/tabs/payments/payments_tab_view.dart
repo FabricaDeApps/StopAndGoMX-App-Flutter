@@ -111,109 +111,78 @@ class PaymentsTabView extends GetView<PaymentsTabController> {
                               dividerColor: Colors.transparent,
                             ),
                             child: ExpansionTile(
-                            onExpansionChanged: (expanded) =>
-                                controller.setExpanded(p.id, expanded),
-                            tilePadding: const EdgeInsets.fromLTRB(
-                              18,
-                              18,
-                              18,
-                              16,
-                            ),
-                            childrenPadding: const EdgeInsets.fromLTRB(
-                              18,
-                              0,
-                              18,
-                              18,
-                            ),
-                            title: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Wrap(
-                                  spacing: 8,
-                                  runSpacing: 8,
-                                  children: [
-                                    _PaymentStatusPill(
-                                      label: chipText,
-                                      color: chipColor,
-                                      icon: paid
-                                          ? Icons.verified_rounded
-                                          : partial
-                                          ? Icons.pie_chart_rounded
-                                          : Icons.receipt_long_rounded,
-                                    ),
-                                    if (isOverdue)
-                                      const _PaymentStatusPill(
-                                        label: 'Vencido',
-                                        color: Colors.deepOrange,
-                                        icon: Icons.warning_amber_rounded,
+                              onExpansionChanged: (expanded) =>
+                                  controller.setExpanded(p.id, expanded),
+                              tilePadding: const EdgeInsets.fromLTRB(
+                                18,
+                                18,
+                                18,
+                                16,
+                              ),
+                              childrenPadding: const EdgeInsets.fromLTRB(
+                                18,
+                                0,
+                                18,
+                                18,
+                              ),
+                              title: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Wrap(
+                                    spacing: 8,
+                                    runSpacing: 8,
+                                    children: [
+                                      _PaymentStatusPill(
+                                        label: chipText,
+                                        color: chipColor,
+                                        icon: paid
+                                            ? Icons.verified_rounded
+                                            : partial
+                                            ? Icons.pie_chart_rounded
+                                            : Icons.receipt_long_rounded,
                                       ),
-                                  ],
-                                ),
-                                const SizedBox(height: 12),
-                                Text(
-                                  p.concept,
-                                  style: theme.textTheme.titleMedium?.copyWith(
-                                    fontWeight: FontWeight.w700,
+                                      if (isOverdue)
+                                        const _PaymentStatusPill(
+                                          label: 'Vencido',
+                                          color: Colors.deepOrange,
+                                          icon: Icons.warning_amber_rounded,
+                                        ),
+                                    ],
                                   ),
-                                ),
-                                const SizedBox(height: 6),
-                                Text(
-                                  'Monto: ${money(effectiveAmount)}',
-                                  textAlign: TextAlign.left,
-                                  style: theme.textTheme.bodyMedium?.copyWith(
-                                    fontWeight: FontWeight.w700,
-                                    color: chipColor,
+                                  const SizedBox(height: 12),
+                                  Text(
+                                    p.concept,
+                                    style: theme.textTheme.titleMedium
+                                        ?.copyWith(fontWeight: FontWeight.w700),
                                   ),
-                                ),
-                                if (p.playerName != null &&
-                                    p.playerName!.isNotEmpty) ...[
                                   const SizedBox(height: 6),
                                   Text(
-                                    p.playerName!,
+                                    'Monto: ${money(effectiveAmount)}',
+                                    textAlign: TextAlign.left,
                                     style: theme.textTheme.bodyMedium?.copyWith(
-                                      color: theme.colorScheme.onSurfaceVariant,
+                                      fontWeight: FontWeight.w700,
+                                      color: chipColor,
                                     ),
                                   ),
-                                ],
-                                if (!paid) ...[
-                                  const SizedBox(height: 14),
-                                  SizedBox(
-                                    width: double.infinity,
-                                    child: controller.canPayWithCard
-                                        ? FilledButton.icon(
-                                            style: FilledButton.styleFrom(
-                                              padding:
-                                                  const EdgeInsets.symmetric(
-                                                    horizontal: 16,
-                                                    vertical: 12,
-                                                  ),
-                                              shape: RoundedRectangleBorder(
-                                                borderRadius:
-                                                    BorderRadius.circular(14),
-                                              ),
-                                            ),
-                                            icon: const Icon(
-                                              Icons.payments_rounded,
-                                              size: 18,
-                                            ),
-                                            label: Text(
-                                              balance > 0
-                                                  ? 'Pagar ${money(balance)}'
-                                                  : 'Registrar pago',
-                                            ),
-                                            onPressed: () async {
-                                              await Get.toNamed(
-                                                Routes.makePayment,
-                                                arguments: {
-                                                  'paymentId': p.id,
-                                                  'payment': p,
-                                                },
-                                              );
-                                              await controller.loadPayments();
-                                            },
-                                          )
-                                        : Center(
-                                            child: FilledButton.icon(
+                                  if (p.playerName != null &&
+                                      p.playerName!.isNotEmpty) ...[
+                                    const SizedBox(height: 6),
+                                    Text(
+                                      p.playerName!,
+                                      style: theme.textTheme.bodyMedium
+                                          ?.copyWith(
+                                            color: theme
+                                                .colorScheme
+                                                .onSurfaceVariant,
+                                          ),
+                                    ),
+                                  ],
+                                  if (!paid) ...[
+                                    const SizedBox(height: 14),
+                                    SizedBox(
+                                      width: double.infinity,
+                                      child: controller.canPayWithCard
+                                          ? FilledButton.icon(
                                               style: FilledButton.styleFrom(
                                                 padding:
                                                     const EdgeInsets.symmetric(
@@ -244,16 +213,51 @@ class PaymentsTabView extends GetView<PaymentsTabController> {
                                                 );
                                                 await controller.loadPayments();
                                               },
+                                            )
+                                          : Center(
+                                              child: FilledButton.icon(
+                                                style: FilledButton.styleFrom(
+                                                  padding:
+                                                      const EdgeInsets.symmetric(
+                                                        horizontal: 16,
+                                                        vertical: 12,
+                                                      ),
+                                                  shape: RoundedRectangleBorder(
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                          14,
+                                                        ),
+                                                  ),
+                                                ),
+                                                icon: const Icon(
+                                                  Icons.payments_rounded,
+                                                  size: 18,
+                                                ),
+                                                label: Text(
+                                                  balance > 0
+                                                      ? 'Pagar ${money(balance)}'
+                                                      : 'Registrar pago',
+                                                ),
+                                                onPressed: () async {
+                                                  await Get.toNamed(
+                                                    Routes.makePayment,
+                                                    arguments: {
+                                                      'paymentId': p.id,
+                                                      'payment': p,
+                                                    },
+                                                  );
+                                                  await controller
+                                                      .loadPayments();
+                                                },
+                                              ),
                                             ),
-                                          ),
-                                  ),
-                                  if (controller.canPayWithCard) ...[
-                                    const SizedBox(height: 10),
-                                    SizedBox(
-                                      width: double.infinity,
-                                      child: Obx(
-                                        () => OutlinedButton.icon(
-                                          style: OutlinedButton.styleFrom(
+                                    ),
+                                    if (controller.canPayWithSpei) ...[
+                                      const SizedBox(height: 10),
+                                      SizedBox(
+                                        width: double.infinity,
+                                        child: FilledButton.tonalIcon(
+                                          style: FilledButton.styleFrom(
                                             padding: const EdgeInsets.symmetric(
                                               horizontal: 16,
                                               vertical: 12,
@@ -263,174 +267,211 @@ class PaymentsTabView extends GetView<PaymentsTabController> {
                                                   BorderRadius.circular(14),
                                             ),
                                           ),
-                                          icon:
-                                              controller.isPayingWithCard.value
-                                              ? const SizedBox(
-                                                  width: 16,
-                                                  height: 16,
-                                                  child:
-                                                      CircularProgressIndicator(
-                                                        strokeWidth: 2,
-                                                      ),
-                                                )
-                                              : const Icon(
-                                                  Icons.credit_card_rounded,
-                                                  size: 18,
-                                                ),
-                                          label: const Text(
-                                            'Pagar con tarjeta',
+                                          icon: const Icon(
+                                            Icons.account_balance_rounded,
+                                            size: 18,
                                           ),
-                                          onPressed:
-                                              controller.isPayingWithCard.value
-                                              ? null
-                                              : () =>
-                                                  controller.payWithCard(p.id),
+                                          label: const Text(
+                                            'Pagar por transferencia SPEI',
+                                          ),
+                                          onPressed: () =>
+                                              controller.goToSpeiPayment(p),
+                                        ),
+                                      ),
+                                    ],
+                                    if (controller.canPayWithCard) ...[
+                                      const SizedBox(height: 10),
+                                      SizedBox(
+                                        width: double.infinity,
+                                        child: Obx(
+                                          () => OutlinedButton.icon(
+                                            style: OutlinedButton.styleFrom(
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                    horizontal: 16,
+                                                    vertical: 12,
+                                                  ),
+                                              shape: RoundedRectangleBorder(
+                                                borderRadius:
+                                                    BorderRadius.circular(14),
+                                              ),
+                                            ),
+                                            icon:
+                                                controller
+                                                    .isPayingWithCard
+                                                    .value
+                                                ? const SizedBox(
+                                                    width: 16,
+                                                    height: 16,
+                                                    child:
+                                                        CircularProgressIndicator(
+                                                          strokeWidth: 2,
+                                                        ),
+                                                  )
+                                                : const Icon(
+                                                    Icons.credit_card_rounded,
+                                                    size: 18,
+                                                  ),
+                                            label: const Text(
+                                              'Pagar con tarjeta',
+                                            ),
+                                            onPressed:
+                                                controller
+                                                    .isPayingWithCard
+                                                    .value
+                                                ? null
+                                                : () => controller.payWithCard(
+                                                    p.id,
+                                                  ),
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ],
+                                  const SizedBox(height: 10),
+                                  Obx(
+                                    () => Align(
+                                      alignment: Alignment.centerLeft,
+                                      child: AnimatedRotation(
+                                        turns: controller.isExpanded(p.id)
+                                            ? 0.5
+                                            : 0.0,
+                                        duration: const Duration(
+                                          milliseconds: 180,
+                                        ),
+                                        child: Icon(
+                                          Icons.expand_more_rounded,
+                                          color: theme
+                                              .colorScheme
+                                              .onSurfaceVariant,
                                         ),
                                       ),
                                     ),
-                                  ],
-                                ],
-                                const SizedBox(height: 10),
-                                Obx(
-                                  () => Align(
-                                    alignment: Alignment.centerLeft,
-                                    child: AnimatedRotation(
-                                      turns: controller.isExpanded(p.id)
-                                          ? 0.5
-                                          : 0.0,
-                                      duration: const Duration(
-                                        milliseconds: 180,
-                                      ),
-                                      child: Icon(
-                                        Icons.expand_more_rounded,
-                                        color: theme
-                                            .colorScheme
-                                            .onSurfaceVariant,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                            trailing: IconButton(
-                              tooltip: 'Ver detalle',
-                              icon: const Icon(Icons.chevron_right_rounded),
-                              onPressed: () async {
-                                await Get.toNamed(
-                                  Routes.paymentDetail,
-                                  arguments: {
-                                    'paymentId': p.id,
-                                    'payment': p,
-                                  },
-                                );
-                                await controller.loadPayments();
-                              },
-                            ),
-                            children: [
-                              Row(
-                                children: [
-                                  Expanded(
-                                    child: _PaymentMetricBox(
-                                      label: p.hasDiscount
-                                          ? 'Monto final'
-                                          : 'Monto',
-                                      value: money(effectiveAmount),
-                                      tint: chipColor,
-                                      emphasis: true,
-                                    ),
-                                  ),
-                                  const SizedBox(width: 12),
-                                  Expanded(
-                                    child: _PaymentMetricBox(
-                                      label: 'Pagado',
-                                      value: money(totalRecibido),
-                                      tint: Colors.teal,
-                                    ),
                                   ),
                                 ],
                               ),
-                              const SizedBox(height: 12),
-                              _PaymentMetricBox(
-                                label: 'Saldo pendiente',
-                                value: money(balance),
-                                tint: paid ? Colors.green : chipColor,
-                                emphasis: true,
-                                fullWidth: true,
-                              ),
-                              if (p.dueDate != null) ...[
-                                const SizedBox(height: 12),
-                                _PaymentMetaBadge(
-                                  icon: Icons.event_outlined,
-                                  text: 'Vence ${_fmtDateOnly(p.dueDate!)}',
-                                ),
-                              ],
-                              if (p.hasDiscount) ...[
-                                const SizedBox(height: 12),
-                                _PaymentMetaBadge(
-                                  icon: Icons.local_offer_outlined,
-                                  text:
-                                      'Descuento -\$${p.discountsSumAmount.toStringAsFixed(2)}',
-                                ),
-                              ],
-                              if (p.hasDiscount && p.discounts.isNotEmpty) ...[
-                                const SizedBox(height: 16),
-                                Padding(
-                                  padding: const EdgeInsets.only(bottom: 8),
-                                  child: Text(
-                                    'Descuentos aplicados',
-                                    style: theme.textTheme.titleSmall?.copyWith(
-                                      fontWeight: FontWeight.w700,
-                                    ),
-                                  ),
-                                ),
-                                ...p.discounts.map((d) {
-                                  return ListTile(
-                                    dense: true,
-                                    contentPadding: EdgeInsets.zero,
-                                    leading: const Icon(Icons.local_offer),
-                                    title: Text(
-                                      '-\$${d.amount.toStringAsFixed(2)}',
-                                    ),
-                                    subtitle: Text(
-                                      d.createdAt != null
-                                          ? 'Fecha: ${_fmtDateOnly(d.createdAt!)}'
-                                          : 'Sin fecha',
-                                    ),
+                              trailing: IconButton(
+                                tooltip: 'Ver detalle',
+                                icon: const Icon(Icons.chevron_right_rounded),
+                                onPressed: () async {
+                                  await Get.toNamed(
+                                    Routes.paymentDetail,
+                                    arguments: {
+                                      'paymentId': p.id,
+                                      'payment': p,
+                                    },
                                   );
-                                }),
-                                const Divider(),
-                              ],
-
-                            if (p.receipts.isEmpty)
-                              Text(
-                                'Sin recibos',
-                                style: theme.textTheme.bodySmall,
+                                  await controller.loadPayments();
+                                },
                               ),
-
-                            if (p.receipts.isNotEmpty)
-                              ...p.receipts.map((r) {
-                                return ListTile(
-                                  contentPadding: EdgeInsets.zero,
-                                  leading: const Icon(Icons.attach_money),
-                                  title: Text(
-                                    '\$${r.amount.toStringAsFixed(2)} • ${r.method}',
+                              children: [
+                                Row(
+                                  children: [
+                                    Expanded(
+                                      child: _PaymentMetricBox(
+                                        label: p.hasDiscount
+                                            ? 'Monto final'
+                                            : 'Monto',
+                                        value: money(effectiveAmount),
+                                        tint: chipColor,
+                                        emphasis: true,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 12),
+                                    Expanded(
+                                      child: _PaymentMetricBox(
+                                        label: 'Pagado',
+                                        value: money(totalRecibido),
+                                        tint: Colors.teal,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 12),
+                                _PaymentMetricBox(
+                                  label: 'Saldo pendiente',
+                                  value: money(balance),
+                                  tint: paid ? Colors.green : chipColor,
+                                  emphasis: true,
+                                  fullWidth: true,
+                                ),
+                                if (p.dueDate != null) ...[
+                                  const SizedBox(height: 12),
+                                  _PaymentMetaBadge(
+                                    icon: Icons.event_outlined,
+                                    text: 'Vence ${_fmtDateOnly(p.dueDate!)}',
                                   ),
-                                  subtitle: Text(
-                                    '${_fmtDateTime(r.paidAt)}'
-                                    '${r.reference != null ? ' · Ref: ${r.reference}' : ''}',
+                                ],
+                                if (p.hasDiscount) ...[
+                                  const SizedBox(height: 12),
+                                  _PaymentMetaBadge(
+                                    icon: Icons.local_offer_outlined,
+                                    text:
+                                        'Descuento -\$${p.discountsSumAmount.toStringAsFixed(2)}',
                                   ),
-                                  trailing: r.url != null
-                                      ? IconButton(
-                                          icon: const Icon(Icons.open_in_new),
-                                          tooltip: 'Ver comprobante',
-                                          onPressed: () =>
-                                              _openReceipt(context, r.url!),
-                                        )
-                                      : null,
-                                );
-                              }),
+                                ],
+                                if (p.hasDiscount &&
+                                    p.discounts.isNotEmpty) ...[
+                                  const SizedBox(height: 16),
+                                  Padding(
+                                    padding: const EdgeInsets.only(bottom: 8),
+                                    child: Text(
+                                      'Descuentos aplicados',
+                                      style: theme.textTheme.titleSmall
+                                          ?.copyWith(
+                                            fontWeight: FontWeight.w700,
+                                          ),
+                                    ),
+                                  ),
+                                  ...p.discounts.map((d) {
+                                    return ListTile(
+                                      dense: true,
+                                      contentPadding: EdgeInsets.zero,
+                                      leading: const Icon(Icons.local_offer),
+                                      title: Text(
+                                        '-\$${d.amount.toStringAsFixed(2)}',
+                                      ),
+                                      subtitle: Text(
+                                        d.createdAt != null
+                                            ? 'Fecha: ${_fmtDateOnly(d.createdAt!)}'
+                                            : 'Sin fecha',
+                                      ),
+                                    );
+                                  }),
+                                  const Divider(),
+                                ],
 
-                            ],
+                                if (p.receipts.isEmpty)
+                                  Text(
+                                    'Sin recibos',
+                                    style: theme.textTheme.bodySmall,
+                                  ),
+
+                                if (p.receipts.isNotEmpty)
+                                  ...p.receipts.map((r) {
+                                    return ListTile(
+                                      contentPadding: EdgeInsets.zero,
+                                      leading: const Icon(Icons.attach_money),
+                                      title: Text(
+                                        '\$${r.amount.toStringAsFixed(2)} • ${r.method}',
+                                      ),
+                                      subtitle: Text(
+                                        '${_fmtDateTime(r.paidAt)}'
+                                        '${r.reference != null ? ' · Ref: ${r.reference}' : ''}',
+                                      ),
+                                      trailing: r.url != null
+                                          ? IconButton(
+                                              icon: const Icon(
+                                                Icons.open_in_new,
+                                              ),
+                                              tooltip: 'Ver comprobante',
+                                              onPressed: () =>
+                                                  _openReceipt(context, r.url!),
+                                            )
+                                          : null,
+                                    );
+                                  }),
+                              ],
                             ),
                           ),
                         ),
@@ -466,10 +507,7 @@ class PaymentsTabView extends GetView<PaymentsTabController> {
                   style: Theme.of(context).textTheme.titleMedium,
                 ),
                 const SizedBox(height: 16),
-                Text(
-                  'Estado',
-                  style: Theme.of(context).textTheme.titleSmall,
-                ),
+                Text('Estado', style: Theme.of(context).textTheme.titleSmall),
                 const SizedBox(height: 8),
                 Row(
                   children: PaymentStatusFilter.values.map((f) {
@@ -630,10 +668,8 @@ class _PaymentsFiltersHeader extends StatelessWidget {
                 ),
                 const SizedBox(width: 10),
                 FilledButton.tonalIcon(
-                  onPressed: () => PaymentsTabView._openFiltersSheet(
-                    context,
-                    controller,
-                  ),
+                  onPressed: () =>
+                      PaymentsTabView._openFiltersSheet(context, controller),
                   icon: const Icon(Icons.tune),
                   label: Text(
                     controller.activeFiltersCount > 0
@@ -865,10 +901,7 @@ class _StaggeredEntranceState extends State<_StaggeredEntrance> {
       curve: Curves.easeOutCubic,
       offset: _visible ? Offset.zero : hiddenOffset,
       child: TweenAnimationBuilder<double>(
-        tween: Tween<double>(
-          begin: _visible ? 1 : 0,
-          end: _visible ? 1 : 0,
-        ),
+        tween: Tween<double>(begin: _visible ? 1 : 0, end: _visible ? 1 : 0),
         duration: const Duration(milliseconds: 520),
         curve: Curves.easeOutBack,
         builder: (context, value, child) {
@@ -876,10 +909,7 @@ class _StaggeredEntranceState extends State<_StaggeredEntrance> {
           final scale = 0.96 + (0.04 * value);
           return Transform.rotate(
             angle: rotation * math.pi,
-            child: Transform.scale(
-              scale: scale,
-              child: child,
-            ),
+            child: Transform.scale(scale: scale, child: child),
           );
         },
         child: widget.child,

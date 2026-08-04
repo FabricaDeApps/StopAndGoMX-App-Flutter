@@ -5,6 +5,7 @@ import 'package:stopandgo/core/models/dto/payment_dto.dart';
 import 'package:stopandgo/core/network/api_repository.dart';
 import 'package:stopandgo/core/storage/app_storage.dart';
 import 'package:stopandgo/core/utils/role_utils.dart';
+import 'package:stopandgo/routes/app_routes.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 enum PaymentStatusFilter { all, paid, pending, partial }
@@ -30,7 +31,9 @@ extension PaymentDueFilterX on PaymentDueFilter {
 
 class PaymentsTabController extends GetxController {
   final ApiRepository _api = Get.find<ApiRepository>();
-  bool get canPayWithCard => AppStorage.getOrganization()?.payCardEnabled ?? false;
+  bool get canPayWithCard =>
+      AppStorage.getOrganization()?.payCardEnabled ?? false;
+  bool get canPayWithSpei => canPayWithCard;
 
   // Contexto (lo setea HomeController)
   final role = ''.obs; // manager/parent/player/coach/staff...
@@ -201,7 +204,11 @@ class PaymentsTabController extends GetxController {
 
     try {
       final intent = await _api.createMercadoPagoIntent(paymentId: paymentId);
-      final uri = Uri.parse(intent.initUrl);
+      final rawUrl = intent.initUrl;
+      final uri = rawUrl == null ? null : Uri.tryParse(rawUrl);
+      if (uri == null || uri.scheme != 'https' || uri.host.isEmpty) {
+        throw Exception('Mercado Pago no devolvió una liga válida.');
+      }
       await launchUrl(uri, mode: LaunchMode.externalApplication);
     } catch (e) {
       Get.snackbar(
@@ -212,6 +219,14 @@ class PaymentsTabController extends GetxController {
     } finally {
       isPayingWithCard.value = false;
     }
+  }
+
+  Future<void> goToSpeiPayment(PaymentDto payment) async {
+    await Get.toNamed(
+      Routes.speiPayment,
+      arguments: {'paymentId': payment.id, 'payment': payment},
+    );
+    await loadPayments();
   }
 
   bool isExpanded(int paymentId) => expandedPaymentIds.contains(paymentId);

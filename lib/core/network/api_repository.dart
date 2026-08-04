@@ -51,6 +51,7 @@ import 'package:stopandgo/core/models/merit/merit_snapshot.dart';
 import 'package:stopandgo/core/network/gazzetta_exceptions.dart';
 import 'package:stopandgo/core/network/merit_exceptions.dart';
 import 'package:stopandgo/core/network/paginated_response.dart';
+import 'package:stopandgo/core/network/payment_intent_exception.dart';
 import 'package:stopandgo/core/services/app_usage_session_service.dart';
 import 'package:stopandgo/core/storage/app_storage.dart';
 import 'package:stopandgo/core/utils/device_info.dart';
@@ -2692,18 +2693,29 @@ class ApiRepository {
 
   Future<PaymentProviderIntentDto> createMercadoPagoIntent({
     required int paymentId,
+    String? paymentMethod,
   }) async {
-    final res = await _dio.post(
-      '/payments/$paymentId/providers/mercadopago/intent',
-      options: Options(headers: _headers()),
-    );
+    try {
+      final res = await _dio.post(
+        '/payments/$paymentId/providers/mercadopago/intent',
+        data: {
+          if (paymentMethod != null && paymentMethod.trim().isNotEmpty)
+            'payment_method': paymentMethod.trim(),
+        },
+        options: Options(headers: _headers()),
+      );
 
-    if (res.data is! Map) {
-      throw Exception('Respuesta inesperada creando intent de Mercado Pago');
+      if (res.data is! Map) {
+        throw const FormatException(
+          'Respuesta inesperada creando intent de Mercado Pago',
+        );
+      }
+
+      final map = Map<String, dynamic>.from(res.data as Map);
+      return PaymentProviderIntentDto.fromJson(map);
+    } on DioException catch (error) {
+      throw PaymentIntentException.fromDio(error);
     }
-
-    final map = Map<String, dynamic>.from(res.data as Map);
-    return PaymentProviderIntentDto.fromJson(map);
   }
 
   Future<PaginatedResponse<PlaybookPlay>> getPlaybookPlays({

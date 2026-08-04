@@ -95,6 +95,7 @@ import 'package:stopandgo/modules/roster/roster_binding.dart';
 import 'package:stopandgo/modules/roster/roster_view.dart';
 import 'package:stopandgo/modules/sign_in/sign_in_binding.dart';
 import 'package:stopandgo/modules/sign_in/sign_in_view.dart';
+import 'package:stopandgo/modules/spei_payment/index.dart';
 import 'package:stopandgo/modules/splash/splash_binding.dart';
 import 'package:stopandgo/modules/splash/splash_view.dart';
 import 'package:stopandgo/modules/team_selector/index.dart';
@@ -157,6 +158,11 @@ class AppPages {
       name: Routes.makePayment,
       page: () => const MakePaymentView(),
       binding: MakePaymentBinding(),
+    ),
+    GetPage(
+      name: Routes.speiPayment,
+      page: () => const SpeiPaymentView(),
+      binding: SpeiPaymentBinding(),
     ),
     GetPage(
       name: Routes.paymentDetail,

@@ -235,11 +235,11 @@ class PaymentDetailView extends GetView<PaymentDetailController> {
                   borderRadius: BorderRadius.circular(16),
                 ),
                 child: Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
+                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
                         'Historial de recibos',
                         style: theme.textTheme.titleSmall?.copyWith(
                           fontWeight: FontWeight.w700,
@@ -286,6 +286,21 @@ class PaymentDetailView extends GetView<PaymentDetailController> {
                     ),
                   ),
                 ),
+              if (!controller.isPaid && controller.canPayWithSpei)
+                SizedBox(
+                  width: double.infinity,
+                  child: FilledButton.tonalIcon(
+                    style: FilledButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                    ),
+                    onPressed: controller.goToSpeiPayment,
+                    icon: const Icon(Icons.account_balance_rounded),
+                    label: const Text('Pagar por transferencia SPEI'),
+                  ),
+                ),
               if (!controller.isPaid && controller.canPayWithCard)
                 SizedBox(
                   width: double.infinity,
@@ -329,10 +344,7 @@ class PaymentDetailView extends GetView<PaymentDetailController> {
           borderRadius: BorderRadius.circular(10),
           color: theme.colorScheme.primary.withValues(alpha: .10),
         ),
-        child: Icon(
-          Icons.attach_money,
-          color: theme.colorScheme.primary,
-        ),
+        child: Icon(Icons.attach_money, color: theme.colorScheme.primary),
       ),
       title: Text('${money(r.amount)} • ${r.method}'),
       subtitle: Text(
@@ -399,11 +411,7 @@ class PaymentDetailView extends GetView<PaymentDetailController> {
 }
 
 class _StatusPill extends StatelessWidget {
-  const _StatusPill({
-    required this.label,
-    required this.color,
-    this.icon,
-  });
+  const _StatusPill({required this.label, required this.color, this.icon});
 
   final String label;
   final Color color;

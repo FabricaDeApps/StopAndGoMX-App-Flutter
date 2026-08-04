@@ -13,6 +13,7 @@ abstract class Routes {
   static const noticeDetail = '/noticeDetail';
   static const createNotice = '/createNotice';
   static const makePayment = '/makePayment';
+  static const speiPayment = '/speiPayment';
   static const imageView = '/imageView';
   static const newGame = '/newGame';
   static const completeGame = '/completeGame';
