@@ -3,9 +3,9 @@
 <plist version="1.0">
 <dict>
 	<key>CLIENT_ID</key>
-	<string>225171602574-bnbl7i6v3qa26esv5jcub74og37es41c.apps.googleusercontent.com</string>
+	<string>225171602574-olqncjsj3ano8tvo8ftp268i5cuacrcb.apps.googleusercontent.com</string>
 	<key>REVERSED_CLIENT_ID</key>
-	<string>com.googleusercontent.apps.225171602574-bnbl7i6v3qa26esv5jcub74og37es41c</string>
+	<string>com.googleusercontent.apps.225171602574-olqncjsj3ano8tvo8ftp268i5cuacrcb</string>
 	<key>ANDROID_CLIENT_ID</key>
 	<string>225171602574-4r4a00qo56gaarc9drefl7lkge51brfa.apps.googleusercontent.com</string>
 	<key>API_KEY</key>
@@ -15,7 +15,7 @@
 	<key>PLIST_VERSION</key>
 	<string>1</string>
 	<key>BUNDLE_ID</key>
-	<string>app.stopandgomx.cimarronesqro</string>
+	<string>app.stopandgomx.bearsqro</string>
 	<key>PROJECT_ID</key>
 	<string>stopandgomx-4ab82</string>
 	<key>STORAGE_BUCKET</key>
@@ -31,6 +31,6 @@
 	<key>IS_SIGNIN_ENABLED</key>
 	<true></true>
 	<key>GOOGLE_APP_ID</key>
-	<string>1:225171602574:ios:9c03adfe94812506cd9ddf</string>
+	<string>1:225171602574:ios:92681a5bdf6c27cbcd9ddf</string>
 </dict>
 </plist>

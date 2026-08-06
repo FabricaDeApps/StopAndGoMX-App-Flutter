@@ -4,6 +4,8 @@ Todos los cambios importantes del proyecto **StopAndGoMX** se documentan en este
 El formato sigue las recomendaciones de **Keep a Changelog**  
 y el versionado está basado en **Semantic Versioning (SemVer)**.
 
+## [1.2.7] - 2026-8-6
+• Pagos con transferencia automática
 
 ## [1.2.5] - 2026-7-3
 • Banner pausa

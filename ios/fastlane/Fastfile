@@ -96,14 +96,14 @@ platform :ios do
   ############################################
   # Upload TestFlight
   ############################################
-  def upload_to_testflight_generic(bundle_id:, groups:, changelog:)
+  def upload_to_testflight_generic(bundle_id:, groups:, changelog:, wait_for_processing:)
     UI.message("🚀 Subiendo a TestFlight (bundle_id=#{bundle_id})...")
 
     upload_to_testflight(
       api_key: app_store_api_key_config,
       app_identifier: bundle_id,
       changelog: changelog,
-      skip_waiting_for_build_processing: true,
+      skip_waiting_for_build_processing: !wait_for_processing,
       skip_submission: true,
       distribute_external: false,
       uses_non_exempt_encryption: false
@@ -236,7 +236,8 @@ platform :ios do
     upload_to_testflight_generic(
       bundle_id: bundle_id,
       groups: tester_groups,
-      changelog: notes
+      changelog: notes,
+      wait_for_processing: submit_review
     )
 
     ########################################
@@ -259,81 +260,86 @@ platform :ios do
   ############################################
 
   desc "Deploy iOS mainapp (StopAndGo)"
-  lane :deploy_mainapp do
+  lane :deploy_mainapp do |options|
     deploy(
       flavor: "mainapp",
       scheme: "mainapp",
       bundle_id: "app.stopandgomx.stopandgo",
       ipa_name: "stopandgo-mainapp.ipa",
-      groups: ["internal"]
+      groups: ["internal"],
+      submit_review: options[:submit_review]
     )
   end
 
   desc "Deploy iOS Zorros"
-  lane :deploy_zorros do
+  lane :deploy_zorros do |options|
     deploy(
       flavor: "zorros",
       scheme: "zorros",
       bundle_id: "app.stopandgomx.zorros",
       ipa_name: "stopandgo-zorros.ipa",
-      groups: ["internal"]
+      groups: ["internal"],
+      submit_review: options[:submit_review]
     )
   end
 
   desc "Deploy iOS Raiders Qro"
-  lane :deploy_raidersqro do
+  lane :deploy_raidersqro do |options|
     deploy(
       flavor: "raidersqro",
       scheme: "raidersqro",
       bundle_id: "app.stopandgomx.raidersqro",
       ipa_name: "stopandgo-raidersqro.ipa",
-      groups: ["internal"]
+      groups: ["internal"],
+      submit_review: options[:submit_review]
     )
   end
 
   desc "Deploy iOS Wolverines Qro"
-  lane :deploy_wolverinesqro do
+  lane :deploy_wolverinesqro do |options|
     deploy(
       flavor: "wolverinesqro",
       scheme: "wolverinesqro",
       bundle_id: "app.stopandgomx.wolverinesqro",
       ipa_name: "stopandgo-wolverinesqro.ipa",
-      groups: ["internal"]
+      groups: ["internal"],
+      submit_review: options[:submit_review]
     )
   end
 
   desc "Deploy iOS Bears Corregidora"
-  lane :deploy_bearsqro do
+  lane :deploy_bearsqro do |options|
     deploy(
       flavor: "bearsqro",
       scheme: "bearsqro",
       bundle_id: "app.stopandgomx.bearsqro",
       ipa_name: "stopandgo-bearsqro.ipa",
-      groups: ["internal"]
+      groups: ["internal"],
+      submit_review: options[:submit_review]
     )
   end
 
   desc "Deploy iOS Celtas"
-  lane :deploy_celtas do
+  lane :deploy_celtas do |options|
     deploy(
       flavor: "celtas",
       scheme: "celtas",
       bundle_id: "app.stopandgomx.celtas",
       ipa_name: "stopandgo-celtas.ipa",
       groups: ["internal"],
-      submit_review: false
+      submit_review: options[:submit_review]
     )
   end
 
   desc "Deploy iOS Cimarrones Qro"
-  lane :deploy_cimarronesqro do
+  lane :deploy_cimarronesqro do |options|
     deploy(
       flavor: "cimarronesqro",
       scheme: "cimarronesqro",
       bundle_id: "app.stopandgomx.cimarronesqro",
       ipa_name: "stopandgo-cimarronesqro.ipa",
       groups: ["internal"],
-      submit_review: false
+      submit_review: options[:submit_review]
     )
   end
 end

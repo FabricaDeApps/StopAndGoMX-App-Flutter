@@ -17,8 +17,8 @@ fastlane deploy_zorros_production
 echo "🚀 Deploy RAIDERSQRO (Producción)"
 fastlane deploy_raidersqro_production
 
-echo "🚀 Deploy WOLVERINESQRO (Producción)"
-fastlane deploy_wolverinesqro_production
+#echo "🚀 Deploy WOLVERINESQRO (Producción)"
+#fastlane deploy_wolverinesqro_production
 
 echo "🚀 Deploy BEARSQRO (Producción)"
 fastlane deploy_bearsqro_production
