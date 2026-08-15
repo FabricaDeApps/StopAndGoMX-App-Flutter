@@ -16,7 +16,6 @@
 		61530C372EC90F6C007B96DF /* Debug-mainapp.xcconfig in Resources */ = {isa = PBXBuildFile; fileRef = 61530C352EC90F6C007B96DF /* Debug-mainapp.xcconfig */; };
 		61530C382EC90F6C007B96DF /* Release-mainapp.xcconfig in Resources */ = {isa = PBXBuildFile; fileRef = 61530C362EC90F6C007B96DF /* Release-mainapp.xcconfig */; };
 		616048532F097CD900A6975A /* Info-bearsqro.plist in Resources */ = {isa = PBXBuildFile; fileRef = 616048522F097CD900A6975A /* Info-bearsqro.plist */; };
-		616048552F097E5900A6975A /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 616048542F097E5900A6975A /* GoogleService-Info.plist */; };
 		61F118962EE0DADD0014866E /* Info-wolverinesqro.plist in Resources */ = {isa = PBXBuildFile; fileRef = 61F118952EE0DADD0014866E /* Info-wolverinesqro.plist */; };
 		74858FAF1ED2DC5600515810 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 74858FAE1ED2DC5600515810 /* AppDelegate.swift */; };
 		78A318202AECB46A00862997 /* FlutterGeneratedPluginSwiftPackage in Frameworks */ = {isa = PBXBuildFile; productRef = 78A3181F2AECB46A00862997 /* FlutterGeneratedPluginSwiftPackage */; };
@@ -267,14 +266,13 @@
 			buildPhases = (
 				875DA696765697842C35F668 /* [CP] Check Pods Manifest.lock */,
 				9740EEB61CF901F6004384FC /* Run Script */,
-				6133A5A22ED63E2E004823A4 /*  Select GoogleService-Info.plist */,
 				97C146EA1CF9000F007C117D /* Sources */,
 				97C146EB1CF9000F007C117D /* Frameworks */,
 				97C146EC1CF9000F007C117D /* Resources */,
+				6133A5A22ED63E2E004823A4 /*  Select GoogleService-Info.plist */,
 				9705A1C41CF9048500538489 /* Embed Frameworks */,
 				3B06AD1E1E4923F5004D2608 /* Thin Binary */,
 				EF0F5516460E6AC0E27C4ACC /* [CP] Embed Pods Frameworks */,
-				1529CA555B6F8D666C49ADF0 /* [CP] Copy Pods Resources */,
 			);
 			buildRules = (
 			);
@@ -348,7 +346,6 @@
 				3B3967161E833CAA004F5970 /* AppFrameworkInfo.plist in Resources */,
 				97C146FE1CF9000F007C117D /* Assets.xcassets in Resources */,
 				61F118962EE0DADD0014866E /* Info-wolverinesqro.plist in Resources */,
-				616048552F097E5900A6975A /* GoogleService-Info.plist in Resources */,
 				97C146FC1CF9000F007C117D /* Main.storyboard in Resources */,
 				61530C332EC90E4B007B96DF /* Info-zorros.plist in Resources */,
 				A2C7E1A12B3C4D5E6F700004 /* Info-cimarronesqro.plist in Resources */,
@@ -362,23 +359,6 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXShellScriptBuildPhase section */
-		1529CA555B6F8D666C49ADF0 /* [CP] Copy Pods Resources */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputFileListPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-Runner/Pods-Runner-resources-${CONFIGURATION}-input-files.xcfilelist",
-			);
-			name = "[CP] Copy Pods Resources";
-			outputFileListPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-Runner/Pods-Runner-resources-${CONFIGURATION}-output-files.xcfilelist",
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-Runner/Pods-Runner-resources.sh\"\n";
-			showEnvVarsInLog = 0;
-		};
 		3B06AD1E1E4923F5004D2608 /* Thin Binary */ = {
 			isa = PBXShellScriptBuildPhase;
 			alwaysOutOfDate = 1;
@@ -397,6 +377,7 @@
 		};
 		6133A5A22ED63E2E004823A4 /*  Select GoogleService-Info.plist */ = {
 			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
 			buildActionMask = 2147483647;
 			files = (
 			);
@@ -408,10 +389,11 @@
 			outputFileListPaths = (
 			);
 			outputPaths = (
+				"$(TARGET_BUILD_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/GoogleService-Info.plist",
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "#!/bin/sh\nset -e\n\necho \"================ GOOGLE SERVICE INFO ================\"\necho \"CONFIGURATION: $CONFIGURATION\"\necho \"TARGET_NAME:   $TARGET_NAME\"\n\nFLAVOR=\"\"\n\ncase \"$CONFIGURATION\" in\n  *mainapp*)\n    FLAVOR=\"mainapp\"\n    ;;\n  *zorros*)\n    FLAVOR=\"zorros\"\n    ;;\n  *raidersqro*)\n    FLAVOR=\"raidersqro\"\n    ;;\n  *wolverinesqro*)\n    FLAVOR=\"wolverinesqro\"\n    ;;\n  *bearsqro*)\n    FLAVOR=\"bearsqro\"\n    ;;\n  *celtas*)\n    FLAVOR=\"celtas\"\n    ;;\n  *cimarronesqro*)\n    FLAVOR=\"cimarronesqro\"\n    ;;\n  *)\n    echo \"⚠️ No se pudo detectar flavor desde CONFIGURATION=$CONFIGURATION, usando mainapp por default\"\n    FLAVOR=\"mainapp\"\n    ;;\nesac\n\nPLIST_SOURCE=\"${PROJECT_DIR}/Runner/Firebase/GoogleService-Info-${FLAVOR}.plist\"\nPLIST_DEST=\"${PROJECT_DIR}/Runner/GoogleService-Info.plist\"\n\necho \"📄 Usando plist para flavor: $FLAVOR\"\necho \"📄 Copiando:\"\necho \"   ${PLIST_SOURCE}\"\necho \"   → ${PLIST_DEST}\"\n\nif [ ! -f \"$PLIST_SOURCE\" ]; then\n  echo \"❌ No existe el archivo: $PLIST_SOURCE\"\n  exit 1\nfi\n\ncp \"$PLIST_SOURCE\" \"$PLIST_DEST\"\n\necho \"✅ Copia de GoogleService-Info.plist completada\"\necho \"=====================================================\"\n";
+			shellScript = "#!/bin/sh\nset -e\n\necho \"================ GOOGLE SERVICE INFO ================\"\necho \"CONFIGURATION: $CONFIGURATION\"\necho \"TARGET_NAME:   $TARGET_NAME\"\n\nFLAVOR=\"\"\n\ncase \"$CONFIGURATION\" in\n  *mainapp*)\n    FLAVOR=\"mainapp\"\n    ;;\n  *zorros*)\n    FLAVOR=\"zorros\"\n    ;;\n  *raidersqro*)\n    FLAVOR=\"raidersqro\"\n    ;;\n  *wolverinesqro*)\n    FLAVOR=\"wolverinesqro\"\n    ;;\n  *bearsqro*)\n    FLAVOR=\"bearsqro\"\n    ;;\n  *celtas*)\n    FLAVOR=\"celtas\"\n    ;;\n  *cimarronesqro*)\n    FLAVOR=\"cimarronesqro\"\n    ;;\n  *)\n    echo \"❌ No se pudo detectar flavor desde CONFIGURATION=$CONFIGURATION\"\n    exit 1\n    ;;\nesac\n\nPLIST_SOURCE=\"${PROJECT_DIR}/Runner/Firebase/GoogleService-Info-${FLAVOR}.plist\"\nPLIST_DEST=\"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/GoogleService-Info.plist\"\n\necho \"📄 Usando plist para flavor: $FLAVOR\"\necho \"📄 Copiando:\"\necho \"   ${PLIST_SOURCE}\"\necho \"   → ${PLIST_DEST}\"\n\nif [ ! -f \"$PLIST_SOURCE\" ]; then\n  echo \"❌ No existe el archivo: $PLIST_SOURCE\"\n  exit 1\nfi\n\nPLIST_BUNDLE_ID=$(/usr/libexec/PlistBuddy -c \"Print :BUNDLE_ID\" \"$PLIST_SOURCE\")\nif [ \"$PLIST_BUNDLE_ID\" != \"$PRODUCT_BUNDLE_IDENTIFIER\" ]; then\n  echo \"❌ Firebase BUNDLE_ID=$PLIST_BUNDLE_ID no coincide con PRODUCT_BUNDLE_IDENTIFIER=$PRODUCT_BUNDLE_IDENTIFIER\"\n  exit 1\nfi\n\nmkdir -p \"$(dirname \"$PLIST_DEST\")\"\ncp \"$PLIST_SOURCE\" \"$PLIST_DEST\"\n\necho \"✅ GoogleService-Info.plist validado y copiado al producto\"\necho \"=====================================================\"\n";
 		};
 		875DA696765697842C35F668 /* [CP] Check Pods Manifest.lock */ = {
 			isa = PBXShellScriptBuildPhase;

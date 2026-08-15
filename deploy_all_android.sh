@@ -23,8 +23,8 @@ fastlane deploy_raidersqro_production
 echo "🚀 Deploy BEARSQRO (Producción)"
 fastlane deploy_bearsqro_production
 
-echo "🚀 Deploy CELTAS (Producción)"
-fastlane deploy_celtas_production
+#echo "🚀 Deploy CELTAS (Producción)"
+#fastlane deploy_celtas_production
 
 #echo "🚀 Deploy CIMARRONESQRO (Producción)"
 #fastlane deploy_cimarronesqro_production

@@ -67,10 +67,10 @@ echo ""
 ########################################
 # CELTAS
 ########################################
-echo "☘️ Deploy iOS: CELTAS"
-fastlane deploy_celtas "${FASTLANE_REVIEW_ARGS[@]}"
-echo "✅ CELTAS completado"
-echo ""
+#echo "☘️ Deploy iOS: CELTAS"
+#fastlane deploy_celtas "${FASTLANE_REVIEW_ARGS[@]}"
+#echo "✅ CELTAS completado"
+#echo ""
 
 ########################################
 # CIMARRONESQRO
