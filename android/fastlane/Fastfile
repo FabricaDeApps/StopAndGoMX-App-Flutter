@@ -15,6 +15,7 @@ platform :android do
   PROJECT_ROOT = File.expand_path('../..', __dir__)   # /.../StopAndGoMX-App-Flutter
   ANDROID_DIR  = File.expand_path('..', __dir__)      # /.../StopAndGoMX-App-Flutter/android
   METADATA_DIR = File.join(ANDROID_DIR, 'fastlane/metadata/android')
+  STORE_BUILD_DIR = File.join(PROJECT_ROOT, 'build/store')
 
   ############################################
   # Helpers
@@ -110,6 +111,19 @@ platform :android do
     end
   end
 
+  # 1.2) Generar metadata de tienda desde el manifiesto del flavor
+  def prepare_store_metadata(flavor:, publish: false)
+    config_path = File.join(PROJECT_ROOT, "branding/#{flavor}/store.json")
+    UI.user_error!("No existe el manifiesto de tienda: #{config_path}") unless File.exist?(config_path)
+
+    sh "cd #{PROJECT_ROOT} && ./scripts/flavor_tool.sh stores generate --config branding/#{flavor}/store.json"
+    if publish
+      sh "cd #{PROJECT_ROOT} && ./scripts/flavor_tool.sh stores validate --publish --config branding/#{flavor}/store.json"
+    end
+
+    File.join(STORE_BUILD_DIR, flavor, 'android/metadata')
+  end
+
   # 2) Upload del AAB a Google Play
   def upload_aab_to_play(aab_path:, package_name:, track:)
     UI.message("🚀 Subiendo AAB a Google Play (package=#{package_name}, track=#{track})...")
@@ -118,7 +132,7 @@ platform :android do
       aab: aab_path,
       package_name: package_name,
       track: track,
-      json_key: File.join(__dir__, 'playstore.json'),
+      json_key: File.join(ANDROID_DIR, 'playstore.json'),
       release_status: 'completed',
       changes_not_sent_for_review: false,
 
@@ -132,6 +146,24 @@ platform :android do
 
       # ✅ Sí subimos "What's new" (default.txt)
       skip_upload_changelogs: false
+    )
+  end
+
+  # 2.1) Subir únicamente ficha, imágenes y screenshots ya validados
+  def upload_store_listing_to_play(flavor:, package_name:)
+    metadata_path = prepare_store_metadata(flavor: flavor, publish: true)
+
+    upload_to_play_store(
+      package_name: package_name,
+      json_key: File.join(ANDROID_DIR, 'playstore.json'),
+      metadata_path: metadata_path,
+      skip_upload_apk: true,
+      skip_upload_aab: true,
+      skip_upload_metadata: false,
+      skip_upload_changelogs: true,
+      skip_upload_images: false,
+      skip_upload_screenshots: false,
+      changes_not_sent_for_review: true
     )
   end
 
@@ -230,6 +262,26 @@ platform :android do
     UI.success("✅ AAB firmado generado en: #{aab_path}")
   end
 
+  desc 'Genera y valida metadata de Google Play sin subirla'
+  lane :prepare_store_listing do |options|
+    flavor = options[:flavor]
+    UI.user_error!('Debes pasar el parámetro flavor') if flavor.nil? || flavor.empty?
+
+    path = prepare_store_metadata(flavor: flavor, publish: false)
+    UI.success("✅ Metadata Android preparada en: #{path}")
+  end
+
+  desc 'Sube ficha, imágenes y screenshots a Google Play sin subir un binario'
+  lane :upload_store_listing do |options|
+    flavor = options[:flavor]
+    package_name = options[:package_name]
+    UI.user_error!('Debes pasar el parámetro flavor') if flavor.nil? || flavor.empty?
+    UI.user_error!('Debes pasar el parámetro package_name') if package_name.nil? || package_name.empty?
+
+    upload_store_listing_to_play(flavor: flavor, package_name: package_name)
+    UI.success("✅ Ficha Android sincronizada para #{package_name}")
+  end
+
   ############################################
   # Lanes por organización / flavor
   ############################################
@@ -316,6 +368,49 @@ platform :android do
     build_aab(
       flavor: 'cimarronesqro',
       target: 'lib/main_cimarronesqro.dart'
+    )
+  end
+
+  # ACADEMIA PUEBLA FC MID - PRODUCTION
+  desc 'Deploy Android Academia Puebla FC MID a track INTERNAL'
+  lane :deploy_academiapuebla_internal do
+    deploy(
+      flavor: 'academiapuebla',
+      target: 'lib/main_academiapuebla.dart',
+      package_name: 'app.stopandgomx.academiapuebla',
+      track: 'internal'
+    )
+  end
+
+  desc 'Deploy Android Academia Puebla FC MID a track PRODUCTION'
+  lane :deploy_academiapuebla_production do
+    deploy(
+      flavor: 'academiapuebla',
+      target: 'lib/main_academiapuebla.dart',
+      package_name: 'app.stopandgomx.academiapuebla',
+      track: 'production'
+    )
+  end
+
+  desc 'Build signed AAB Android Academia Puebla FC MID (sin upload)'
+  lane :build_academiapuebla_aab do
+    build_aab(
+      flavor: 'academiapuebla',
+      target: 'lib/main_academiapuebla.dart'
+    )
+  end
+
+
+  desc 'Preparar ficha Google Play de Academia Puebla FC MID (sin upload)'
+  lane :prepare_academiapuebla_store do
+    prepare_store_listing(flavor: 'academiapuebla')
+  end
+
+  desc 'Sincronizar ficha Google Play de Academia Puebla FC MID (sin binario)'
+  lane :upload_academiapuebla_store do
+    upload_store_listing(
+      flavor: 'academiapuebla',
+      package_name: 'app.stopandgomx.academiapuebla'
     )
   end
 end

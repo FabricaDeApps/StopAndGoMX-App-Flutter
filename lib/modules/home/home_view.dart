@@ -71,6 +71,7 @@ class HomeView extends GetView<HomeController> {
           : 'La app del club esta en pausa temporal. Algunas funciones de pago podrian no estar disponibles.';
 
       return Scaffold(
+        key: const Key('store_home_screen'),
         drawer: _buildDrawer(context, theme),
         appBar: AppBar(
           title: Row(

@@ -7,6 +7,7 @@ enum AppFlavor {
   redskins,
   celtas,
   cimarronesqro,
+  academiapuebla,
 }
 
 const _managerTabs = ["dashboard", "games", "payments", "notices", "gazzetta"];
@@ -126,6 +127,14 @@ class FlavorConfig {
       "admin": _managerTabs,
     },
     AppFlavor.cimarronesqro: {
+      "parent": ["dashboard", "games", "payments", "notices", "gazzetta"],
+      "player": ["dashboard", "games", "payments", "notices", "gazzetta"],
+      "coach": ["dashboard", "games", "notices", "gazzetta"],
+      "staff": ["dashboard", "games", "notices", "gazzetta"],
+      "manager": _managerTabs,
+      "admin": _managerTabs,
+    },
+    AppFlavor.academiapuebla: {
       "parent": ["dashboard", "games", "payments", "notices", "gazzetta"],
       "player": ["dashboard", "games", "payments", "notices", "gazzetta"],
       "coach": ["dashboard", "games", "notices", "gazzetta"],

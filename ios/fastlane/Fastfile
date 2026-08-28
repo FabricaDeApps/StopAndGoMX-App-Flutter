@@ -7,6 +7,7 @@ platform :ios do
 
   PROJECT_ROOT = File.expand_path('../..', __dir__)   # ios/
   IOS_DIR      = File.expand_path('..', __dir__)      # ios/fastlane/..
+  STORE_BUILD_DIR = File.join(PROJECT_ROOT, 'build/store')
 
   def flutter_bin
     env_bin = ENV['FLUTTER_BIN']
@@ -69,6 +70,21 @@ platform :ios do
 
     UI.message("🎨 Ejecutando script de logo: ./scripts/use_logo.sh #{logo_arg}")
     sh "cd #{PROJECT_ROOT} && ./scripts/use_logo.sh #{logo_arg}"
+  end
+
+  ############################################
+  # Metadata de tienda desde el manifiesto
+  ############################################
+  def prepare_store_metadata(flavor:, publish: false)
+    config_path = File.join(PROJECT_ROOT, "branding/#{flavor}/store.json")
+    UI.user_error!("No existe el manifiesto de tienda: #{config_path}") unless File.exist?(config_path)
+
+    sh "cd #{PROJECT_ROOT} && ./scripts/flavor_tool.sh stores generate --config branding/#{flavor}/store.json"
+    if publish
+      sh "cd #{PROJECT_ROOT} && ./scripts/flavor_tool.sh stores validate --publish --config branding/#{flavor}/store.json"
+    end
+
+    File.join(STORE_BUILD_DIR, flavor, 'ios')
   end
 
   ############################################
@@ -136,6 +152,23 @@ platform :ios do
     )
   end
 
+  def upload_store_listing_to_app_store(flavor:, bundle_id:)
+    store_path = prepare_store_metadata(flavor: flavor, publish: true)
+
+    deliver(
+      api_key: app_store_api_key_config,
+      app_identifier: bundle_id,
+      metadata_path: File.join(store_path, 'metadata'),
+      screenshots_path: File.join(store_path, 'screenshots'),
+      skip_binary_upload: true,
+      skip_metadata: false,
+      skip_screenshots: false,
+      submit_for_review: false,
+      force: true,
+      run_precheck_before_submit: false
+    )
+  end
+
   ############################################
   # Lane genérica
   ############################################
@@ -195,6 +228,8 @@ platform :ios do
                    "lib/main_celtas.dart"
                  when "cimarronesqro"
                    "lib/main_cimarronesqro.dart"
+                 when "academiapuebla"
+                   "lib/main_academiapuebla.dart"
                  else
                    UI.user_error!("No conozco el entrypoint para flavor=#{flavor}")
                  end
@@ -253,6 +288,26 @@ platform :ios do
     end
 
     UI.success("✅ Deploy iOS completado (#{flavor})")
+  end
+
+  desc "Genera y valida metadata de App Store sin subirla"
+  lane :prepare_store_listing do |options|
+    flavor = options[:flavor]
+    UI.user_error!("Falta flavor") if flavor.nil? || flavor.empty?
+
+    path = prepare_store_metadata(flavor: flavor, publish: false)
+    UI.success("✅ Metadata iOS preparada en: #{path}")
+  end
+
+  desc "Sube ficha y screenshots a App Store Connect sin subir un binario"
+  lane :upload_store_listing do |options|
+    flavor = options[:flavor]
+    bundle_id = options[:bundle_id]
+    UI.user_error!("Falta flavor") if flavor.nil? || flavor.empty?
+    UI.user_error!("Falta bundle_id") if bundle_id.nil? || bundle_id.empty?
+
+    upload_store_listing_to_app_store(flavor: flavor, bundle_id: bundle_id)
+    UI.success("✅ Ficha iOS sincronizada para #{bundle_id}")
   end
 
   ############################################
@@ -340,6 +395,44 @@ platform :ios do
       ipa_name: "stopandgo-cimarronesqro.ipa",
       groups: ["internal"],
       submit_review: options[:submit_review]
+    )
+  end
+
+  desc "Deploy iOS Academia Puebla FC MID"
+  lane :deploy_academiapuebla do |options|
+    deploy(
+      flavor: "academiapuebla",
+      scheme: "academiapuebla",
+      bundle_id: "app.stopandgomx.academiapuebla",
+      ipa_name: "stopandgo-academiapuebla.ipa",
+      groups: ["internal"],
+      submit_review: options[:submit_review]
+    )
+  end
+
+  desc "Deploy iOS Academia Puebla FC MID a TestFlight"
+  lane :deploy_academiapuebla_testflight do
+    deploy(
+      flavor: "academiapuebla",
+      scheme: "academiapuebla",
+      bundle_id: "app.stopandgomx.academiapuebla",
+      ipa_name: "stopandgo-academiapuebla.ipa",
+      groups: ["internal"],
+      submit_review: false
+    )
+  end
+
+
+  desc "Preparar ficha App Store de Academia Puebla FC MID (sin upload)"
+  lane :prepare_academiapuebla_store do
+    prepare_store_listing(flavor: "academiapuebla")
+  end
+
+  desc "Sincronizar ficha App Store de Academia Puebla FC MID (sin binario)"
+  lane :upload_academiapuebla_store do
+    upload_store_listing(
+      flavor: "academiapuebla",
+      bundle_id: "app.stopandgomx.academiapuebla"
     )
   end
 end

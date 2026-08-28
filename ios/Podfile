@@ -18,6 +18,8 @@ project 'Runner', {
   'Release-celtas' => :release,
   'Debug-cimarronesqro' => :debug,
   'Release-cimarronesqro' => :release,
+  'Debug-academiapuebla' => :debug,
+  'Release-academiapuebla' => :release,
 }
 
 def flutter_root

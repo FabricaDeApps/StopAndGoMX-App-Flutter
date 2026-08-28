@@ -45,10 +45,11 @@ class ApiClient {
       AuthInterceptor(),
       if (kReleaseMode) SentryInterceptor(),
       PrettyDioLogger(
-        requestHeader: true,
-        requestBody: true,
+        // Nunca imprimir credenciales, Authorization ni tokens de respuesta.
+        requestHeader: false,
+        requestBody: false,
         responseHeader: false,
-        responseBody: true,
+        responseBody: false,
         compact: true,
       ),
     ]);

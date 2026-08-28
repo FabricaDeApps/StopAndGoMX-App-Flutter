@@ -5,32 +5,27 @@
     
     
       
-      <testcase classname="fastlane.lanes" name="0: default_platform" time="0.000191">
+      <testcase classname="fastlane.lanes" name="0: default_platform" time="0.000159">
         
       </testcase>
     
       
-      <testcase classname="fastlane.lanes" name="1: Switch to android deploy lane" time="5.2e-05">
+      <testcase classname="fastlane.lanes" name="1: Switch to android build_aab lane" time="0.000154">
         
       </testcase>
     
       
-      <testcase classname="fastlane.lanes" name="2: cd /Users/snakepitt/Developer/flutter_stopandgo &amp;&amp; ./scripts/use_logo.sh cimarronesqro" time="0.019908">
+      <testcase classname="fastlane.lanes" name="2: cd /Users/snakepitt/Developer/StopAndGoMX-App-Flutter &amp;&amp; ./scripts/use_logo.sh academiapuebla" time="0.01717">
         
       </testcase>
     
       
-      <testcase classname="fastlane.lanes" name="3: cd /Users/snakepitt/Developer/flutter_stopandgo &amp;&amp; flutter pub get" time="1.051135">
+      <testcase classname="fastlane.lanes" name="3: cd /Users/snakepitt/Developer/StopAndGoMX-App-Flutter &amp;&amp; flutter pub get" time="1.085149">
         
       </testcase>
     
       
-      <testcase classname="fastlane.lanes" name="4: cd /Users/snakepitt/Developer/flutter_stopandgo &amp;&amp; flutter build aab --flavor cimarronesqro -t lib/main_cimarronesqro.dart" time="92.853573">
-        
-      </testcase>
-    
-      
-      <testcase classname="fastlane.lanes" name="5: upload_to_play_store" time="8.025901">
+      <testcase classname="fastlane.lanes" name="4: cd /Users/snakepitt/Developer/StopAndGoMX-App-Flutter &amp;&amp; flutter build aab --flavor academiapuebla -t lib/main_academiapuebla.dart" time="78.776583">
         
       </testcase>
     

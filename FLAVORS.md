@@ -1,5 +1,9 @@
 # NUEVO FLAVOR
 
+> Proceso canónico y especificación para automatización:
+> [`docs/new_flavor_automation.md`](docs/new_flavor_automation.md).
+> La lista siguiente se conserva como referencia histórica rápida.
+
 - crear assets en https://makeappicon.com/ 
 - agregar logo a branding
 - para `celtas`, dejar el logo base en `branding/celtas/logo.png`
@@ -194,3 +198,12 @@ M25Y63Z23D
   # Bundle
     Android: app.stopandgomx.cimarronesqro
     iOS: app.stopandgomx.cimarronesqro
+
+- Academia Puebla FC MID - academiapuebla
+
+  # Organization
+    ID: 81
+    Slug: academia-puebla-fc-mid
+  # Bundle
+    Android: app.stopandgomx.academiapuebla
+    iOS: app.stopandgomx.academiapuebla

@@ -1,5 +1,11 @@
 # stopandgo
 
+## Flavors
+
+- [Proceso para crear y automatizar un nuevo flavor](docs/new_flavor_automation.md)
+- [Automatización de fichas de Google Play y App Store](docs/store_automation.md)
+- [Referencia histórica y flavors registrados](FLAVORS.md)
+
 A new Flutter project.
 
 ## Getting Started

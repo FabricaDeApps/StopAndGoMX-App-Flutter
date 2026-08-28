@@ -12,6 +12,8 @@
 .swiftpm/
 migrate_working_dir/
 android/playstore.json
+/android/fastlane/playstore.json
+/ios/fastlane/key/*.p8
 
 # IntelliJ related
 *.iml

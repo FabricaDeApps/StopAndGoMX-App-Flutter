@@ -31,6 +31,22 @@ Build & upload a Google Play usando Flutter + flavors (lane genérica)
 
 Build signed AAB usando Flutter + flavors (sin upload)
 
+### android prepare_store_listing
+
+```sh
+[bundle exec] fastlane android prepare_store_listing
+```
+
+Genera y valida metadata de Google Play sin subirla
+
+### android upload_store_listing
+
+```sh
+[bundle exec] fastlane android upload_store_listing
+```
+
+Sube ficha, imágenes y screenshots a Google Play sin subir un binario
+
 ### android deploy_mainapp_production
 
 ```sh
@@ -94,6 +110,46 @@ Deploy Android Cimarrones Qro a track PRODUCTION
 ```
 
 Build signed AAB Android Cimarrones Qro (sin upload)
+
+### android deploy_academiapuebla_internal
+
+```sh
+[bundle exec] fastlane android deploy_academiapuebla_internal
+```
+
+Deploy Android Academia Puebla FC MID a track INTERNAL
+
+### android deploy_academiapuebla_production
+
+```sh
+[bundle exec] fastlane android deploy_academiapuebla_production
+```
+
+Deploy Android Academia Puebla FC MID a track PRODUCTION
+
+### android build_academiapuebla_aab
+
+```sh
+[bundle exec] fastlane android build_academiapuebla_aab
+```
+
+Build signed AAB Android Academia Puebla FC MID (sin upload)
+
+### android prepare_academiapuebla_store
+
+```sh
+[bundle exec] fastlane android prepare_academiapuebla_store
+```
+
+Preparar ficha Google Play de Academia Puebla FC MID (sin upload)
+
+### android upload_academiapuebla_store
+
+```sh
+[bundle exec] fastlane android upload_academiapuebla_store
+```
+
+Sincronizar ficha Google Play de Academia Puebla FC MID (sin binario)
 
 ----
 

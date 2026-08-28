@@ -51,13 +51,16 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		028786FC9960DA64FB1162C6 /* Debug-academiapuebla.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; path = "Debug-academiapuebla.xcconfig"; sourceTree = "<group>"; };
 		045D5B64359AEE0C06495D95 /* Pods-Runner.debug-bearsqro.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Runner.debug-bearsqro.xcconfig"; path = "Target Support Files/Pods-Runner/Pods-Runner.debug-bearsqro.xcconfig"; sourceTree = "<group>"; };
 		11ADA63865EF29A91B805B5F /* Pods-Runner.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Runner.debug.xcconfig"; path = "Target Support Files/Pods-Runner/Pods-Runner.debug.xcconfig"; sourceTree = "<group>"; };
 		1498D2321E8E86230040F4C2 /* GeneratedPluginRegistrant.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = GeneratedPluginRegistrant.h; sourceTree = "<group>"; };
 		1498D2331E8E89220040F4C2 /* GeneratedPluginRegistrant.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GeneratedPluginRegistrant.m; sourceTree = "<group>"; };
 		2274C94D766CE41468113D01 /* Pods-Runner.release-cimarronesqro.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Runner.release-cimarronesqro.xcconfig"; path = "Target Support Files/Pods-Runner/Pods-Runner.release-cimarronesqro.xcconfig"; sourceTree = "<group>"; };
+		256138B725EBDDBBC1FA87B6 /* Pods-Runner.release-academiapuebla.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Runner.release-academiapuebla.xcconfig"; path = "Target Support Files/Pods-Runner/Pods-Runner.release-academiapuebla.xcconfig"; sourceTree = "<group>"; };
 		2594370ED5B031BFB5A888FC /* Pods-Runner.debug-wolverinesqro.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Runner.debug-wolverinesqro.xcconfig"; path = "Target Support Files/Pods-Runner/Pods-Runner.debug-wolverinesqro.xcconfig"; sourceTree = "<group>"; };
 		2639E37B9CC55D8465FDE41B /* Pods_Runner.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Runner.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		2700EF306B48D076E373802D /* Pods-Runner.debug-academiapuebla.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Runner.debug-academiapuebla.xcconfig"; path = "Target Support Files/Pods-Runner/Pods-Runner.debug-academiapuebla.xcconfig"; sourceTree = "<group>"; };
 		2BD5F75572501125AEAED47B /* Pods-Runner.release-bearsqro.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Runner.release-bearsqro.xcconfig"; path = "Target Support Files/Pods-Runner/Pods-Runner.release-bearsqro.xcconfig"; sourceTree = "<group>"; };
 		331C807B294A618700263BE5 /* RunnerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RunnerTests.swift; sourceTree = "<group>"; };
 		331C8081294A63A400263BE5 /* RunnerTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = RunnerTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -102,11 +105,13 @@
 		A2C7E1A12B3C4D5E6F700001 /* Debug-cimarronesqro.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = "Debug-cimarronesqro.xcconfig"; sourceTree = "<group>"; };
 		A2C7E1A12B3C4D5E6F700002 /* Release-cimarronesqro.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = "Release-cimarronesqro.xcconfig"; sourceTree = "<group>"; };
 		A2C7E1A12B3C4D5E6F700003 /* Info-cimarronesqro.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "Info-cimarronesqro.plist"; sourceTree = "<group>"; };
+		A3F1CE24E40C284D20AE30B4 /* Info-academiapuebla.plist */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.xml; path = "Info-academiapuebla.plist"; sourceTree = "<group>"; };
 		D46330500F9E36BCA997BE07 /* Pods-Runner.release-wolverinesqro.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Runner.release-wolverinesqro.xcconfig"; path = "Target Support Files/Pods-Runner/Pods-Runner.release-wolverinesqro.xcconfig"; sourceTree = "<group>"; };
 		D5F355C659FAEAB97FBB4A0D /* Pods-Runner.release-raidersqro.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Runner.release-raidersqro.xcconfig"; path = "Target Support Files/Pods-Runner/Pods-Runner.release-raidersqro.xcconfig"; sourceTree = "<group>"; };
 		F32ABA2816237CBAF1C82F0A /* Pods-Runner.release-mainapp.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Runner.release-mainapp.xcconfig"; path = "Target Support Files/Pods-Runner/Pods-Runner.release-mainapp.xcconfig"; sourceTree = "<group>"; };
 		FB1AE739876DEE3FA176E7AA /* Pods-Runner.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Runner.release.xcconfig"; path = "Target Support Files/Pods-Runner/Pods-Runner.release.xcconfig"; sourceTree = "<group>"; };
 		FB568B723BECCB0BAD796DCE /* Pods-Runner.profile.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Runner.profile.xcconfig"; path = "Target Support Files/Pods-Runner/Pods-Runner.profile.xcconfig"; sourceTree = "<group>"; };
+		FF6FEAA6440A9FB2E63A9A8E /* Release-academiapuebla.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; path = "Release-academiapuebla.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -157,6 +162,8 @@
 				923AB462C4C43E74A075815E /* Pods-Runner.release-celtas.xcconfig */,
 				42E9B7471FB3875819B5F229 /* Pods-Runner.debug-cimarronesqro.xcconfig */,
 				2274C94D766CE41468113D01 /* Pods-Runner.release-cimarronesqro.xcconfig */,
+				2700EF306B48D076E373802D /* Pods-Runner.debug-academiapuebla.xcconfig */,
+				256138B725EBDDBBC1FA87B6 /* Pods-Runner.release-academiapuebla.xcconfig */,
 			);
 			path = Pods;
 			sourceTree = "<group>";
@@ -196,6 +203,8 @@
 				A2C7E1A12B3C4D5E6F700002 /* Release-cimarronesqro.xcconfig */,
 				616048542F097E5900A6975A /* GoogleService-Info.plist */,
 				EC79CA947D0F4D6E16E86754 /* Frameworks */,
+				028786FC9960DA64FB1162C6 /* Debug-academiapuebla.xcconfig */,
+				FF6FEAA6440A9FB2E63A9A8E /* Release-academiapuebla.xcconfig */,
 			);
 			sourceTree = "<group>";
 		};
@@ -227,6 +236,7 @@
 				1498D2331E8E89220040F4C2 /* GeneratedPluginRegistrant.m */,
 				74858FAE1ED2DC5600515810 /* AppDelegate.swift */,
 				74858FAD1ED2DC5600515810 /* Runner-Bridging-Header.h */,
+				A3F1CE24E40C284D20AE30B4 /* Info-academiapuebla.plist */,
 			);
 			path = Runner;
 			sourceTree = "<group>";
@@ -393,7 +403,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "#!/bin/sh\nset -e\n\necho \"================ GOOGLE SERVICE INFO ================\"\necho \"CONFIGURATION: $CONFIGURATION\"\necho \"TARGET_NAME:   $TARGET_NAME\"\n\nFLAVOR=\"\"\n\ncase \"$CONFIGURATION\" in\n  *mainapp*)\n    FLAVOR=\"mainapp\"\n    ;;\n  *zorros*)\n    FLAVOR=\"zorros\"\n    ;;\n  *raidersqro*)\n    FLAVOR=\"raidersqro\"\n    ;;\n  *wolverinesqro*)\n    FLAVOR=\"wolverinesqro\"\n    ;;\n  *bearsqro*)\n    FLAVOR=\"bearsqro\"\n    ;;\n  *celtas*)\n    FLAVOR=\"celtas\"\n    ;;\n  *cimarronesqro*)\n    FLAVOR=\"cimarronesqro\"\n    ;;\n  *)\n    echo \"❌ No se pudo detectar flavor desde CONFIGURATION=$CONFIGURATION\"\n    exit 1\n    ;;\nesac\n\nPLIST_SOURCE=\"${PROJECT_DIR}/Runner/Firebase/GoogleService-Info-${FLAVOR}.plist\"\nPLIST_DEST=\"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/GoogleService-Info.plist\"\n\necho \"📄 Usando plist para flavor: $FLAVOR\"\necho \"📄 Copiando:\"\necho \"   ${PLIST_SOURCE}\"\necho \"   → ${PLIST_DEST}\"\n\nif [ ! -f \"$PLIST_SOURCE\" ]; then\n  echo \"❌ No existe el archivo: $PLIST_SOURCE\"\n  exit 1\nfi\n\nPLIST_BUNDLE_ID=$(/usr/libexec/PlistBuddy -c \"Print :BUNDLE_ID\" \"$PLIST_SOURCE\")\nif [ \"$PLIST_BUNDLE_ID\" != \"$PRODUCT_BUNDLE_IDENTIFIER\" ]; then\n  echo \"❌ Firebase BUNDLE_ID=$PLIST_BUNDLE_ID no coincide con PRODUCT_BUNDLE_IDENTIFIER=$PRODUCT_BUNDLE_IDENTIFIER\"\n  exit 1\nfi\n\nmkdir -p \"$(dirname \"$PLIST_DEST\")\"\ncp \"$PLIST_SOURCE\" \"$PLIST_DEST\"\n\necho \"✅ GoogleService-Info.plist validado y copiado al producto\"\necho \"=====================================================\"\n";
+			shellScript = "#!/bin/sh\nset -e\n\necho \"================ GOOGLE SERVICE INFO ================\"\necho \"CONFIGURATION: $CONFIGURATION\"\necho \"TARGET_NAME:   $TARGET_NAME\"\n\nFLAVOR=\"\"\n\ncase \"$CONFIGURATION\" in\n  *mainapp*)\n    FLAVOR=\"mainapp\"\n    ;;\n  *zorros*)\n    FLAVOR=\"zorros\"\n    ;;\n  *raidersqro*)\n    FLAVOR=\"raidersqro\"\n    ;;\n  *wolverinesqro*)\n    FLAVOR=\"wolverinesqro\"\n    ;;\n  *bearsqro*)\n    FLAVOR=\"bearsqro\"\n    ;;\n  *celtas*)\n    FLAVOR=\"celtas\"\n    ;;\n  *cimarronesqro*)\n    FLAVOR=\"cimarronesqro\"\n    ;;\n  *academiapuebla*)\n    FLAVOR=\"academiapuebla\"\n    ;;\n  *)\n    echo \"❌ No se pudo detectar flavor desde CONFIGURATION=$CONFIGURATION\"\n    exit 1\n    ;;\nesac\n\nPLIST_SOURCE=\"${PROJECT_DIR}/Runner/Firebase/GoogleService-Info-${FLAVOR}.plist\"\nPLIST_DEST=\"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/GoogleService-Info.plist\"\n\necho \"📄 Usando plist para flavor: $FLAVOR\"\necho \"📄 Copiando:\"\necho \"   ${PLIST_SOURCE}\"\necho \"   → ${PLIST_DEST}\"\n\nif [ ! -f \"$PLIST_SOURCE\" ]; then\n  echo \"❌ No existe el archivo: $PLIST_SOURCE\"\n  exit 1\nfi\n\nPLIST_BUNDLE_ID=$(/usr/libexec/PlistBuddy -c \"Print :BUNDLE_ID\" \"$PLIST_SOURCE\")\nif [ \"$PLIST_BUNDLE_ID\" != \"$PRODUCT_BUNDLE_IDENTIFIER\" ]; then\n  echo \"❌ Firebase BUNDLE_ID=$PLIST_BUNDLE_ID no coincide con PRODUCT_BUNDLE_IDENTIFIER=$PRODUCT_BUNDLE_IDENTIFIER\"\n  exit 1\nfi\n\nmkdir -p \"$(dirname \"$PLIST_DEST\")\"\ncp \"$PLIST_SOURCE\" \"$PLIST_DEST\"\n\necho \"✅ GoogleService-Info.plist validado y copiado al producto\"\necho \"=====================================================\"\n";
 		};
 		875DA696765697842C35F668 /* [CP] Check Pods Manifest.lock */ = {
 			isa = PBXShellScriptBuildPhase;
@@ -499,6 +509,34 @@
 /* End PBXVariantGroup section */
 
 /* Begin XCBuildConfiguration section */
+		051358A3B535F952E342A80F /* Release-academiapuebla */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = FF6FEAA6440A9FB2E63A9A8E /* Release-academiapuebla.xcconfig */;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIconAcademiapuebla;
+				CLANG_ENABLE_MODULES = YES;
+				CODE_SIGN_ENTITLEMENTS = Runner/Runner.entitlements;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = "$(FLUTTER_BUILD_NUMBER)";
+				DEVELOPMENT_TEAM = M25Y63Z23D;
+				ENABLE_BITCODE = NO;
+				INFOPLIST_FILE = "Runner/Info-academiapuebla.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = "Academia Puebla FC MID";
+				IPHONEOS_DEPLOYMENT_TARGET = 16.6;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = app.stopandgomx.academiapuebla;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				SWIFT_OBJC_BRIDGING_HEADER = "Runner/Runner-Bridging-Header.h";
+				SWIFT_VERSION = 5.0;
+				VERSIONING_SYSTEM = "apple-generic";
+			};
+			name = "Release-academiapuebla";
+		};
 		249021D3217E4FDB00AE95B9 /* Profile */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -576,6 +614,21 @@
 			};
 			name = Profile;
 		};
+		328EE600EAA2574244ED9E71 /* Release-academiapuebla */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = app.stopandgomx.stopandgo.RunnerTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 5.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Runner.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Runner";
+			};
+			name = "Release-academiapuebla";
+		};
 		331C8088294A63A400263BE5 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -622,6 +675,60 @@
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Runner.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Runner";
 			};
 			name = Profile;
+		};
+		56D790D232F443582C895871 /* Release-academiapuebla */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				SDKROOT = iphoneos;
+				SUPPORTED_PLATFORMS = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VALIDATE_PRODUCT = YES;
+			};
+			name = "Release-academiapuebla";
 		};
 		610688442ED899DC0082930F /* Debug-raidersqro */ = {
 			isa = XCBuildConfiguration;
@@ -2176,6 +2283,110 @@
 			};
 			name = "Release-cimarronesqro";
 		};
+		A3728BBBF03D0B214B41C1DB /* Debug-academiapuebla */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = app.stopandgomx.stopandgo.RunnerTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Runner.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Runner";
+			};
+			name = "Debug-academiapuebla";
+		};
+		A840CD9223135A0E47B36BB0 /* Debug-academiapuebla */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 028786FC9960DA64FB1162C6 /* Debug-academiapuebla.xcconfig */;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIconAcademiapuebla;
+				CLANG_ENABLE_MODULES = YES;
+				CODE_SIGN_ENTITLEMENTS = Runner/Runner.entitlements;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = "$(FLUTTER_BUILD_NUMBER)";
+				DEVELOPMENT_TEAM = M25Y63Z23D;
+				ENABLE_BITCODE = NO;
+				INFOPLIST_FILE = "Runner/Info-academiapuebla.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = "Academia Puebla FC MID";
+				IPHONEOS_DEPLOYMENT_TARGET = 16.6;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = app.stopandgomx.academiapuebla;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				SWIFT_OBJC_BRIDGING_HEADER = "Runner/Runner-Bridging-Header.h";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+				VERSIONING_SYSTEM = "apple-generic";
+			};
+			name = "Debug-academiapuebla";
+		};
+		BAC4F3878314897B985491CD /* Debug-academiapuebla */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				MTL_ENABLE_DEBUG_INFO = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = "Debug-academiapuebla";
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -2199,6 +2410,8 @@
 				A2C7E1A12B3C4D5E6F700016 /* Release-cimarronesqro */,
 				A1C7E1A12B3C4D5E6F700016 /* Release-celtas */,
 				331C808A294A63A400263BE5 /* Profile */,
+				A3728BBBF03D0B214B41C1DB /* Debug-academiapuebla */,
+				328EE600EAA2574244ED9E71 /* Release-academiapuebla */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
@@ -2223,6 +2436,8 @@
 				A2C7E1A12B3C4D5E6F700014 /* Release-cimarronesqro */,
 				A1C7E1A12B3C4D5E6F700014 /* Release-celtas */,
 				249021D3217E4FDB00AE95B9 /* Profile */,
+				BAC4F3878314897B985491CD /* Debug-academiapuebla */,
+				56D790D232F443582C895871 /* Release-academiapuebla */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
@@ -2247,6 +2462,8 @@
 				A2C7E1A12B3C4D5E6F700015 /* Release-cimarronesqro */,
 				A1C7E1A12B3C4D5E6F700015 /* Release-celtas */,
 				249021D4217E4FDB00AE95B9 /* Profile */,
+				A840CD9223135A0E47B36BB0 /* Debug-academiapuebla */,
+				051358A3B535F952E342A80F /* Release-academiapuebla */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

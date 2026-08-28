@@ -14,6 +14,7 @@ class LoginView extends GetView<LoginController> {
     final theme = Theme.of(context);
 
     return Scaffold(
+      key: const Key('store_login_screen'),
       resizeToAvoidBottomInset: true,
       appBar: AppBar(
         title: Text('Iniciar sesión'),
@@ -92,6 +93,7 @@ class LoginView extends GetView<LoginController> {
                         ),
                         const SizedBox(height: 16),
                         TextFormField(
+                          key: const Key('store_login_email'),
                           controller: controller.emailCtrl,
                           focusNode: controller.emailFocus,
                           keyboardType: TextInputType.emailAddress,
@@ -109,6 +111,7 @@ class LoginView extends GetView<LoginController> {
                         const SizedBox(height: 12),
                         Obx(
                           () => TextFormField(
+                            key: const Key('store_login_password'),
                             controller: controller.passCtrl,
                             focusNode: controller.passFocus,
                             obscureText: controller.obscure.value,
@@ -149,6 +152,7 @@ class LoginView extends GetView<LoginController> {
                           width: double.infinity,
                           child: Obx(
                             () => FilledButton(
+                              key: const Key('store_login_submit'),
                               onPressed: controller.isLoading.value
                                   ? null
                                   : controller.submit,

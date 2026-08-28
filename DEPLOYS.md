@@ -52,3 +52,6 @@ fastlane deploy_raidersqro
 
 # wolverinesqro
 fastlane deploy_wolverinesqro
+
+# academiapuebla
+fastlane deploy_academiapuebla

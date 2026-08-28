@@ -89,6 +89,15 @@
       "program": "lib/main_cimarronesqro.dart",
       "args": ["--flavor", "cimarronesqro"],
       "preLaunchTask": "prepare-cimarronesqro-assets"
+    },
+    {
+      "name": "Run Academia Puebla FC MID",
+      "request": "launch",
+      "type": "dart",
+      "flutterMode": "debug",
+      "program": "lib/main_academiapuebla.dart",
+      "args": ["--flavor", "academiapuebla"],
+      "preLaunchTask": "prepare-academiapuebla-assets"
     }
   ]
 }

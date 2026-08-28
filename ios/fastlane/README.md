@@ -23,6 +23,22 @@ For _fastlane_ installation instructions, see [Installing _fastlane_](https://do
 
 Build & upload iOS (TestFlight) usando Flutter + flavors
 
+### ios prepare_store_listing
+
+```sh
+[bundle exec] fastlane ios prepare_store_listing
+```
+
+Genera y valida metadata de App Store sin subirla
+
+### ios upload_store_listing
+
+```sh
+[bundle exec] fastlane ios upload_store_listing
+```
+
+Sube ficha y screenshots a App Store Connect sin subir un binario
+
 ### ios deploy_mainapp
 
 ```sh
@@ -78,6 +94,38 @@ Deploy iOS Celtas
 ```
 
 Deploy iOS Cimarrones Qro
+
+### ios deploy_academiapuebla
+
+```sh
+[bundle exec] fastlane ios deploy_academiapuebla
+```
+
+Deploy iOS Academia Puebla FC MID
+
+### ios deploy_academiapuebla_testflight
+
+```sh
+[bundle exec] fastlane ios deploy_academiapuebla_testflight
+```
+
+Deploy iOS Academia Puebla FC MID a TestFlight
+
+### ios prepare_academiapuebla_store
+
+```sh
+[bundle exec] fastlane ios prepare_academiapuebla_store
+```
+
+Preparar ficha App Store de Academia Puebla FC MID (sin upload)
+
+### ios upload_academiapuebla_store
+
+```sh
+[bundle exec] fastlane ios upload_academiapuebla_store
+```
+
+Sincronizar ficha App Store de Academia Puebla FC MID (sin binario)
 
 ----
 

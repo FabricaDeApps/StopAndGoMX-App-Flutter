@@ -1,0 +1,95 @@
+{
+  "schemaVersion": 1,
+  "name": "Academia Puebla FC MID",
+  "flavor": "academiapuebla",
+  "organizationId": 81,
+  "organizationSlug": "academia-puebla-fc-mid",
+  "androidApplicationId": "app.stopandgomx.academiapuebla",
+  "iosBundleId": "app.stopandgomx.academiapuebla",
+  "store": {
+    "status": "draft",
+    "category": "SPORTS",
+    "primaryLocale": "es-MX",
+    "contact": {
+      "privacyPolicyUrl": "https://academia-puebla-fc-mid.stopandgomx.app/aviso-de-privacidad",
+      "supportUrl": "https://stopandgomx.app/",
+      "marketingUrl": "https://www.facebook.com/profile.php?id=61584230306305",
+      "supportEmail": "contacto@stopandgomx.app"
+    },
+    "assets": {
+      "androidStoreIconSource": "branding/academiapuebla/logo.png",
+      "androidStoreIcon": "branding/academiapuebla/store/android/icon.png",
+      "androidFeatureBackgroundSource": "branding/academiapuebla/store/source/feature-background.png",
+      "androidFeatureGraphic": "branding/academiapuebla/store/android/featureGraphic.png"
+    },
+    "review": {
+      "requiresLogin": true,
+      "username": "stores@stopandgomx.app",
+      "password": "12345678",
+      "usernameEnvironmentVariable": "ACADEMIAPUEBLA_REVIEW_USERNAME",
+      "passwordEnvironmentVariable": "ACADEMIAPUEBLA_REVIEW_PASSWORD",
+      "notes": "Cuenta de revisión con datos ficticios y acceso a las funciones publicadas."
+    },
+    "compliance": {
+      "googleDataSafetyReviewed": false,
+      "applePrivacyReviewed": false,
+      "contentRatingCompleted": false,
+      "targetAudienceReviewed": false,
+      "appAccessInstructionsReviewed": false
+    },
+    "localizations": [
+      {
+        "locale": "es-MX",
+        "androidLocale": "es-419",
+        "iosLocale": "es-MX",
+        "title": "Academia Puebla FC MID",
+        "subtitle": "Tu academia en un solo lugar",
+        "shortDescription": "Partidos, pagos, avisos y noticias de Academia Puebla FC MID.",
+        "description": "Vive la experiencia de Academia Puebla FC MID en una sola app.\n\nConsulta la actividad de la academia y mantente al día desde cualquier lugar. La aplicación adapta sus herramientas al perfil de cada integrante de la organización.\n\nCon Academia Puebla FC MID puedes:\n\n- Consultar partidos y eventos\n- Revisar avisos y noticias de la academia\n- Dar seguimiento a pagos y movimientos importantes\n- Acceder a información relevante según tu rol\n\nTodo lo necesario para mantener conectada a la comunidad de Academia Puebla FC MID.",
+        "keywords": [
+          "fútbol",
+          "academia",
+          "Puebla",
+          "partidos",
+          "pagos",
+          "avisos",
+          "deporte"
+        ],
+        "promotionalText": "Partidos, pagos, avisos y noticias de Academia Puebla FC MID en una sola app.",
+        "releaseNotes": "Primera versión de la aplicación oficial de Academia Puebla FC MID."
+      }
+    ],
+    "screenshots": {
+      "androidPhoneRawDirectory": "branding/academiapuebla/store/screenshots/android/phone-raw",
+      "androidPhoneDirectory": "branding/academiapuebla/store/screenshots/android/phone",
+      "iosIphoneRawDirectory": "branding/academiapuebla/store/screenshots/ios/iphone-6.9-raw",
+      "iosIphoneDirectory": "branding/academiapuebla/store/screenshots/ios/iphone-6.9",
+      "minimumRequired": 1,
+      "recommended": 3,
+      "scenarios": [
+        {
+          "id": "login",
+          "headline": "Tu academia siempre contigo"
+        },
+        {
+          "id": "home",
+          "headline": "Todo tu equipo en un solo lugar"
+        },
+        {
+          "id": "home-menu",
+          "headline": "Accede fácilmente a tus herramientas"
+        }
+      ]
+    },
+    "publishing": {
+      "androidTrack": "internal",
+      "testFlightGroups": [
+        "internal"
+      ],
+      "price": "free",
+      "countries": [
+        "MX"
+      ]
+    }
+  }
+}

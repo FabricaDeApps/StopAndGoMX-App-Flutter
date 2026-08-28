@@ -48,6 +48,12 @@
       "type": "shell",
       "command": "./scripts/use_logo.sh cimarronesqro",
       "problemMatcher": []
+    },
+    {
+      "label": "prepare-academiapuebla-assets",
+      "type": "shell",
+      "command": "./scripts/use_logo.sh academiapuebla",
+      "problemMatcher": []
     }
   ]
 }

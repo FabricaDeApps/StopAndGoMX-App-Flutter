@@ -1,0 +1,26 @@
+{
+  "name": "Academia Puebla FC MID",
+  "flavor": "academiapuebla",
+  "organizationId": 81,
+  "organizationSlug": "academia-puebla-fc-mid",
+  "androidApplicationId": "app.stopandgomx.academiapuebla",
+  "iosBundleId": "app.stopandgomx.academiapuebla",
+  "platforms": ["android", "ios"],
+  "branding": {
+    "logo": "branding/academiapuebla/logo.png"
+  },
+  "tabs": {
+    "parent": ["dashboard", "games", "payments", "notices", "gazzetta"],
+    "player": ["dashboard", "games", "payments", "notices", "gazzetta"],
+    "coach": ["dashboard", "games", "notices", "gazzetta"],
+    "staff": ["dashboard", "games", "notices", "gazzetta"],
+    "manager": ["dashboard", "games", "payments", "notices", "gazzetta"],
+    "admin": ["dashboard", "games", "payments", "notices", "gazzetta"]
+  },
+  "firebaseProjectId": "stopandgomx-4ab82",
+  "iosTeamId": "M25Y63Z23D",
+  "store": {
+    "androidTrack": "internal",
+    "testFlightGroups": ["internal"]
+  }
+}

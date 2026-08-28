@@ -102,6 +102,13 @@ android {
             applicationId = "app.stopandgomx.cimarronesqro"
             resValue("string", "app_name", "Cimarrones Qro")
         }
+
+        // Academia Puebla FC MID
+        create("academiapuebla") {
+            dimension = "default"
+            applicationId = "app.stopandgomx.academiapuebla"
+            resValue("string", "app_name", "Academia Puebla FC MID")
+        }
     }
 
     signingConfigs {
