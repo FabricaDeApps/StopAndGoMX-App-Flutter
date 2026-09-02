@@ -93,8 +93,9 @@ class ApiRepository {
     if (res.statusCode == 200) {
       final List data = res.data['data'] ?? [];
 
-      final orgs =
-          data.map((json) => OrganizationResponse.fromJson(json)).toList();
+      final orgs = data
+          .map((json) => OrganizationResponse.fromJson(json))
+          .toList();
 
       return orgs;
     } else {
@@ -130,8 +131,9 @@ class ApiRepository {
       // Guarda sesión completa (access + refresh + expiraciones)
       await _tokenStorage.setSession(
         accessToken: loginData.accessToken,
-        tokenType:
-            (loginData.tokenType.isNotEmpty ? loginData.tokenType : 'Bearer'),
+        tokenType: (loginData.tokenType.isNotEmpty
+            ? loginData.tokenType
+            : 'Bearer'),
         refreshToken: loginData.refreshToken,
         refreshExpiresAt: loginData.refreshExpiresAt,
         accessExpiresInMinutes: loginData.accessExpiresInMinutes,
@@ -146,8 +148,8 @@ class ApiRepository {
       // Mensaje más claro para UI
       final msg =
           e.response?.data is Map && (e.response?.data['message'] != null)
-              ? e.response?.data['message'].toString()
-              : e.message ?? 'Error de red';
+          ? e.response?.data['message'].toString()
+          : e.message ?? 'Error de red';
       throw Exception('Login fallido: $msg');
     } catch (e) {
       throw Exception('Login fallido: $e');
@@ -648,11 +650,11 @@ class ApiRepository {
   }
 
   Map<String, dynamic> _headers([Map<String, dynamic>? extra]) => {
-        ..._authHeader,
-        ..._orgHeader,
-        'Accept': 'application/json',
-        if (extra != null) ...extra,
-      };
+    ..._authHeader,
+    ..._orgHeader,
+    'Accept': 'application/json',
+    if (extra != null) ...extra,
+  };
 
   /// GET /api/home/dashboard (ejemplo)
   /// Puedes ajustar a tu ruta real: /api/player/home, etc.
@@ -705,6 +707,18 @@ class ApiRepository {
     throw Exception('Respuesta inesperada al obtener cuenta');
   }
 
+  Future<Map<String, dynamic>> switchRole(String activeRole) async {
+    final res = await _dio.post(
+      ApiEndpoints.authSwitchRole,
+      data: {'active_role': activeRole.trim().toLowerCase()},
+      options: Options(headers: _headers()),
+    );
+    if (res.data is Map) {
+      return Map<String, dynamic>.from(res.data as Map);
+    }
+    throw Exception('Respuesta inesperada al cambiar de rol');
+  }
+
   Future<ClubLeagueOverviewResponse> getClubLeagueOverview() async {
     final res = await _dio.get(
       ApiEndpoints.clubLeagueOverview,
@@ -723,8 +737,7 @@ class ApiRepository {
   }
 
   Future<ClubLeagueTournamentStandingsResponse>
-      getClubLeagueTournamentStandings(int tournamentId,
-          {int? clubLinkId}) async {
+  getClubLeagueTournamentStandings(int tournamentId, {int? clubLinkId}) async {
     final res = await _dio.get(
       '${ApiEndpoints.clubLeague}/tournaments/$tournamentId/standings',
       queryParameters: {if (clubLinkId != null) 'club_link_id': clubLinkId},
@@ -1304,7 +1317,8 @@ class ApiRepository {
     final body = Map<String, dynamic>.from(res.data as Map? ?? const {});
     final rawList =
         (body['data'] ?? body['positions'] ?? body['items']) as List?;
-    final allowsCustom = body['allows_custom_position'] == true ||
+    final allowsCustom =
+        body['allows_custom_position'] == true ||
         body['meta'] is Map &&
             (body['meta'] as Map)['allows_custom_position'] == true;
 
@@ -1400,8 +1414,9 @@ class ApiRepository {
   Future<void> _persistLoginSession(LoginResponse loginData) async {
     await _tokenStorage.setSession(
       accessToken: loginData.accessToken,
-      tokenType:
-          loginData.tokenType.isNotEmpty ? loginData.tokenType : 'Bearer',
+      tokenType: loginData.tokenType.isNotEmpty
+          ? loginData.tokenType
+          : 'Bearer',
       refreshToken: loginData.refreshToken,
       refreshExpiresAt: loginData.refreshExpiresAt,
       accessExpiresInMinutes: loginData.accessExpiresInMinutes,
@@ -1847,8 +1862,9 @@ class ApiRepository {
     );
 
     final rawDoc = response.data['document'] ?? response.data['data'];
-    final docJson =
-        rawDoc is Map ? Map<String, dynamic>.from(rawDoc) : <String, dynamic>{};
+    final docJson = rawDoc is Map
+        ? Map<String, dynamic>.from(rawDoc)
+        : <String, dynamic>{};
     return PlayerDocument.fromJson(docJson);
   }
 
@@ -1893,9 +1909,7 @@ class ApiRepository {
   }
 
   Future<OrganizationPlayerFullProfileResponse>
-      fetchOrganizationPlayerFullProfile({
-    int? playerId,
-  }) async {
+  fetchOrganizationPlayerFullProfile({int? playerId}) async {
     final activeRole = (AppStorage.getActiveRole() ?? '').trim().toLowerCase();
 
     final String path;
@@ -3132,8 +3146,9 @@ class ApiRepository {
     String fulfillmentType = "pickup",
   }) async {
     final organization = AppStorage.getOrganization();
-    final provider =
-        organization?.payCardEnabled == true ? 'mercadopago' : 'cash_on_pickup';
+    final provider = organization?.payCardEnabled == true
+        ? 'mercadopago'
+        : 'cash_on_pickup';
 
     final res = await _dio.post(
       '/ecommerce/checkout',

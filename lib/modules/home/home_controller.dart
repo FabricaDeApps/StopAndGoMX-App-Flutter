@@ -11,6 +11,7 @@ import 'package:stopandgo/core/models/dto/notice_model.dart';
 import 'package:stopandgo/core/models/games/games.dart';
 import 'package:stopandgo/core/models/league/club_league_overview.dart';
 import 'package:stopandgo/core/models/responses/organization_response.dart';
+import 'package:stopandgo/core/models/responses/login_response.dart';
 import 'package:stopandgo/core/storage/app_storage.dart';
 import 'package:stopandgo/core/network/api_repository.dart';
 import 'package:stopandgo/core/services/clarity_service.dart';
@@ -153,23 +154,29 @@ class HomeController extends GetxController with GetTickerProviderStateMixin {
           ? profilePhotoUrl
           : null;
 
-      final birthdate = (account['birthdate'] ??
-              account['birth_date'] ??
-              account['date_of_birth'])
-          ?.toString()
-          .trim();
+      final birthdate =
+          (account['birthdate'] ??
+                  account['birth_date'] ??
+                  account['date_of_birth'])
+              ?.toString()
+              .trim();
       final phone = account['phone']?.toString().trim();
       final curp = account['curp']?.toString().trim();
 
       final sessionUser = AppStorage.getUser();
       if (sessionUser != null) {
+        final refreshedUser = User.fromJson({
+          ...sessionUser.toJson(),
+          ...account,
+        });
         await AppStorage.setUser(
-          sessionUser.copyWith(
+          refreshedUser.copyWith(
             name: userName.value,
             email: userEmail.value,
             photoUrl: userAvatar.value,
-            birthdate:
-                (birthdate != null && birthdate.isNotEmpty) ? birthdate : null,
+            birthdate: (birthdate != null && birthdate.isNotEmpty)
+                ? birthdate
+                : null,
             phone: (phone != null && phone.isNotEmpty) ? phone : null,
             curp: (curp != null && curp.isNotEmpty) ? curp : null,
           ),
@@ -489,7 +496,31 @@ class HomeController extends GetxController with GetTickerProviderStateMixin {
       return;
     }
 
-    await AppStorage.setActiveRole(nextRole);
+    try {
+      final response = await api.switchRole(nextRole);
+      final responseRole = normalizeRole(
+        response['active_role']?.toString() ?? nextRole,
+      );
+      final sessionUser = AppStorage.getUser();
+      if (sessionUser != null) {
+        await AppStorage.setUser(
+          User.fromJson({
+            ...sessionUser.toJson(),
+            ...response,
+            'role': responseRole,
+            'active_role': responseRole,
+            'player_id': _asInt(response['player_id']),
+          }),
+        );
+      }
+    } catch (e) {
+      Get.snackbar(
+        'Rol',
+        'No se pudo cambiar el rol: $e',
+        snackPosition: SnackPosition.BOTTOM,
+      );
+      return;
+    }
     ClarityService.setUserContext(
       userId: AppStorage.getUser()?.id ?? 0,
       role: nextRole,
@@ -498,10 +529,18 @@ class HomeController extends GetxController with GetTickerProviderStateMixin {
     ClarityService.trackEvent('role_changed');
     await AppStorage.setSelectedCategoryId(null);
     await AppStorage.setSelectedCategoryName(null);
+    // Clear only the active compatibility value. Role-scoped selections are
+    // kept so parent and player do not overwrite each other.
     await AppStorage.setSelectedPlayerId(null);
     await AppStorage.setSelectedPlayerName(null);
     _deletePersistentTabControllers();
     Get.offAllNamed(Routes.changeRole, arguments: {'role': nextRole});
+  }
+
+  int? _asInt(dynamic value) {
+    if (value is int) return value;
+    if (value is num) return value.toInt();
+    return int.tryParse(value?.toString() ?? '');
   }
 
   void _deletePersistentTabControllers() {
@@ -554,16 +593,27 @@ class HomeController extends GetxController with GetTickerProviderStateMixin {
         return false;
       }
 
-      selectedPlayerId.value ??=
-          AppStorage.getSelectedPlayerId() ?? myPlayers.first.id;
-      await AppStorage.setSelectedPlayerId(selectedPlayerId.value!);
+      // The persisted value may come from an older app version that stored
+      // User.id here while the account was using its player role. Only keep a
+      // selection that matches a Player returned by /player/my-players.
+      selectedPlayerId.value = resolveAuthorizedPlayerId(
+        myPlayers,
+        AppStorage.getParentSelectedPlayerId() ??
+            selectedPlayerId.value ??
+            AppStorage.getSelectedPlayerId(),
+      );
+      final selectedPlayer = myPlayers.firstWhere(
+        (player) => player.id == selectedPlayerId.value,
+      );
+      await AppStorage.setSelectedPlayerId(selectedPlayer.id);
+      await AppStorage.setSelectedPlayerName(selectedPlayer.name);
+      await AppStorage.setParentSelectedPlayerId(selectedPlayer.id);
+      await AppStorage.setParentSelectedPlayerName(selectedPlayer.name);
       return true;
     } else if (role == 'player') {
-      // setea el playerId del user en storage si aplica
-      final user = AppStorage.getUser();
-      if (user != null) {
-        await AppStorage.setSelectedPlayerId(user.id);
-      }
+      selectedPlayerId.value = AppStorage.getAuthenticatedPlayerId();
+      await AppStorage.setSelectedPlayerId(selectedPlayerId.value);
+      await AppStorage.setSelectedPlayerName(null);
 
       await _loadPlayerCategories();
       if (myCategories.isEmpty) {
@@ -725,13 +775,15 @@ class HomeController extends GetxController with GetTickerProviderStateMixin {
   void _configureTabsForCurrentState({int? preferredIndex}) {
     final resolvedTabs = _resolveTabsForRole(userRole.value);
     final previousTabs = tabs.toList();
-    final previousKey = (preferredIndex != null &&
+    final previousKey =
+        (preferredIndex != null &&
             preferredIndex >= 0 &&
             preferredIndex < previousTabs.length)
         ? previousTabs[preferredIndex]
         : null;
-    final safeTabs =
-        resolvedTabs.isEmpty ? <String>['dashboard'] : resolvedTabs;
+    final safeTabs = resolvedTabs.isEmpty
+        ? <String>['dashboard']
+        : resolvedTabs;
 
     tabs.assignAll(safeTabs);
 
@@ -796,7 +848,7 @@ class HomeController extends GetxController with GetTickerProviderStateMixin {
 
   Future<void> onChangePlayer(int? id) async {
     if (id == null) return;
-    selectedPlayerId.value = id;
+    if (!myPlayers.any((player) => player.id == id)) return;
     selectedPlayerId.value = id;
     await AppStorage.setSelectedPlayerId(id);
 
@@ -809,6 +861,8 @@ class HomeController extends GetxController with GetTickerProviderStateMixin {
     }
 
     await AppStorage.setSelectedPlayerName(name);
+    await AppStorage.setParentSelectedPlayerId(id);
+    await AppStorage.setParentSelectedPlayerName(name);
     ClarityService.setSelectedPlayer(id);
     ClarityService.trackEvent('player_changed');
 

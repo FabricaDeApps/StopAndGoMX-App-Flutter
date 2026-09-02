@@ -95,7 +95,7 @@ class PaymentsTabController extends GetxController {
         list = await _api.managerCategoryPayments(categoryId: categoryId);
       } else if (r == 'parent') {
         final playerId =
-            selectedPlayerId.value ?? AppStorage.getSelectedPlayerId();
+            selectedPlayerId.value ?? AppStorage.getParentSelectedPlayerId();
 
         if (playerId == null || playerId <= 0) {
           error.value =
@@ -105,8 +105,15 @@ class PaymentsTabController extends GetxController {
         }
 
         list = await _api.playerMyPayments(playerId: playerId);
+      } else if (r == 'player') {
+        final playerId = AppStorage.getAuthenticatedPlayerId();
+        if (playerId == null || playerId <= 0) {
+          error.value = 'No se encontró el perfil deportivo autenticado.';
+          payments.clear();
+          return;
+        }
+        list = await _api.playerMyPayments(playerId: playerId);
       } else {
-        // player / otros roles con pagos propios
         list = await _api.myPayments();
       }
 

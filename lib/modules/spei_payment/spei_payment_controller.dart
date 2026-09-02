@@ -163,7 +163,11 @@ class SpeiPaymentController extends GetxController with WidgetsBindingObserver {
         payments = await _api.managerCategoryPayments(categoryId: categoryId);
       } else if (role == 'parent') {
         final playerId =
-            payment.value?.playerId ?? AppStorage.getSelectedPlayerId();
+            payment.value?.playerId ?? AppStorage.getParentSelectedPlayerId();
+        if (playerId == null || playerId <= 0) return;
+        payments = await _api.playerMyPayments(playerId: playerId);
+      } else if (role == 'player') {
+        final playerId = AppStorage.getAuthenticatedPlayerId();
         if (playerId == null || playerId <= 0) return;
         payments = await _api.playerMyPayments(playerId: playerId);
       } else {

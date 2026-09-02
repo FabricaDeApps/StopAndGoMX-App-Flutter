@@ -670,8 +670,13 @@ class HomeView extends GetView<HomeController> {
                     AppNavigator.pop(context: context);
 
                     final user = AppStorage.getUser();
-                    final role =
-                        user?.role; // 'player' | 'parent' | 'coach' | etc.
+                    final role = user == null
+                        ? null
+                        : normalizeRole(
+                            user.activeRole.isNotEmpty
+                                ? user.activeRole
+                                : user.role,
+                          );
 
                     final idPlayer = AppStorage.getSelectedPlayerId();
                     final name = AppStorage.getSelectedPlayerName();
@@ -699,8 +704,10 @@ class HomeView extends GetView<HomeController> {
                       final pid = picked['id'] as int;
                       final pname = picked['name'] as String;
 
-                      AppStorage.setSelectedPlayerId(pid);
-                      AppStorage.setSelectedPlayerName(pname);
+                      await AppStorage.setSelectedPlayerId(pid);
+                      await AppStorage.setSelectedPlayerName(pname);
+                      await AppStorage.setParentSelectedPlayerId(pid);
+                      await AppStorage.setParentSelectedPlayerName(pname);
 
                       Get.toNamed(
                         Routes.documents,
@@ -892,6 +899,8 @@ class HomeView extends GetView<HomeController> {
 
       await AppStorage.setSelectedPlayerId(pid);
       await AppStorage.setSelectedPlayerName(pname);
+      await AppStorage.setParentSelectedPlayerId(pid);
+      await AppStorage.setParentSelectedPlayerName(pname);
 
       Get.toNamed(
         Routes.playerFullProfile,

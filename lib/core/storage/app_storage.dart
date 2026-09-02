@@ -16,6 +16,10 @@ class AppStorage {
   static const keySelectedCategoryName = 'selected_category_name';
   static const keySelectedPlayerId = 'selected_player_id';
   static const keySelectedPlayerName = 'selected_player_name';
+  static const keyParentSelectedPlayerId = 'parent_selected_player_id';
+  static const keyParentSelectedPlayerName = 'parent_selected_player_name';
+  static const keyPlayerSelectedPlayerId = 'player_selected_player_id';
+  static const keyPlayerSelectedPlayerName = 'player_selected_player_name';
   static const keyTokenDevice = 'key_token_device';
   static const keyPendingOrganizationId = 'pending_organization_id';
   static const keyAppUsageSession = 'app_usage_session';
@@ -51,13 +55,16 @@ class AppStorage {
     return user.activeRole.isNotEmpty ? user.activeRole : user.role;
   }
 
+  /// The authenticated user's own sports profile (`players.id`).
+  static int? getAuthenticatedPlayerId() => getUser()?.playerId;
+
   static List<String> getAvailableRoles() {
     final user = getUser();
     if (user == null) return <String>[];
     return user.roles;
   }
 
-  static Future<void> setActiveRole(String role) async {
+  static Future<void> setActiveRole(String role, {int? playerId}) async {
     final trimmed = role.trim();
     if (trimmed.isEmpty) return;
 
@@ -71,6 +78,7 @@ class AppStorage {
     final updated = user.copyWith(
       role: trimmed,
       activeRole: trimmed,
+      playerId: playerId,
       roles: roles,
       primaryRole: user.primaryRole.isNotEmpty ? user.primaryRole : trimmed,
     );
@@ -191,6 +199,54 @@ class AppStorage {
     return _box.read<String?>(keySelectedPlayerName);
   }
 
+  static Future<void> setParentSelectedPlayerId(int? id) async {
+    if (id == null) {
+      await _box.remove(keyParentSelectedPlayerId);
+    } else {
+      await _box.write(keyParentSelectedPlayerId, id);
+    }
+  }
+
+  static int? getParentSelectedPlayerId() {
+    return _box.read<int?>(keyParentSelectedPlayerId);
+  }
+
+  static Future<void> setParentSelectedPlayerName(String? value) async {
+    if (value == null) {
+      await _box.remove(keyParentSelectedPlayerName);
+    } else {
+      await _box.write(keyParentSelectedPlayerName, value);
+    }
+  }
+
+  static String? getParentSelectedPlayerName() {
+    return _box.read<String?>(keyParentSelectedPlayerName);
+  }
+
+  static Future<void> setPlayerSelectedPlayerId(int? id) async {
+    if (id == null) {
+      await _box.remove(keyPlayerSelectedPlayerId);
+    } else {
+      await _box.write(keyPlayerSelectedPlayerId, id);
+    }
+  }
+
+  static int? getPlayerSelectedPlayerId() {
+    return _box.read<int?>(keyPlayerSelectedPlayerId);
+  }
+
+  static Future<void> setPlayerSelectedPlayerName(String? value) async {
+    if (value == null) {
+      await _box.remove(keyPlayerSelectedPlayerName);
+    } else {
+      await _box.write(keyPlayerSelectedPlayerName, value);
+    }
+  }
+
+  static String? getPlayerSelectedPlayerName() {
+    return _box.read<String?>(keyPlayerSelectedPlayerName);
+  }
+
   static Future<void> clearOrganization() async {
     await _box.remove(keyOrganization);
     await _box.remove(keyPrimary);
@@ -249,6 +305,10 @@ class AppStorage {
     await setSelectedCategoryName(null);
     await setSelectedPlayerId(null);
     await setSelectedPlayerName(null);
+    await setParentSelectedPlayerId(null);
+    await setParentSelectedPlayerName(null);
+    await setPlayerSelectedPlayerId(null);
+    await setPlayerSelectedPlayerName(null);
     await clearAppUsageSession();
   }
 }

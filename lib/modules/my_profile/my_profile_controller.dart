@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:stopandgo/core/network/api_repository.dart';
+import 'package:stopandgo/core/models/responses/login_response.dart';
 import 'package:stopandgo/core/storage/app_storage.dart';
 import 'package:stopandgo/routes/app_routes.dart'; // ajusta si tu archivo de rutas es otro
 
@@ -70,9 +71,11 @@ class MyProfileController extends GetxController {
         }
         selectedRole.value = role;
       }
-
-      // Opcional: sincronizar con storage local si tienes un modelo de user
-      // await AppStorage.setUser(User.fromJson(data));
+      if (sessionUser != null) {
+        await AppStorage.setUser(
+          User.fromJson({...sessionUser.toJson(), ...data}),
+        );
+      }
     } catch (e) {
       Get.snackbar('Error', e.toString(), snackPosition: SnackPosition.BOTTOM);
     } finally {
@@ -114,24 +117,32 @@ class MyProfileController extends GetxController {
           ? Map<String, dynamic>.from(res['user'])
           : res;
 
-      final switchedRole = (userData['active_role'] ?? userData['role'])
-          ?.toString();
-      if (switchedRole != null && switchedRole.isNotEmpty) {
-        await AppStorage.setActiveRole(switchedRole);
-        selectedRole.value = switchedRole;
-      }
-
       final sessionUser = AppStorage.getUser();
       if (sessionUser != null) {
-        await AppStorage.setUser(
-          sessionUser.copyWith(
-            name: name,
-            email: email,
-            phone: phone.isEmpty ? null : phone,
-            curp: curp.isEmpty ? null : curp,
-            birthdate: birthdate.isEmpty ? null : birthdate,
-          ),
-        );
+        var updatedUser = User.fromJson({...sessionUser.toJson(), ...userData})
+            .copyWith(
+              name: name,
+              email: email,
+              phone: phone.isEmpty ? null : phone,
+              curp: curp.isEmpty ? null : curp,
+              birthdate: birthdate.isEmpty ? null : birthdate,
+            );
+
+        final requestedRole = role?.trim().toLowerCase();
+        if (requestedRole != null &&
+            requestedRole.isNotEmpty &&
+            requestedRole != updatedUser.activeRole) {
+          final switchData = await _api.switchRole(requestedRole);
+          updatedUser = User.fromJson({
+            ...updatedUser.toJson(),
+            ...switchData,
+            'role': requestedRole,
+            'active_role': requestedRole,
+          });
+        }
+
+        await AppStorage.setUser(updatedUser);
+        selectedRole.value = updatedUser.activeRole;
       }
 
       Get.snackbar(

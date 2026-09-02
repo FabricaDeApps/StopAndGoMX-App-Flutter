@@ -22,9 +22,7 @@ class LoginResponse {
   factory LoginResponse.fromJson(Map<String, dynamic> json) {
     return LoginResponse(
       user: User.fromJson(json['user'] ?? {}),
-      organization: OrganizationResponse.fromJson(
-        _asMap(json['organization']),
-      ),
+      organization: OrganizationResponse.fromJson(_asMap(json['organization'])),
       tokenType: json['token_type'] ?? '',
       accessToken: json['access_token'] ?? '',
       accessExpiresInMinutes: json['access_expires_in_minutes'] ?? 0,
@@ -43,6 +41,9 @@ Map<String, dynamic> _asMap(dynamic raw) {
 
 class User {
   final int id;
+
+  /// `players.id` for the active player role. Never contains `users.id`.
+  final int? playerId;
   final String name;
   final String email;
   final String? photoUrl;
@@ -59,6 +60,7 @@ class User {
 
   User({
     required this.id,
+    this.playerId,
     required this.name,
     required this.email,
     this.photoUrl,
@@ -79,9 +81,9 @@ class User {
 
     final parsedRoles = (json['roles'] is List)
         ? (json['roles'] as List)
-            .map((e) => normalizeRole(e.toString()))
-            .where((e) => e.isNotEmpty)
-            .toList()
+              .map((e) => normalizeRole(e.toString()))
+              .where((e) => e.isNotEmpty)
+              .toList()
         : <String>[];
 
     final roleFromApi = normalizeRole((json['role'] ?? '').toString());
@@ -91,8 +93,8 @@ class User {
     final effectiveRole = activeRole.isNotEmpty
         ? activeRole
         : (roleFromApi.isNotEmpty
-            ? roleFromApi
-            : (primaryRole.isNotEmpty ? primaryRole : ''));
+              ? roleFromApi
+              : (primaryRole.isNotEmpty ? primaryRole : ''));
 
     final roles = parsedRoles.isNotEmpty
         ? parsedRoles
@@ -101,14 +103,17 @@ class User {
 
     return User(
       id: json['id'] ?? 0,
+      playerId: _asNullableInt(json['player_id']),
       name: json['name'] ?? '',
       email: json['email'] ?? '',
-      photoUrl: json['profile_photo_url']?.toString() ??
+      photoUrl:
+          json['profile_photo_url']?.toString() ??
           json['photo_url']?.toString() ??
           '',
       phone: json['phone']?.toString(),
       curp: json['curp']?.toString(),
-      birthdate: json['birthdate']?.toString() ??
+      birthdate:
+          json['birthdate']?.toString() ??
           json['birth_date']?.toString() ??
           json['date_of_birth']?.toString(),
       role: effectiveRole,
@@ -123,6 +128,7 @@ class User {
 
   User copyWith({
     int? id,
+    Object? playerId = _unset,
     String? name,
     String? email,
     String? photoUrl,
@@ -139,6 +145,7 @@ class User {
   }) {
     return User(
       id: id ?? this.id,
+      playerId: identical(playerId, _unset) ? this.playerId : playerId as int?,
       name: name ?? this.name,
       email: email ?? this.email,
       photoUrl: photoUrl ?? this.photoUrl,
@@ -156,22 +163,31 @@ class User {
   }
 
   Map<String, dynamic> toJson() => {
-        'id': id,
-        'name': name,
-        'email': email,
-        if (photoUrl != null && photoUrl!.isNotEmpty) ...{
-          'photo_url': photoUrl,
-          'profile_photo_url': photoUrl,
-        },
-        if (phone != null && phone!.isNotEmpty) 'phone': phone,
-        if (curp != null && curp!.isNotEmpty) 'curp': curp,
-        if (birthdate != null && birthdate!.isNotEmpty) 'birthdate': birthdate,
-        'role': role,
-        'roles': roles,
-        'primary_role': primaryRole,
-        'active_role': activeRole,
-        if (so != null) 'so': so,
-        if (deviceToken != null) 'device_token': deviceToken,
-        if (deviceName != null) 'device_name': deviceName,
-      };
+    'id': id,
+    'player_id': playerId,
+    'name': name,
+    'email': email,
+    if (photoUrl != null && photoUrl!.isNotEmpty) ...{
+      'photo_url': photoUrl,
+      'profile_photo_url': photoUrl,
+    },
+    if (phone != null && phone!.isNotEmpty) 'phone': phone,
+    if (curp != null && curp!.isNotEmpty) 'curp': curp,
+    if (birthdate != null && birthdate!.isNotEmpty) 'birthdate': birthdate,
+    'role': role,
+    'roles': roles,
+    'primary_role': primaryRole,
+    'active_role': activeRole,
+    if (so != null) 'so': so,
+    if (deviceToken != null) 'device_token': deviceToken,
+    if (deviceName != null) 'device_name': deviceName,
+  };
+}
+
+const Object _unset = Object();
+
+int? _asNullableInt(dynamic value) {
+  if (value is int) return value;
+  if (value is num) return value.toInt();
+  return int.tryParse(value?.toString() ?? '');
 }

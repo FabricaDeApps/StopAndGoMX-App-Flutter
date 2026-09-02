@@ -141,6 +141,15 @@ class AuthRepository extends GetxService {
         refreshExpiresAt: refreshExp,
         accessExpiresInMinutes: accessExpiresMinutes,
       );
+      final rawUser = _extractUserPayload(payload);
+      if (rawUser != null) {
+        final cached = AppStorage.getUser();
+        final merged = <String, dynamic>{
+          if (cached != null) ...cached.toJson(),
+          ...rawUser,
+        };
+        await AppStorage.setUser(User.fromJson(merged));
+      }
       debugPrint('refresh success');
       completer.complete(true);
       return true;
@@ -200,6 +209,9 @@ class AuthRepository extends GetxService {
       return Map<String, dynamic>.from(body['data'] as Map);
     }
     if (body['id'] != null && body['email'] != null) {
+      return body;
+    }
+    if (body.containsKey('player_id') || body.containsKey('active_role')) {
       return body;
     }
     return null;

@@ -3,7 +3,7 @@
 # Detiene el script si ocurre algún error
 set -e
 
-SUBMIT_REVIEW="${SUBMIT_REVIEW:-false}"
+SUBMIT_REVIEW="${SUBMIT_REVIEW:-true}"
 
 if [[ "$1" == "--submit-review" ]]; then
   SUBMIT_REVIEW="true"
@@ -59,10 +59,10 @@ echo ""
 ########################################
 # BEARSQRO
 ########################################
-echo "🐺💛 Deploy iOS: BEARSQRO"
-fastlane deploy_bearsqro "${FASTLANE_REVIEW_ARGS[@]}"
-echo "✅ BEARSQRO completado"
-echo ""
+#echo "🐺💛 Deploy iOS: BEARSQRO"
+#fastlane deploy_bearsqro "${FASTLANE_REVIEW_ARGS[@]}"
+#echo "✅ BEARSQRO completado"
+#echo ""
 
 ########################################
 # CELTAS

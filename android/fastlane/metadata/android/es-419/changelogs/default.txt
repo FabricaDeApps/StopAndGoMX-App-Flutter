@@ -1,1 +1,1 @@
-- Pagos con transferencia automática
+- Fix role player/parent payments
