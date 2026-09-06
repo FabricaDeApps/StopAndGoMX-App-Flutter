@@ -41,6 +41,22 @@ class StoreToolTest < Minitest::Test
     assert_equal first_generation, generated_files
   end
 
+  def test_keeps_iphone_and_ipad_screenshots_with_matching_names
+    %w[iphone ipad].each do |device|
+      directory = File.join(@temporary_directory, device)
+      FileUtils.mkdir_p(directory)
+      File.write(File.join(directory, '01-login.png'), device)
+      key = device == 'ipad' ? 'iosIpadDirectory' : 'iosIphoneDirectory'
+      @config['store']['screenshots'][key] = directory
+    end
+    File.write(@config_path, JSON.pretty_generate(@config))
+    tool = StoreTool.new(config_path: @config_path, output_root: @output_path)
+    assert tool.generate
+    screenshots = File.join(@output_path, 'ios/screenshots/es-MX')
+    assert_equal 'iphone', File.read(File.join(screenshots, '01-login.png'))
+    assert_equal 'ipad', File.read(File.join(screenshots, 'ipad-01-login.png'))
+  end
+
   def test_rejects_text_over_store_limit
     @config['store']['localizations'][0]['title'] = 'A' * 31
     File.write(@config_path, JSON.pretty_generate(@config))

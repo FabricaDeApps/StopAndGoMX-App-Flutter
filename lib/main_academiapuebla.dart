@@ -4,8 +4,11 @@ import 'package:stopandgo/stopandgo_app.dart';
 
 import 'core/config/flavor_config.dart';
 
-Future<void> main() async {
+Future<void> main() => runAcademiaPuebla();
+
+Future<void> runAcademiaPuebla({bool initializeNotifications = true}) async {
   await AppBootstrap.run(
+    initializeNotifications: initializeNotifications,
     firebaseOptions: DefaultFirebaseOptions.currentPlatform,
     initFlavorConfig: () {
       FlavorConfig.init(

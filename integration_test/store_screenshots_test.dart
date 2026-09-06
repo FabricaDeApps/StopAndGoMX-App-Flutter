@@ -20,12 +20,12 @@ void main() {
     expect(_password, isNotEmpty, reason: 'Falta STORE_REVIEW_PASSWORD.');
     expect(
       _platform,
-      anyOf('android', 'ios'),
-      reason: 'STORE_SCREENSHOT_PLATFORM debe ser android o ios.',
+      anyOf('android', 'ios', 'ios-ipad'),
+      reason: 'STORE_SCREENSHOT_PLATFORM debe ser android, ios o ios-ipad.',
     );
 
     await _clearLocalSession();
-    await app.main();
+    await app.runAcademiaPuebla(initializeNotifications: false);
     addTearDown(_logoutAndClearSession);
 
     if (Platform.isAndroid) {
@@ -134,6 +134,20 @@ Future<void> _capture(
   IntegrationTestWidgetsFlutterBinding binding,
   String name,
 ) async {
+  if (_platform == 'ios-ipad') {
+    final client = HttpClient();
+    try {
+      final request = await client.getUrl(
+        Uri.parse('http://127.0.0.1:8879/$name'),
+      );
+      final response = await request.close();
+      await response.drain<void>();
+      expect(response.statusCode, 200, reason: 'Falló captura nativa de $name');
+    } finally {
+      client.close(force: true);
+    }
+    return;
+  }
   final bytes = await binding.takeScreenshot(name);
   expect(bytes, isNotEmpty);
 }

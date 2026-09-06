@@ -64,6 +64,8 @@
       "androidPhoneDirectory": "branding/academiapuebla/store/screenshots/android/phone",
       "iosIphoneRawDirectory": "branding/academiapuebla/store/screenshots/ios/iphone-6.9-raw",
       "iosIphoneDirectory": "branding/academiapuebla/store/screenshots/ios/iphone-6.9",
+      "iosIpadRawDirectory": "branding/academiapuebla/store/screenshots/ios/ipad-13-raw",
+      "iosIpadDirectory": "branding/academiapuebla/store/screenshots/ios/ipad-13",
       "minimumRequired": 1,
       "recommended": 3,
       "scenarios": [

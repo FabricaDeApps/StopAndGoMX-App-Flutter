@@ -27,6 +27,7 @@ class AppBootstrap {
     required void Function() initFlavorConfig,
     required AppWidgetBuilder appBuilder,
     String localeTag = 'es_MX',
+    bool initializeNotifications = true,
     String sentryDsn =
         'https://492035ed33b2bfbfaf2b07a1871f910d@o4510723899129856.ingest.us.sentry.io/4510723974037504',
     double sentryTracesSampleRate = 0.0,
@@ -77,7 +78,9 @@ class AppBootstrap {
 
       FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
 
-      await NotificationService.initialize();
+      if (initializeNotifications) {
+        await NotificationService.initialize();
+      }
       await ApiClient.init();
 
       runApp(ClarityService.wrapApp(appBuilder()));

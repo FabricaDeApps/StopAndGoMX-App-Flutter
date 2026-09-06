@@ -36,6 +36,17 @@ void main(List<String> arguments) {
     android: false,
   );
 
+  final ipadSource = screenshots['iosIpadRawDirectory'] as String?;
+  if (ipadSource != null &&
+      Directory(_absolute(projectRoot, ipadSource)).existsSync()) {
+    _normalizeScreenshots(
+      projectRoot,
+      sourceDirectory: ipadSource,
+      destinationDirectory: screenshots['iosIpadDirectory'] as String,
+      android: false,
+    );
+  }
+
   stdout.writeln('Assets de tienda generados para ${config['flavor']}.');
 }
 

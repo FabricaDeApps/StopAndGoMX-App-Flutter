@@ -184,8 +184,11 @@ class StoreTool
 
     {
       'Android' => screenshots['androidPhoneDirectory'],
-      'iOS' => screenshots['iosIphoneDirectory']
+      'iOS' => screenshots['iosIphoneDirectory'],
+      'iPad' => screenshots['iosIpadDirectory']
     }.each do |platform, directory|
+      next if platform == 'iPad' && directory.to_s.empty?
+
       files = image_files(directory)
       count = files.length
       if count < minimum
@@ -243,6 +246,7 @@ class StoreTool
       errors << "Android: #{File.basename(path)} debe medir entre 320 y 3840 px y no superar proporción 2:1." unless short >= 320 && long <= 3_840 && long <= short * 2
     else
       accepted = [[1_260, 2_736], [1_290, 2_796], [1_320, 2_868], [1_284, 2_778], [1_242, 2_688]]
+      accepted = [[2_064, 2_752], [2_048, 2_732]] if platform == 'iPad'
       size = [info[:width], info[:height]]
       errors << "iOS: #{File.basename(path)} tiene tamaño no admitido (#{size.join('x')})." unless accepted.include?(size) || accepted.include?(size.reverse)
     end
@@ -291,15 +295,20 @@ class StoreTool
         screenshots['iosIphoneDirectory'],
         File.join(output_root, 'ios/screenshots', localization.fetch('iosLocale'))
       )
+      copy_images(
+        screenshots['iosIpadDirectory'],
+        File.join(output_root, 'ios/screenshots', localization.fetch('iosLocale')),
+        prefix: 'ipad-'
+      )
     end
   end
 
-  def copy_images(source, destination)
+  def copy_images(source, destination, prefix: '')
     files = image_files(source)
     return if files.empty?
 
     FileUtils.mkdir_p(destination)
-    files.each { |path| FileUtils.cp(path, File.join(destination, File.basename(path))) }
+    files.each { |path| FileUtils.cp(path, File.join(destination, "#{prefix}#{File.basename(path)}")) }
   end
 
   def copy_file(source, destination)

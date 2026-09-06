@@ -25,6 +25,7 @@ cuenta demo de `store.json`; las variables de entorno permiten sobrescribirla.
 ```bash
 ./scripts/capture_store_screenshots.sh android [device-id]
 ./scripts/capture_store_screenshots.sh ios [device-id]
+./scripts/capture_store_screenshots.sh ios-ipad [device-id]
 ```
 
 El flujo limpia la sesión local, captura login, inicia sesión, captura home y
@@ -67,3 +68,22 @@ ACADEMIAPUEBLA_REVIEW_PASSWORD='contraseña-demo' \
 Este comando no sube información. Falla mientras falten URLs, contacto,
 credenciales de revisión o screenshots. También requiere cambiar `store.status`
 de `draft` a `approved` después de la revisión humana.
+
+## Capturas iPad
+
+`ios-ipad` usa por defecto el simulador disponible llamado
+`Store Screenshots iPad Pro 13-inch` y lo inicia si está apagado. También puedes
+pasar el UUID de otro simulador iPad de 13 pulgadas.
+
+Las capturas originales quedan en `screenshots/ios/ipad-13-raw/` y las versiones
+sin alpha en `screenshots/ios/ipad-13/`. Se reutilizan login, home y home-menu.
+La metadata incorpora estas imágenes con prefijo `ipad-` para conservar también
+las de iPhone. Este flujo no sube capturas ni builds a App Store Connect.
+
+La prueba omite la inicialización de notificaciones para evitar el diálogo de
+permisos en simuladores nuevos. El arranque normal de la app mantiene las
+notificaciones habilitadas.
+
+En iPad, el driver captura mediante `simctl` cuando la prueba alcanza cada
+escenario. Se comunican mediante un servidor local en `127.0.0.1:8879`; ejecuta
+una captura iPad a la vez. Esto evita PNG en blanco del capturador de Flutter.
