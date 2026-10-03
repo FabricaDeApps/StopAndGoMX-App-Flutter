@@ -17,7 +17,8 @@ class PaymentDetailController extends GetxController {
 
   bool get canPayWithCard =>
       AppStorage.getOrganization()?.payCardEnabled ?? false;
-  bool get canPayWithSpei => canPayWithCard;
+  bool get canPayWithSpei =>
+      AppStorage.getOrganization()?.paySpeiTransferEnabled ?? false;
 
   bool get isPaid => payment.value?.status == 'paid';
 

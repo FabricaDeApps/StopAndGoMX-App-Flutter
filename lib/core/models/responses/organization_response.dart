@@ -21,6 +21,7 @@ class OrganizationResponse {
   final bool isEcommerceAvailable;
   final bool streamingEnabled;
   final bool payCardEnabled;
+  final bool paySpeiTransferEnabled;
   final bool gazettaEnabled;
   final bool socialModule;
   final bool meritProgramEnabled;
@@ -51,6 +52,7 @@ class OrganizationResponse {
     required this.isEcommerceAvailable,
     required this.streamingEnabled,
     required this.payCardEnabled,
+    this.paySpeiTransferEnabled = false,
     required this.gazettaEnabled,
     required this.socialModule,
     required this.meritProgramEnabled,
@@ -124,6 +126,7 @@ class OrganizationResponse {
       isEcommerceAvailable: isEcomAvailable,
       streamingEnabled: _asBool(json['streaming_enabled'], fallback: false),
       payCardEnabled: _asBool(json['pay_card_enabled'], fallback: false),
+      paySpeiTransferEnabled: json['pay_spei_transfer_enabled'] == true,
       gazettaEnabled: _asBool(
         json['gazetta_enabled'] ?? json['gazzetta_enabled'],
         fallback: false,
@@ -164,6 +167,7 @@ class OrganizationResponse {
         'is_ecommerce_available': isEcommerceAvailable,
         'streaming_enabled': streamingEnabled,
         'pay_card_enabled': payCardEnabled,
+        'pay_spei_transfer_enabled': paySpeiTransferEnabled,
         'gazetta_enabled': gazettaEnabled,
         'social_module': socialModule,
         'merit_program_enabled': meritProgramEnabled,

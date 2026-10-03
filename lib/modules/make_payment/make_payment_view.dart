@@ -64,7 +64,6 @@ class MakePaymentView extends GetView<MakePaymentController> {
                         value: 'transfer',
                         child: Text('Transferencia'),
                       ),
-                      DropdownMenuItem(value: 'card', child: Text('Tarjeta')),
                     ],
                     onChanged: (v) => controller.method.value = v ?? 'transfer',
                   ),

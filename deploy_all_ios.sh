@@ -28,7 +28,7 @@ cd ios
 # MAINAPP
 ########################################
 echo "📦 Deploy iOS: MAINAPP"
-fastlane deploy_mainapp "${FASTLANE_REVIEW_ARGS[@]}"
+#fastlane deploy_mainapp "${FASTLANE_REVIEW_ARGS[@]}"
 echo "✅ MAINAPP completado"
 echo ""
 
@@ -36,7 +36,7 @@ echo ""
 # ZORROS
 ########################################
 echo "🐺 Deploy iOS: ZORROS"
-fastlane deploy_zorros "${FASTLANE_REVIEW_ARGS[@]}"
+#fastlane deploy_zorros "${FASTLANE_REVIEW_ARGS[@]}"
 echo "✅ ZORROS completado"
 echo ""
 
@@ -44,7 +44,7 @@ echo ""
 # RAIDERSQRO
 ########################################
 echo "🏴‍☠️ Deploy iOS: RAIDERSQRO"
-fastlane deploy_raidersqro "${FASTLANE_REVIEW_ARGS[@]}"
+#fastlane deploy_raidersqro "${FASTLANE_REVIEW_ARGS[@]}"
 echo "✅ RAIDERSQRO completado"
 echo ""
 
@@ -67,10 +67,10 @@ echo ""
 ########################################
 # CELTAS
 ########################################
-#echo "☘️ Deploy iOS: CELTAS"
+echo "☘️ Deploy iOS: CELTAS"
 #fastlane deploy_celtas "${FASTLANE_REVIEW_ARGS[@]}"
-#echo "✅ CELTAS completado"
-#echo ""
+echo "✅ CELTAS completado"
+echo ""
 
 ########################################
 # CIMARRONESQRO

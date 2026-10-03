@@ -4,6 +4,9 @@ Todos los cambios importantes del proyecto **StopAndGoMX** se documentan en este
 El formato sigue las recomendaciones de **Keep a Changelog**  
 y el versionado está basado en **Semantic Versioning (SemVer)**.
 
+## [1.2.10] - 2026-9-1
+• Fix Analytics
+
 ## [1.2.9] - 2026-9-1
 • Fix role player/parent payments
 
