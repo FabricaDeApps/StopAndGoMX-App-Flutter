@@ -254,16 +254,12 @@ platform :ios do
     )
 
     ########################################
-    # 3.5) DEBUG: mostrar CFBundleIdentifier del IPA
+    # 3.5) Validar el plist real antes de subir cualquier flavor
     ########################################
     ipa_path = File.join(output_path, ipa_name)
     UI.message("🔍 IPA generado en: #{ipa_path}")
 
-    sh "rm -rf /tmp/ipa_#{flavor}"
-    sh "mkdir -p /tmp/ipa_#{flavor}"
-    sh "unzip -o '#{ipa_path}' -d /tmp/ipa_#{flavor} >/dev/null"
-    UI.message("📦 Leyendo CFBundleIdentifier real del IPA:")
-    sh "plutil -p /tmp/ipa_#{flavor}/Payload/*.app/Info.plist | grep CFBundleIdentifier || echo 'CFBundleIdentifier no encontrado'"
+    sh "python3", File.join(PROJECT_ROOT, "scripts/validate_ios_ipa.py"), ipa_path, bundle_id
 
     ########################################
     # 4) Upload a TestFlight
